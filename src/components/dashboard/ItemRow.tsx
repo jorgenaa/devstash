@@ -3,28 +3,17 @@ import { Pin, Star } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import type { DashboardItem } from "@/lib/db/items";
 import { ItemTypeIcon } from "@/lib/item-type-icons";
-import { mockItemTypes } from "@/lib/mock-data";
-
-type Item = {
-  id: string;
-  title: string;
-  description?: string | null;
-  isFavorite: boolean;
-  isPinned: boolean;
-  itemTypeId: string;
-  tags: string[];
-  createdAt: Date;
-};
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",
   day: "numeric",
 });
 
-export function ItemRow({ item }: { item: Item }) {
-  const type = mockItemTypes.find((t) => t.id === item.itemTypeId);
-  const color = type?.color ?? "#6b7280";
+export function ItemRow({ item }: { item: DashboardItem }) {
+  const { type } = item;
+  const color = type.color;
 
   return (
     <Link
@@ -44,14 +33,12 @@ export function ItemRow({ item }: { item: Item }) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <div className="flex items-center gap-1.5">
-              {type && (
-                <ItemTypeIcon
-                  name={type.icon}
-                  className="size-3.5 shrink-0"
-                  style={{ color }}
-                  aria-label={type.name}
-                />
-              )}
+              <ItemTypeIcon
+                name={type.icon}
+                className="size-3.5 shrink-0"
+                style={{ color }}
+                aria-label={type.name}
+              />
               <h3 className="truncate text-sm font-medium">{item.title}</h3>
               {item.isPinned && (
                 <Pin
