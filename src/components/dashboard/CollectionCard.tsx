@@ -2,23 +2,14 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
+import type { DashboardCollection } from "@/lib/db/collections";
 import { ItemTypeIcon } from "@/lib/item-type-icons";
-import { mockItemTypes } from "@/lib/mock-data";
 
-type Collection = {
-  id: string;
-  name: string;
-  description?: string | null;
-  isFavorite: boolean;
-  itemCount: number;
-  typeIds: string[];
-};
-
-export function CollectionCard({ collection }: { collection: Collection }) {
-  const types = collection.typeIds
-    .map((id) => mockItemTypes.find((t) => t.id === id))
-    .filter((t): t is (typeof mockItemTypes)[number] => Boolean(t));
-
+export function CollectionCard({
+  collection,
+}: {
+  collection: DashboardCollection;
+}) {
   return (
     <Link
       href={`/collections/${collection.id}`}
@@ -26,7 +17,12 @@ export function CollectionCard({ collection }: { collection: Collection }) {
     >
       <Card
         size="sm"
-        className="h-full gap-3 px-4 transition-colors hover:bg-muted/40 group-focus-visible:ring-2 group-focus-visible:ring-ring"
+        className="h-full gap-3 border-l-2 border-l-transparent px-4 transition-colors hover:bg-muted/40 group-focus-visible:ring-2 group-focus-visible:ring-ring"
+        style={
+          collection.accentColor
+            ? { borderLeftColor: collection.accentColor }
+            : undefined
+        }
       >
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 flex-col gap-0.5">
@@ -42,7 +38,8 @@ export function CollectionCard({ collection }: { collection: Collection }) {
               )}
             </div>
             <span className="text-xs text-muted-foreground">
-              {collection.itemCount} {collection.itemCount === 1 ? "item" : "items"}
+              {collection.itemCount}{" "}
+              {collection.itemCount === 1 ? "item" : "items"}
             </span>
           </div>
         </div>
@@ -53,9 +50,9 @@ export function CollectionCard({ collection }: { collection: Collection }) {
           </p>
         )}
 
-        {types.length > 0 && (
+        {collection.types.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
-            {types.map((type) => (
+            {collection.types.map((type) => (
               <ItemTypeIcon
                 key={type.id}
                 name={type.icon}

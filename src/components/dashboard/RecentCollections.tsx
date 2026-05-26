@@ -1,12 +1,10 @@
 import Link from "next/link";
 
 import { CollectionCard } from "@/components/dashboard/CollectionCard";
-import { mockCollections } from "@/lib/mock-data";
+import { getRecentCollections } from "@/lib/db/collections";
 
-export function RecentCollections() {
-  const collections = [...mockCollections]
-    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-    .slice(0, 6);
+export async function RecentCollections() {
+  const collections = await getRecentCollections(6);
 
   return (
     <section>
@@ -20,11 +18,15 @@ export function RecentCollections() {
         </Link>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {collections.map((collection) => (
-          <CollectionCard key={collection.id} collection={collection} />
-        ))}
-      </div>
+      {collections.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No collections yet.</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {collections.map((collection) => (
+            <CollectionCard key={collection.id} collection={collection} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
