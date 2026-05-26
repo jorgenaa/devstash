@@ -2,7 +2,8 @@ import { FolderOpen, Package, Star } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
-import { mockCollections, mockItems } from "@/lib/mock-data";
+import { getCollectionStats } from "@/lib/db/collections";
+import { mockItems } from "@/lib/mock-data";
 
 type Stat = {
   label: string;
@@ -10,7 +11,9 @@ type Stat = {
   icon: LucideIcon;
 };
 
-export function StatsCards() {
+export async function StatsCards() {
+  const collectionStats = await getCollectionStats();
+
   const stats: Stat[] = [
     {
       label: "Items",
@@ -19,7 +22,7 @@ export function StatsCards() {
     },
     {
       label: "Collections",
-      value: mockCollections.length,
+      value: collectionStats.total,
       icon: FolderOpen,
     },
     {
@@ -29,7 +32,7 @@ export function StatsCards() {
     },
     {
       label: "Favorite collections",
-      value: mockCollections.filter((c) => c.isFavorite).length,
+      value: collectionStats.favorites,
       icon: Star,
     },
   ];
