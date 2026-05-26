@@ -3,7 +3,7 @@ import type { LucideIcon } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { getCollectionStats } from "@/lib/db/collections";
-import { mockItems } from "@/lib/mock-data";
+import { getItemStats } from "@/lib/db/items";
 
 type Stat = {
   label: string;
@@ -12,12 +12,15 @@ type Stat = {
 };
 
 export async function StatsCards() {
-  const collectionStats = await getCollectionStats();
+  const [collectionStats, itemStats] = await Promise.all([
+    getCollectionStats(),
+    getItemStats(),
+  ]);
 
   const stats: Stat[] = [
     {
       label: "Items",
-      value: mockItems.length,
+      value: itemStats.total,
       icon: Package,
     },
     {
@@ -27,7 +30,7 @@ export async function StatsCards() {
     },
     {
       label: "Favorite items",
-      value: mockItems.filter((i) => i.isFavorite).length,
+      value: itemStats.favorites,
       icon: Star,
     },
     {
