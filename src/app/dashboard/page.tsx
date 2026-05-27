@@ -3,12 +3,19 @@ import { PinnedItems } from "@/components/dashboard/PinnedItems";
 import { RecentCollections } from "@/components/dashboard/RecentCollections";
 import { RecentItems } from "@/components/dashboard/RecentItems";
 import { StatsCards } from "@/components/dashboard/StatsCards";
+import { getSidebarCollections } from "@/lib/db/collections";
+import { getSidebarItemTypes } from "@/lib/db/items";
 
 export const dynamic = "force-dynamic";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const [itemTypes, { favorites, recent }] = await Promise.all([
+    getSidebarItemTypes(),
+    getSidebarCollections(),
+  ]);
+
   return (
-    <DashboardShell>
+    <DashboardShell sidebarData={{ itemTypes, favorites, recent }}>
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <header className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>

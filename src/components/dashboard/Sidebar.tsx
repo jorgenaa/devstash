@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Settings, Star } from "lucide-react";
+import { ChevronDown, Settings, Star } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -12,24 +13,24 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { getItemTypeIcon } from "@/lib/item-type-icons";
-import {
-  mockCollections,
-  mockItemTypeCounts,
-  mockItemTypes,
-  mockUser,
-} from "@/lib/mock-data";
+import type { SidebarItemType } from "@/lib/db/items";
+import type { SidebarCollection } from "@/lib/db/collections";
+
+export type SidebarData = {
+  itemTypes: SidebarItemType[];
+  favorites: SidebarCollection[];
+  recent: SidebarCollection[];
+};
 
 type SidebarProps = {
+  data: SidebarData;
   collapsed?: boolean;
   onNavigate?: () => void;
 };
 
-const FAVORITE_COLLECTIONS = mockCollections.filter((c) => c.isFavorite);
-const RECENT_COLLECTIONS = [...mockCollections]
-  .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-  .slice(0, 5);
+export function Sidebar({ data, collapsed = false, onNavigate }: SidebarProps) {
+  const [collectionsOpen, setCollectionsOpen] = useState(true);
 
-export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
   return (
     <div
       data-collapsed={collapsed}
@@ -40,12 +41,8 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
     >
       <nav className="flex-1 overflow-y-auto px-2 py-3">
         <SidebarSection title="Types" collapsed={collapsed}>
-          {mockItemTypes.map((type) => {
+          {data.itemTypes.map((type) => {
             const Icon = getItemTypeIcon(type.icon);
-            const count =
-              mockItemTypeCounts[
-                type.name as keyof typeof mockItemTypeCounts
-              ] ?? 0;
             const label = pluralize(type.name);
             const href = `/items/${label}`;
             return (
@@ -64,7 +61,7 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
                 trailing={
                   !collapsed ? (
                     <span className="text-xs text-muted-foreground">
-                      {count}
+                      {type.count}
                     </span>
                   ) : null
                 }
@@ -75,51 +72,78 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
           })}
         </SidebarSection>
 
-        <SidebarSection title="Collections" collapsed={collapsed}>
-          <SidebarSubsection title="Favorites" collapsed={collapsed}>
-            {FAVORITE_COLLECTIONS.map((collection) => (
-              <SidebarLink
-                key={collection.id}
-                href={`/collections/${collection.id}`}
-                collapsed={collapsed}
-                onNavigate={onNavigate}
-                tooltip={collection.name}
-                leading={
-                  <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
-                }
-              >
-                {collection.name}
-              </SidebarLink>
-            ))}
-          </SidebarSubsection>
+        <div className="mb-4">
+          {!collapsed ? (
+            <button
+              onClick={() => setCollectionsOpen((v) => !v)}
+              className="flex w-full items-center justify-between px-2 pb-1.5 text-sm font-medium text-sidebar-foreground hover:text-sidebar-accent-foreground"
+            >
+              Collections
+              <ChevronDown
+                className={cn(
+                  "size-3.5 text-muted-foreground transition-transform duration-200",
+                  !collectionsOpen && "-rotate-90"
+                )}
+              />
+            </button>
+          ) : (
+            <div className="mx-2 mb-1 h-px bg-sidebar-border" aria-hidden />
+          )}
 
-          <SidebarSubsection title="Recent" collapsed={collapsed}>
-            {RECENT_COLLECTIONS.map((collection) => (
-              <SidebarLink
-                key={collection.id}
-                href={`/collections/${collection.id}`}
-                collapsed={collapsed}
-                onNavigate={onNavigate}
-                tooltip={collection.name}
-                leading={
-                  <span
-                    className="size-1.5 shrink-0 rounded-full bg-muted-foreground/60"
-                    aria-hidden
-                  />
-                }
-                trailing={
-                  !collapsed ? (
-                    <span className="text-xs text-muted-foreground">
-                      {collection.itemCount}
-                    </span>
-                  ) : null
-                }
-              >
-                {collection.name}
-              </SidebarLink>
-            ))}
-          </SidebarSubsection>
-        </SidebarSection>
+          {(collapsed || collectionsOpen) && (
+            <div className="flex flex-col gap-0.5">
+              <SidebarSubsection title="Favorites" collapsed={collapsed}>
+                {data.favorites.map((collection) => (
+                  <SidebarLink
+                    key={collection.id}
+                    href={`/collections/${collection.id}`}
+                    collapsed={collapsed}
+                    onNavigate={onNavigate}
+                    tooltip={collection.name}
+                    leading={
+                      <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
+                    }
+                  >
+                    {collection.name}
+                  </SidebarLink>
+                ))}
+              </SidebarSubsection>
+
+              <SidebarSubsection title="Recent" collapsed={collapsed}>
+                {data.recent.map((collection) => (
+                  <SidebarLink
+                    key={collection.id}
+                    href={`/collections/${collection.id}`}
+                    collapsed={collapsed}
+                    onNavigate={onNavigate}
+                    tooltip={collection.name}
+                    leading={
+                      <span
+                        className="size-2 shrink-0 rounded-full"
+                        style={{
+                          backgroundColor:
+                            collection.accentColor ?? "var(--muted-foreground)",
+                        }}
+                        aria-hidden
+                      />
+                    }
+                  >
+                    {collection.name}
+                  </SidebarLink>
+                ))}
+              </SidebarSubsection>
+
+              {!collapsed && (
+                <Link
+                  href="/collections"
+                  className="mt-1 flex h-8 items-center rounded-md px-2 text-xs text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                >
+                  View all collections
+                </Link>
+              )}
+            </div>
+          )}
+        </div>
       </nav>
 
       <UserFooter collapsed={collapsed} />
@@ -220,13 +244,6 @@ function SidebarLink({
 }
 
 function UserFooter({ collapsed }: { collapsed: boolean }) {
-  const initials = mockUser.name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
   return (
     <div
       className={cn(
@@ -235,17 +252,15 @@ function UserFooter({ collapsed }: { collapsed: boolean }) {
       )}
     >
       <Avatar size="sm">
-        <AvatarImage src="" alt={mockUser.name} />
-        <AvatarFallback>{initials}</AvatarFallback>
+        <AvatarImage src="" alt="User" />
+        <AvatarFallback>DS</AvatarFallback>
       </Avatar>
       {!collapsed && (
         <>
           <div className="flex min-w-0 flex-1 flex-col">
-            <span className="truncate text-sm font-medium">
-              {mockUser.name}
-            </span>
+            <span className="truncate text-sm font-medium">Demo User</span>
             <span className="truncate text-xs text-muted-foreground">
-              {mockUser.email}
+              demo@devstash.io
             </span>
           </div>
           <Button

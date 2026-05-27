@@ -6,9 +6,15 @@ import { PanelLeft, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { Sidebar } from "@/components/dashboard/Sidebar";
+import { Sidebar, type SidebarData } from "@/components/dashboard/Sidebar";
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+export function DashboardShell({
+  children,
+  sidebarData,
+}: {
+  children: React.ReactNode;
+  sidebarData: SidebarData;
+}) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -63,7 +69,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex flex-1">
         <aside className="hidden border-r border-sidebar-border md:flex">
-          <Sidebar collapsed={collapsed} />
+          <Sidebar data={sidebarData} collapsed={collapsed} />
         </aside>
 
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -73,7 +79,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             showCloseButton={false}
           >
             <SheetTitle className="sr-only">Navigation</SheetTitle>
-            <Sidebar onNavigate={() => setMobileOpen(false)} />
+            <Sidebar data={sidebarData} onNavigate={() => setMobileOpen(false)} />
           </SheetContent>
         </Sheet>
 

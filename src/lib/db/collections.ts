@@ -67,6 +67,52 @@ export async function getRecentCollections(
   });
 }
 
+export type SidebarCollection = {
+  id: string;
+  name: string;
+  accentColor: string | null;
+};
+
+export async function getSidebarCollections(): Promise<{
+  favorites: SidebarCollection[];
+  recent: SidebarCollection[];
+}> {
+  const collections = await prisma.collection.findMany({
+    where: { user: { email: DEMO_EMAIL } },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      items: {
+        include: {
+          item: {
+            select: {
+              itemType: { select: { id: true, color: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const toSidebarCollection = (
+    c: (typeof collections)[number],
+  ): SidebarCollection => {
+    const counts = new Map<string, { color: string; count: number }>();
+    for (const { item } of c.items) {
+      const type = item.itemType;
+      const entry = counts.get(type.id) ?? { color: type.color, count: 0 };
+      entry.count += 1;
+      counts.set(type.id, entry);
+    }
+    const top = [...counts.values()].sort((a, b) => b.count - a.count)[0];
+    return { id: c.id, name: c.name, accentColor: top?.color ?? null };
+  };
+
+  return {
+    favorites: collections.filter((c) => c.isFavorite).map(toSidebarCollection),
+    recent: collections.slice(0, 5).map(toSidebarCollection),
+  };
+}
+
 export async function getCollectionStats(): Promise<{
   total: number;
   favorites: number;
