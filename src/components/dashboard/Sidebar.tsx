@@ -46,7 +46,7 @@ export function Sidebar({ data, collapsed = false, onNavigate }: SidebarProps) {
             const Icon = getItemTypeIcon(type.icon);
             const label = pluralize(type.name);
             const href = `/items/${label}`;
-            const isPro = type.name === "File" || type.name === "Image";
+            const isPro = type.name === "file" || type.name === "image";
             return (
               <SidebarLink
                 key={type.id}
