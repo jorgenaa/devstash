@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronDown, Settings, Star } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -45,6 +46,7 @@ export function Sidebar({ data, collapsed = false, onNavigate }: SidebarProps) {
             const Icon = getItemTypeIcon(type.icon);
             const label = pluralize(type.name);
             const href = `/items/${label}`;
+            const isPro = type.name === "File" || type.name === "Image";
             return (
               <SidebarLink
                 key={type.id}
@@ -60,8 +62,18 @@ export function Sidebar({ data, collapsed = false, onNavigate }: SidebarProps) {
                 }
                 trailing={
                   !collapsed ? (
-                    <span className="text-xs text-muted-foreground">
-                      {type.count}
+                    <span className="flex items-center gap-1.5">
+                      {isPro && (
+                        <Badge
+                          variant="outline"
+                          className="h-4 px-1 py-0 text-[9px] font-semibold tracking-wide text-muted-foreground"
+                        >
+                          PRO
+                        </Badge>
+                      )}
+                      <span className="text-xs text-muted-foreground">
+                        {type.count}
+                      </span>
                     </span>
                   ) : null
                 }

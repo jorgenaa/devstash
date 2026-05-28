@@ -1,10 +1,23 @@
 # Current Feature
 
-_None — sidebar item types and collections now backed by the database._
+Add Pro Badge to Sidebar
 
 ## Status
 
-Completed
+In Progress
+
+## Goals
+
+- Display a "PRO" badge next to the File and Image item types in the sidebar
+- Badge uses shadcn/ui `Badge` component
+- Badge is clean and subtle (not loud/prominent)
+- Badge text is all uppercase: "PRO"
+
+## Notes
+
+- Only File and Image types are Pro-only per the project spec
+- Badge should appear in both expanded and collapsed sidebar states (or only expanded — use judgment)
+- `shadcn/ui badge` component is already installed (added in Dashboard UI Phase 3)
 
 ## History
 
