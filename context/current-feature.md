@@ -1,29 +1,18 @@
-# Current Feature: Auth Setup — NextAuth + GitHub Provider
+# Current Feature
+
+_None_
 
 ## Status
 
-In Progress
+Completed
 
 ## Goals
 
-- Install NextAuth v5 (`next-auth@beta`) and `@auth/prisma-adapter`
-- Set up split auth config pattern for edge compatibility
-- Add GitHub OAuth provider
-- Protect `/dashboard/*` routes using a Next.js proxy
-- Redirect unauthenticated users to NextAuth's default sign-in page
-- Extend Session type with `user.id`
+<!-- Populate with /feature load -->
 
 ## Notes
 
-- Use `next-auth@beta` (not `@latest` which installs v4)
-- Split config pattern: `src/auth.config.ts` (edge-safe, providers only) + `src/auth.ts` (full config with Prisma adapter + JWT strategy)
-- Proxy file must live at `src/proxy.ts` (same level as `app/`); use named export `export const proxy = auth(...)`
-- Do NOT set custom `pages.signIn` — use NextAuth's default page
-- Use `session: { strategy: 'jwt' }` in the full config
-- Files to create: `src/auth.config.ts`, `src/auth.ts`, `src/app/api/auth/[...nextauth]/route.ts`, `src/proxy.ts`, `src/types/next-auth.d.ts`
-- Env vars needed: `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`
-- Use Context7 to verify newest NextAuth v5 config/conventions before implementing
-- Testing: go to `/dashboard` → should redirect to sign-in → click "Sign in with GitHub" → verify redirect back to `/dashboard`
+<!-- Additional context, constraints, or details -->
 
 ## History
 
@@ -42,3 +31,5 @@ In Progress
 - 2026-05-28 — Pro badge added to sidebar. Updated [Sidebar.tsx](../src/components/dashboard/Sidebar.tsx) to show a subtle shadcn `Badge` (variant `outline`, muted foreground, `text-[9px]`) with the text "PRO" next to the File and Image item types in the expanded sidebar. Badge hidden in collapsed icon-rail. Pro types identified by lowercase name (`"file"` / `"image"`) matching the database values.
 
 - 2026-05-29 — Code quality quick wins completed (from code-scanner review). Fixed N+1 in `getSidebarItemTypes` by merging two sequential Prisma awaits into one `findMany` with a nested `where: { user: { email } }` filter. Added `export const dynamic = "force-dynamic"` to [items/[type]/page.tsx](../src/app/items/%5Btype%5D/page.tsx). Moved display-order array to module scope as `ITEM_TYPE_ORDER`. Deleted dead [src/lib/mock-data.ts](../src/lib/mock-data.ts) (305 lines). Extracted `DEMO_EMAIL`, `MAX_QUERY_LIMIT`, and `validateLimit` into shared [src/lib/db/constants.ts](../src/lib/db/constants.ts) — imported by both `items.ts` and `collections.ts`; `validateLimit` applied to `getRecentItems` and `getRecentCollections`. Removed `<AvatarImage src="">` and unused import from [Sidebar.tsx](../src/components/dashboard/Sidebar.tsx). Changed `getItemTypeIcon` unknown-icon fallback from `File` to `Code`. Added [src/app/dashboard/error.tsx](../src/app/dashboard/error.tsx) error boundary (`useEffect` logs error, `Button`+`RefreshCw` retry). Added [src/app/dashboard/loading.tsx](../src/app/dashboard/loading.tsx) skeleton UI matching dashboard sections (stats grid, collections grid, pinned + recent item rows) using the new shadcn `Skeleton` component.
+
+- 2026-05-30 — Auth Phase 1 completed. Installed `next-auth@beta` and `@auth/prisma-adapter`. Set up split config pattern: [src/auth.config.ts](../src/auth.config.ts) (edge-safe, GitHub provider only) and [src/auth.ts](../src/auth.ts) (full config: PrismaAdapter + JWT strategy + session/JWT callbacks threading `user.id`). Created [src/app/api/auth/[...nextauth]/route.ts](../src/app/api/auth/%5B...nextauth%5D/route.ts) exporting `GET`/`POST` handlers. Created [src/proxy.ts](../src/proxy.ts) using the edge-safe authConfig to protect `/dashboard/*` — unauthenticated users are redirected to `/api/auth/signin`; named `proxy` export with `config.matcher` on `/dashboard` and `/dashboard/:path*`. Extended Session type with `user.id` via [src/types/next-auth.d.ts](../src/types/next-auth.d.ts). Added [.env.example](../.env.example) with `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`. Build passes; `ƒ Proxy (Middleware)` confirmed in build output.
