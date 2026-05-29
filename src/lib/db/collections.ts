@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma";
-
-// No auth yet — scope dashboard data to the seeded demo user until NextAuth lands.
-const DEMO_EMAIL = "demo@devstash.io";
+import { DEMO_EMAIL, validateLimit } from "@/lib/db/constants";
 
 export type CollectionType = {
   id: string;
@@ -26,7 +24,7 @@ export async function getRecentCollections(
   const collections = await prisma.collection.findMany({
     where: { user: { email: DEMO_EMAIL } },
     orderBy: { updatedAt: "desc" },
-    take: limit,
+    take: validateLimit(limit),
     include: {
       _count: { select: { items: true } },
       items: {

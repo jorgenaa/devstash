@@ -1,7 +1,5 @@
 import { prisma } from "@/lib/prisma";
-
-// No auth yet — scope dashboard data to the seeded demo user until NextAuth lands.
-const DEMO_EMAIL = "demo@devstash.io";
+import { DEMO_EMAIL, validateLimit } from "@/lib/db/constants";
 
 export type DashboardItemType = {
   name: string;
@@ -20,6 +18,7 @@ export type DashboardItem = {
   updatedAt: Date;
   type: DashboardItemType;
 };
+
 
 const itemSelect = {
   id: true,
@@ -73,7 +72,7 @@ export async function getRecentItems(limit = 10): Promise<DashboardItem[]> {
   const items = await prisma.item.findMany({
     where: { user: { email: DEMO_EMAIL } },
     orderBy: { updatedAt: "desc" },
-    take: limit,
+    take: validateLimit(limit),
     select: itemSelect,
   });
 
@@ -101,21 +100,17 @@ export type SidebarItemType = {
   count: number;
 };
 
-export async function getSidebarItemTypes(): Promise<SidebarItemType[]> {
-  const user = await prisma.user.findUnique({
-    where: { email: DEMO_EMAIL },
-    select: { id: true },
-  });
-  if (!user) return [];
+const ITEM_TYPE_ORDER = ["snippet", "prompt", "command", "note", "file", "image", "link"];
 
+export async function getSidebarItemTypes(): Promise<SidebarItemType[]> {
   const types = await prisma.itemType.findMany({
     where: { isSystem: true },
     include: {
-      _count: { select: { items: { where: { userId: user.id } } } },
+      _count: {
+        select: { items: { where: { user: { email: DEMO_EMAIL } } } },
+      },
     },
   });
-
-  const ORDER = ["snippet", "prompt", "command", "note", "file", "image", "link"];
 
   return types
     .map((t) => ({
@@ -126,8 +121,8 @@ export async function getSidebarItemTypes(): Promise<SidebarItemType[]> {
       count: t._count.items,
     }))
     .sort((a, b) => {
-      const ai = ORDER.indexOf(a.name);
-      const bi = ORDER.indexOf(b.name);
+      const ai = ITEM_TYPE_ORDER.indexOf(a.name);
+      const bi = ITEM_TYPE_ORDER.indexOf(b.name);
       return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
     });
 }

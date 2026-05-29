@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronDown, Settings, Star } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -264,7 +264,6 @@ function UserFooter({ collapsed }: { collapsed: boolean }) {
       )}
     >
       <Avatar size="sm">
-        <AvatarImage src="" alt="User" />
         <AvatarFallback>DS</AvatarFallback>
       </Avatar>
       {!collapsed && (
