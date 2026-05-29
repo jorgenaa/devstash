@@ -22,7 +22,7 @@ export const itemTypeIcons: Record<string, LucideIcon> = {
 };
 
 export function getItemTypeIcon(name: string): LucideIcon {
-  return itemTypeIcons[name] ?? File;
+  return itemTypeIcons[name] ?? Code;
 }
 
 export function ItemTypeIcon({
