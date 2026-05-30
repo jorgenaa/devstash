@@ -1,25 +1,18 @@
 # Current Feature
 
-Auth UI - Sign In, Register & Sign Out
+_None_
 
 ## Status
 
-In Progress
+Completed
 
 ## Goals
 
-- Custom `/sign-in` page with email/password fields, GitHub button, and link to register
-- Custom `/register` page with name/email/password/confirm fields, validation, submit to `/api/auth/register`, redirect on success
-- Sidebar bottom section shows real user avatar (GitHub image or initials fallback), name, and dropdown with Sign Out
-- Clicking avatar icon navigates to `/profile`
-- Form validation and error display on both pages
+<!-- Populate with /feature load -->
 
 ## Notes
 
-- Avatar logic: use `user.image` (GitHub) if present; otherwise generate initials from name (e.g., "Brad Traversy" → "BT")
-- Create a reusable avatar component that handles both cases
-- NextAuth custom pages config: set `pages.signIn` to `/sign-in` in auth config
-- Sidebar already has a user avatar footer area — wire it to the real session user
+<!-- Additional context, constraints, or details -->
 
 ## History
 
@@ -41,4 +34,6 @@ In Progress
 
 - 2026-05-30 — Auth Phase 1 completed. Installed `next-auth@beta` and `@auth/prisma-adapter`. Set up split config pattern: [src/auth.config.ts](../src/auth.config.ts) (edge-safe, GitHub provider only) and [src/auth.ts](../src/auth.ts) (full config: PrismaAdapter + JWT strategy + session/JWT callbacks threading `user.id`). Created [src/app/api/auth/[...nextauth]/route.ts](../src/app/api/auth/%5B...nextauth%5D/route.ts) exporting `GET`/`POST` handlers. Created [src/proxy.ts](../src/proxy.ts) using the edge-safe authConfig to protect `/dashboard/*` — unauthenticated users are redirected to `/api/auth/signin`; named `proxy` export with `config.matcher` on `/dashboard` and `/dashboard/:path*`. Extended Session type with `user.id` via [src/types/next-auth.d.ts](../src/types/next-auth.d.ts). Added [.env.example](../.env.example) with `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`. Build passes; `ƒ Proxy (Middleware)` confirmed in build output.
 
-- 2026-05-30 — Auth Phase 2 completed. Added Credentials provider to [src/auth.config.ts](../src/auth.config.ts) with an edge-safe `authorize: () => null` placeholder. Overrode it in [src/auth.ts](../src/auth.ts) with real bcrypt validation (lookup user by email, `bcrypt.compare`, return user object or null); restored the `...authConfig` spread so future edge-safe config additions propagate automatically. Created [src/app/api/auth/register/route.ts](../src/app/api/auth/register/route.ts) — `POST /api/auth/register` accepts `name/email/password/confirmPassword`, validates all fields present, passwords match, minimum 8 chars, no duplicate email (409), hashes with bcrypt 12 rounds, creates the user, returns `{ success: true }` (201) or `{ error }`. Verified: registration curl returns 201, duplicate returns 409, mismatch returns 400; unauthenticated `/dashboard` redirects to sign-in; email/password sign-in grants access to `/dashboard`.
+- 2026-05-30 — Auth Phase 2 completed.
+
+- 2026-05-31 — Auth Phase 3 completed. Created custom `/sign-in` page (email/password fields, GitHub OAuth button, link to register, error display, toast notification on post-registration redirect) and `/register` page (name/email/password/confirm, client-side validation for mismatch and length, POSTs to `/api/auth/register`, redirects to `/sign-in?registered=1`). Added `<Toaster>` (sonner) to root layout; used `useRef` guard to prevent Strict Mode double-fire. Built reusable [UserAvatar](../src/components/ui/user-avatar.tsx) component (renders `<AvatarImage>` when `image` present, falls back to two-letter initials). Updated [Sidebar.tsx](../src/components/dashboard/Sidebar.tsx) `UserFooter` to accept a `SidebarUser` prop and show a `DropdownMenu` (opens upward) with Profile and Sign Out items; Sign Out calls `signOut({ callbackUrl: "/sign-in" })` from `next-auth/react`. Updated [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) to accept and thread `user` prop to both desktop and mobile `<Sidebar>` instances. Updated [dashboard/page.tsx](../src/app/dashboard/page.tsx) and [items/[type]/page.tsx](../src/app/items/%5Btype%5D/page.tsx) to call `auth()` in parallel and pass `session?.user`. Made JWT and session callbacks in [auth.ts](../src/auth.ts) explicitly thread `name`, `email`, and `image` (via `token.picture`) to guarantee correct user data on every token round-trip. Set `pages.signIn: "/sign-in"` in NextAuth config; updated [proxy.ts](../src/proxy.ts) redirect to `/sign-in`. Added `force-dynamic` to all app pages. Fixed `prisma.config.ts` `DIRECT_URL` fallback to use `process.env` instead of `env()` (which throws on missing vars). Added shadcn `dropdown-menu`, `label`, and `sonner` components. Added Credentials provider to [src/auth.config.ts](../src/auth.config.ts) with an edge-safe `authorize: () => null` placeholder. Overrode it in [src/auth.ts](../src/auth.ts) with real bcrypt validation (lookup user by email, `bcrypt.compare`, return user object or null); restored the `...authConfig` spread so future edge-safe config additions propagate automatically. Created [src/app/api/auth/register/route.ts](../src/app/api/auth/register/route.ts) — `POST /api/auth/register` accepts `name/email/password/confirmPassword`, validates all fields present, passwords match, minimum 8 chars, no duplicate email (409), hashes with bcrypt 12 rounds, creates the user, returns `{ success: true }` (201) or `{ error }`. Verified: registration curl returns 201, duplicate returns 409, mismatch returns 400; unauthenticated `/dashboard` redirects to sign-in; email/password sign-in grants access to `/dashboard`.
