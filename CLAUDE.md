@@ -23,3 +23,5 @@ Read the following to get the full context of the project:
 - **IMPORTANT:** **Always** use project ID `tiny-sky-42464007` (devstash) and branch ID `br-cool-snow-apj8op95` (development) for all Neon MCP tool calls.
 - **Never** query or modify the `main` branch (`br-twilight-bar-apaeco6s`) or any other branch unless explicitly told to.
 - **Never** run destructive SQL (`DROP`, `DELETE`, `TRUNCATE`, `UPDATE` without `WHERE`) without explicit user approval.
+
+**IMPORTANT** Do not add any Claude to any commit messages
