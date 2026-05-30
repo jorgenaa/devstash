@@ -2,20 +2,30 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Settings, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { ChevronDown, ChevronUp, LogOut, Star, User } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { cn } from "@/lib/utils";
 import { getItemTypeIcon } from "@/lib/item-type-icons";
 import type { SidebarItemType } from "@/lib/db/items";
 import type { SidebarCollection } from "@/lib/db/collections";
+
+export type SidebarUser = {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+};
 
 export type SidebarData = {
   itemTypes: SidebarItemType[];
@@ -25,11 +35,17 @@ export type SidebarData = {
 
 type SidebarProps = {
   data: SidebarData;
+  user: SidebarUser | null;
   collapsed?: boolean;
   onNavigate?: () => void;
 };
 
-export function Sidebar({ data, collapsed = false, onNavigate }: SidebarProps) {
+export function Sidebar({
+  data,
+  user,
+  collapsed = false,
+  onNavigate,
+}: SidebarProps) {
   const [collectionsOpen, setCollectionsOpen] = useState(true);
 
   return (
@@ -158,7 +174,7 @@ export function Sidebar({ data, collapsed = false, onNavigate }: SidebarProps) {
         </div>
       </nav>
 
-      <UserFooter collapsed={collapsed} />
+      <UserFooter user={user} collapsed={collapsed} />
     </div>
   );
 }
@@ -255,35 +271,56 @@ function SidebarLink({
   );
 }
 
-function UserFooter({ collapsed }: { collapsed: boolean }) {
+function UserFooter({
+  user,
+  collapsed,
+}: {
+  user: SidebarUser | null;
+  collapsed: boolean;
+}) {
+  const router = useRouter();
+  const displayName = user?.name ?? "User";
+  const email = user?.email ?? "";
+
   return (
-    <div
-      className={cn(
-        "flex items-center gap-2 border-t border-sidebar-border p-3",
-        collapsed && "justify-center px-2"
-      )}
-    >
-      <Avatar size="sm">
-        <AvatarFallback>DS</AvatarFallback>
-      </Avatar>
-      {!collapsed && (
-        <>
-          <div className="flex min-w-0 flex-1 flex-col">
-            <span className="truncate text-sm font-medium">Demo User</span>
-            <span className="truncate text-xs text-muted-foreground">
-              demo@devstash.io
-            </span>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="User settings"
-            className="text-muted-foreground"
+    <div className="border-t border-sidebar-border p-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          className={cn(
+            "flex w-full cursor-pointer items-center gap-2 rounded-md p-1.5 text-left hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            collapsed && "justify-center"
+          )}
+        >
+          <UserAvatar name={user?.name} image={user?.image} size="sm" />
+          {!collapsed && (
+            <>
+              <div className="flex min-w-0 flex-1 flex-col">
+                <span className="truncate text-sm font-medium">
+                  {displayName}
+                </span>
+                <span className="truncate text-xs text-muted-foreground">
+                  {email}
+                </span>
+              </div>
+              <ChevronUp className="size-4 shrink-0 text-muted-foreground" />
+            </>
+          )}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="top" align="start">
+          <DropdownMenuItem onClick={() => router.push("/profile")}>
+            <User className="size-4" />
+            Profile
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => signOut({ callbackUrl: "/sign-in" })}
           >
-            <Settings className="size-4" />
-          </Button>
-        </>
-      )}
+            <LogOut className="size-4" />
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

@@ -9,13 +9,24 @@ import authConfig from "./auth.config";
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  pages: {
+    signIn: "/sign-in",
+  },
   callbacks: {
     jwt: async ({ token, user }) => {
-      if (user) token.id = user.id;
+      if (user) {
+        token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.picture = user.image;
+      }
       return token;
     },
     session: async ({ session, token }) => {
-      if (token.id) session.user.id = token.id as string;
+      session.user.id = token.id as string;
+      session.user.name = token.name ?? null;
+      session.user.email = token.email ?? "";
+      session.user.image = (token.picture as string | null) ?? null;
       return session;
     },
   },
