@@ -1,18 +1,27 @@
-# Current Feature
-
-_None_
+# Current Feature: Email Verification on Register
 
 ## Status
 
-Completed
+In Progress
 
 ## Goals
 
-<!-- Populate with /feature load -->
+- After a user registers, send a verification email via Resend with a unique verification link
+- The verification link points to a `/verify-email?token=...` page that marks the user's email as verified in the database (`emailVerified` field on the `User` model)
+- Unverified users who try to sign in with credentials are blocked and shown a message prompting them to check their email
+- The verification token is stored server-side (using the existing `VerificationToken` NextAuth model) and expires after 24 hours
+- A "Resend verification email" option is available on the sign-in page when a user is blocked for being unverified
+- The `RESEND_API_KEY` is already in `.env` and `.env.production`
 
 ## Notes
 
-<!-- Additional context, constraints, or details -->
+- Use Resend (`resend` npm package) to send transactional email — install it
+- Use the existing `VerificationToken` model in the Prisma schema (`identifier`, `token`, `expires`) — no schema changes needed
+- Token generation: use `crypto.randomUUID()` or a secure random string; store as plain (acceptable for short-lived tokens)
+- The verify endpoint (`GET /api/auth/verify-email?token=...`) looks up the token, checks expiry, sets `emailVerified = now()`, deletes the token, then redirects to `/sign-in?verified=1`
+- On the `/sign-in` page show a success toast when `?verified=1` is present (similar to the existing `?registered=1` handling)
+- GitHub OAuth users skip verification entirely — only Credentials-registered users need it
+- The demo seed user (`demo@devstash.io`) already has `emailVerified` set, so no impact on existing dev flow
 
 ## History
 

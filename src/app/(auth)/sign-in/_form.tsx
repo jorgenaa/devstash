@@ -21,6 +21,8 @@ function GitHubIcon({ className }: { className?: string }) {
 
 const ERROR_MESSAGES: Record<string, string> = {
   CredentialsSignin: "Invalid email or password.",
+  EmailNotVerified: "Please verify your email before signing in.",
+  InvalidToken: "This verification link is invalid or has expired.",
   default: "Something went wrong. Please try again.",
 };
 
@@ -28,10 +30,12 @@ export function SignInForm({
   error: errorParam,
   callbackUrl = "/dashboard",
   registered = false,
+  verified = false,
 }: {
   error?: string;
   callbackUrl?: string;
   registered?: boolean;
+  verified?: boolean;
 }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -42,14 +46,21 @@ export function SignInForm({
       : null
   );
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const toastShown = useRef(false);
 
+  const isUnverified = errorParam === "EmailNotVerified";
+
   useEffect(() => {
-    if (registered && !toastShown.current) {
+    if (toastShown.current) return;
+    if (registered) {
       toastShown.current = true;
-      toast.success("Account created! You can now sign in.");
+      toast.success("Account created! Please check your email to verify your account.");
+    } else if (verified) {
+      toastShown.current = true;
+      toast.success("Email verified! You can now sign in.");
     }
-  }, [registered]);
+  }, [registered, verified]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -73,6 +84,21 @@ export function SignInForm({
     router.refresh();
   }
 
+  async function handleResend() {
+    if (!email) {
+      setError("Enter your email above, then click resend.");
+      return;
+    }
+    setResendLoading(true);
+    await fetch("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    setResendLoading(false);
+    toast.success("Verification email sent — check your inbox.");
+  }
+
   return (
     <div className="w-full max-w-sm rounded-xl border border-border bg-card p-8 shadow-sm">
       <div className="mb-8 text-center">
@@ -90,6 +116,16 @@ export function SignInForm({
       {error && (
         <div className="mb-4 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error}
+          {isUnverified && (
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendLoading}
+              className="mt-2 block text-xs underline underline-offset-4 hover:no-underline disabled:opacity-50"
+            >
+              {resendLoading ? "Sending…" : "Resend verification email"}
+            </button>
+          )}
         </div>
       )}
 
