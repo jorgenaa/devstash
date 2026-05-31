@@ -9,6 +9,7 @@ export default async function SignInPage({
     error?: string;
     callbackUrl?: string;
     registered?: string;
+    verified?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -17,6 +18,7 @@ export default async function SignInPage({
       error={params.error}
       callbackUrl={params.callbackUrl}
       registered={params.registered === "1"}
+      verified={params.verified === "1"}
     />
   );
 }
