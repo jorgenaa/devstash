@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { issueVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/email";
+import { EMAIL_VERIFICATION_ENABLED } from "@/lib/flags";
 
 export async function POST(request: Request) {
   try {
@@ -33,11 +34,18 @@ export async function POST(request: Request) {
 
     const hashed = await bcrypt.hash(password, 12);
     await prisma.user.create({
-      data: { name, email, password: hashed },
+      data: {
+        name,
+        email,
+        password: hashed,
+        emailVerified: EMAIL_VERIFICATION_ENABLED ? null : new Date(),
+      },
     });
 
-    const token = await issueVerificationToken(email);
-    await sendVerificationEmail(email, token);
+    if (EMAIL_VERIFICATION_ENABLED) {
+      const token = await issueVerificationToken(email);
+      await sendVerificationEmail(email, token);
+    }
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch {

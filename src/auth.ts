@@ -5,6 +5,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import authConfig from "./auth.config";
+import { EMAIL_VERIFICATION_ENABLED } from "@/lib/flags";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -14,7 +15,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   },
   callbacks: {
     signIn: async ({ user, account }) => {
-      if (account?.provider === "credentials") {
+      if (EMAIL_VERIFICATION_ENABLED && account?.provider === "credentials") {
         const dbUser = await prisma.user.findUnique({ where: { email: user.email! } });
         if (!dbUser?.emailVerified) {
           return "/sign-in?error=EmailNotVerified";
