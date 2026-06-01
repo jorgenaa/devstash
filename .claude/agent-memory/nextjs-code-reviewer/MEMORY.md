@@ -1,0 +1,1 @@
+- [Project Architecture & First Review Findings](project-architecture.md) — codebase structure, data-fetching patterns, key issues found 2026-05-28

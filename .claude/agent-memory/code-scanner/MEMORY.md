@@ -1,0 +1,1 @@
+- [Project Architecture](project-architecture.md) — codebase structure and patterns from first full scan 2026-05-28

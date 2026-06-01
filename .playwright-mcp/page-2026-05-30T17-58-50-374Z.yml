@@ -1,0 +1,307 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]: DS
+        - generic [ref=e6]: DevStash
+      - button "Collapse sidebar" [ref=e7]:
+        - img
+      - generic [ref=e8]:
+        - img
+        - searchbox "Search items" [ref=e9]
+      - button "New Item" [ref=e11]:
+        - img
+        - text: New Item
+    - generic [ref=e12]:
+      - complementary [ref=e13]:
+        - generic [ref=e14]:
+          - navigation [ref=e15]:
+            - generic [ref=e16]:
+              - heading "Types" [level=3] [ref=e17]
+              - generic [ref=e18]:
+                - link "Snippets 4" [ref=e19] [cursor=pointer]:
+                  - /url: /items/snippets
+                  - img [ref=e20]
+                  - generic [ref=e23]: Snippets
+                  - generic [ref=e25]: "4"
+                - link "Prompts 3" [ref=e26] [cursor=pointer]:
+                  - /url: /items/prompts
+                  - img [ref=e27]
+                  - generic [ref=e30]: Prompts
+                  - generic [ref=e32]: "3"
+                - link "Commands 5" [ref=e33] [cursor=pointer]:
+                  - /url: /items/commands
+                  - img [ref=e34]
+                  - generic [ref=e36]: Commands
+                  - generic [ref=e38]: "5"
+                - link "Notes 0" [ref=e39] [cursor=pointer]:
+                  - /url: /items/notes
+                  - img [ref=e40]
+                  - generic [ref=e43]: Notes
+                  - generic [ref=e45]: "0"
+                - link "Files PRO 0" [ref=e46] [cursor=pointer]:
+                  - /url: /items/files
+                  - img [ref=e47]
+                  - generic [ref=e50]: Files
+                  - generic [ref=e51]:
+                    - generic [ref=e52]: PRO
+                    - generic [ref=e53]: "0"
+                - link "Images PRO 0" [ref=e54] [cursor=pointer]:
+                  - /url: /items/images
+                  - img [ref=e55]
+                  - generic [ref=e59]: Images
+                  - generic [ref=e60]:
+                    - generic [ref=e61]: PRO
+                    - generic [ref=e62]: "0"
+                - link "Links 6" [ref=e63] [cursor=pointer]:
+                  - /url: /items/links
+                  - img [ref=e64]
+                  - generic [ref=e67]: Links
+                  - generic [ref=e69]: "6"
+            - generic [ref=e70]:
+              - button "Collections" [ref=e71]:
+                - text: Collections
+                - img [ref=e72]
+              - generic [ref=e74]:
+                - generic [ref=e75]:
+                  - heading "Favorites" [level=4] [ref=e76]
+                  - generic [ref=e77]:
+                    - link "Design Resources" [ref=e78] [cursor=pointer]:
+                      - /url: /collections/cmpmoduz7000jpsv5gnfupufn
+                      - img [ref=e79]
+                      - generic [ref=e81]: Design Resources
+                    - link "React Patterns" [ref=e82] [cursor=pointer]:
+                      - /url: /collections/cmpmodp6o0001psv5kh7djc7s
+                      - img [ref=e83]
+                      - generic [ref=e85]: React Patterns
+                - generic [ref=e86]:
+                  - heading "Recent" [level=4] [ref=e87]
+                  - generic [ref=e88]:
+                    - link "Design Resources" [ref=e89] [cursor=pointer]:
+                      - /url: /collections/cmpmoduz7000jpsv5gnfupufn
+                      - generic [ref=e91]: Design Resources
+                    - link "Terminal Commands" [ref=e92] [cursor=pointer]:
+                      - /url: /collections/cmpmodtdc000epsv5zjysm0y5
+                      - generic [ref=e94]: Terminal Commands
+                    - link "DevOps" [ref=e95] [cursor=pointer]:
+                      - /url: /collections/cmpmodrq70009psv5n78osmmc
+                      - generic [ref=e97]: DevOps
+                    - link "AI Workflows" [ref=e98] [cursor=pointer]:
+                      - /url: /collections/cmpmodqh40005psv56ydm8qn3
+                      - generic [ref=e100]: AI Workflows
+                    - link "React Patterns" [ref=e101] [cursor=pointer]:
+                      - /url: /collections/cmpmodp6o0001psv5kh7djc7s
+                      - generic [ref=e103]: React Patterns
+                - link "View all collections" [ref=e104] [cursor=pointer]:
+                  - /url: /collections
+          - generic [ref=e105]:
+            - generic [ref=e107]: DS
+            - generic [ref=e108]:
+              - generic [ref=e109]: Demo User
+              - generic [ref=e110]: demo@devstash.io
+            - button "User settings" [ref=e111]:
+              - img
+      - main [ref=e112]:
+        - generic [ref=e113]:
+          - generic [ref=e114]:
+            - heading "Dashboard" [level=1] [ref=e115]
+            - paragraph [ref=e116]: Your developer knowledge hub
+          - generic [ref=e117]:
+            - generic [ref=e119]:
+              - generic [ref=e120]:
+                - generic [ref=e121]: Items
+                - generic [ref=e122]: "18"
+              - img [ref=e124]
+            - generic [ref=e129]:
+              - generic [ref=e130]:
+                - generic [ref=e131]: Collections
+                - generic [ref=e132]: "5"
+              - img [ref=e134]
+            - generic [ref=e137]:
+              - generic [ref=e138]:
+                - generic [ref=e139]: Favorite items
+                - generic [ref=e140]: "3"
+              - img [ref=e142]
+            - generic [ref=e145]:
+              - generic [ref=e146]:
+                - generic [ref=e147]: Favorite collections
+                - generic [ref=e148]: "2"
+              - img [ref=e150]
+          - generic [ref=e152]:
+            - generic [ref=e153]:
+              - heading "Collections" [level=2] [ref=e154]
+              - link "View all" [ref=e155] [cursor=pointer]:
+                - /url: /collections
+            - generic [ref=e156]:
+              - link "Design Resources Favorite 4 items UI/UX resources and references link" [ref=e157] [cursor=pointer]:
+                - /url: /collections/cmpmoduz7000jpsv5gnfupufn
+                - generic [ref=e158]:
+                  - generic [ref=e160]:
+                    - generic [ref=e161]:
+                      - heading "Design Resources" [level=3] [ref=e162]
+                      - img "Favorite" [ref=e163]
+                    - generic [ref=e165]: 4 items
+                  - paragraph [ref=e166]: UI/UX resources and references
+                  - img "link" [ref=e168]
+              - link "Terminal Commands 4 items Useful shell commands for everyday development command" [ref=e171] [cursor=pointer]:
+                - /url: /collections/cmpmodtdc000epsv5zjysm0y5
+                - generic [ref=e172]:
+                  - generic [ref=e174]:
+                    - heading "Terminal Commands" [level=3] [ref=e176]
+                    - generic [ref=e177]: 4 items
+                  - paragraph [ref=e178]: Useful shell commands for everyday development
+                  - img "command" [ref=e180]
+              - link "DevOps 4 items Infrastructure and deployment resources link snippet command" [ref=e182] [cursor=pointer]:
+                - /url: /collections/cmpmodrq70009psv5n78osmmc
+                - generic [ref=e183]:
+                  - generic [ref=e185]:
+                    - heading "DevOps" [level=3] [ref=e187]
+                    - generic [ref=e188]: 4 items
+                  - paragraph [ref=e189]: Infrastructure and deployment resources
+                  - generic [ref=e190]:
+                    - img "link" [ref=e191]
+                    - img "snippet" [ref=e194]
+                    - img "command" [ref=e197]
+              - link "AI Workflows 3 items AI prompts and workflow automations prompt" [ref=e199] [cursor=pointer]:
+                - /url: /collections/cmpmodqh40005psv56ydm8qn3
+                - generic [ref=e200]:
+                  - generic [ref=e202]:
+                    - heading "AI Workflows" [level=3] [ref=e204]
+                    - generic [ref=e205]: 3 items
+                  - paragraph [ref=e206]: AI prompts and workflow automations
+                  - img "prompt" [ref=e208]
+              - link "React Patterns Favorite 3 items Reusable React patterns and hooks snippet" [ref=e211] [cursor=pointer]:
+                - /url: /collections/cmpmodp6o0001psv5kh7djc7s
+                - generic [ref=e212]:
+                  - generic [ref=e214]:
+                    - generic [ref=e215]:
+                      - heading "React Patterns" [level=3] [ref=e216]
+                      - img "Favorite" [ref=e217]
+                    - generic [ref=e219]: 3 items
+                  - paragraph [ref=e220]: Reusable React patterns and hooks
+                  - img "snippet" [ref=e222]
+          - generic [ref=e225]:
+            - generic [ref=e226]:
+              - img [ref=e227]
+              - heading "Pinned" [level=2] [ref=e229]
+            - generic [ref=e230]:
+              - link "command Undo last commit, keep changes Pinned Soft-reset to the previous commit, leaving work staged. May 26" [ref=e231] [cursor=pointer]:
+                - /url: /items/detail/cmpmodtit000fpsv5202xonc8
+                - generic [ref=e234]:
+                  - generic [ref=e235]:
+                    - generic [ref=e236]:
+                      - img "command" [ref=e237]
+                      - heading "Undo last commit, keep changes" [level=3] [ref=e239]
+                      - img "Pinned" [ref=e240]
+                    - paragraph [ref=e242]: Soft-reset to the previous commit, leaving work staged.
+                  - time [ref=e243]: May 26
+              - link "snippet useDebounce hook Pinned Debounce a rapidly-changing value (e.g. a search input). May 26" [ref=e244] [cursor=pointer]:
+                - /url: /items/detail/cmpmodpcy0002psv5gkxy5t9e
+                - generic [ref=e247]:
+                  - generic [ref=e248]:
+                    - generic [ref=e249]:
+                      - img "snippet" [ref=e250]
+                      - heading "useDebounce hook" [level=3] [ref=e253]
+                      - img "Pinned" [ref=e254]
+                    - paragraph [ref=e256]: Debounce a rapidly-changing value (e.g. a search input).
+                  - time [ref=e257]: May 26
+          - generic [ref=e258]:
+            - generic [ref=e259]:
+              - img [ref=e260]
+              - heading "Recent" [level=2] [ref=e263]
+            - generic [ref=e264]:
+              - link "link Lucide Icons Open-source icon set used across the app. May 26" [ref=e265] [cursor=pointer]:
+                - /url: /items/detail/cmpmodw9l000npsv5hetax6gt
+                - generic [ref=e268]:
+                  - generic [ref=e269]:
+                    - generic [ref=e270]:
+                      - img "link" [ref=e271]
+                      - heading "Lucide Icons" [level=3] [ref=e274]
+                    - paragraph [ref=e275]: Open-source icon set used across the app.
+                  - time [ref=e276]: May 26
+              - link "link Material Design 3 Google's design system guidelines. May 26" [ref=e277] [cursor=pointer]:
+                - /url: /items/detail/cmpmodvvx000mpsv5kom2apl9
+                - generic [ref=e280]:
+                  - generic [ref=e281]:
+                    - generic [ref=e282]:
+                      - img "link" [ref=e283]
+                      - heading "Material Design 3" [level=3] [ref=e286]
+                    - paragraph [ref=e287]: Google's design system guidelines.
+                  - time [ref=e288]: May 26
+              - link "link shadcn/ui Accessible, copy-paste React component library. May 26" [ref=e289] [cursor=pointer]:
+                - /url: /items/detail/cmpmodvic000lpsv54ko08rbd
+                - generic [ref=e292]:
+                  - generic [ref=e293]:
+                    - generic [ref=e294]:
+                      - img "link" [ref=e295]
+                      - heading "shadcn/ui" [level=3] [ref=e298]
+                    - paragraph [ref=e299]: Accessible, copy-paste React component library.
+                  - time [ref=e300]: May 26
+              - link "link Tailwind CSS Favorite Utility-first CSS framework documentation. May 26" [ref=e301] [cursor=pointer]:
+                - /url: /items/detail/cmpmodv4n000kpsv5djkbzqng
+                - generic [ref=e304]:
+                  - generic [ref=e305]:
+                    - generic [ref=e306]:
+                      - img "link" [ref=e307]
+                      - heading "Tailwind CSS" [level=3] [ref=e310]
+                      - img "Favorite" [ref=e311]
+                    - paragraph [ref=e313]: Utility-first CSS framework documentation.
+                  - time [ref=e314]: May 26
+              - link "command List outdated global npm packages Audit globally installed packages for updates. May 26" [ref=e315] [cursor=pointer]:
+                - /url: /items/detail/cmpmoduo9000ipsv5aj2cy85e
+                - generic [ref=e318]:
+                  - generic [ref=e319]:
+                    - generic [ref=e320]:
+                      - img "command" [ref=e321]
+                      - heading "List outdated global npm packages" [level=3] [ref=e323]
+                    - paragraph [ref=e324]: Audit globally installed packages for updates.
+                  - time [ref=e325]: May 26
+              - link "command Kill the process on a port Find and terminate whatever is holding port 3000. May 26" [ref=e326] [cursor=pointer]:
+                - /url: /items/detail/cmpmoduac000hpsv56fzygmwn
+                - generic [ref=e329]:
+                  - generic [ref=e330]:
+                    - generic [ref=e331]:
+                      - img "command" [ref=e332]
+                      - heading "Kill the process on a port" [level=3] [ref=e334]
+                    - paragraph [ref=e335]: Find and terminate whatever is holding port 3000.
+                  - time [ref=e336]: May 26
+              - link "command Remove all stopped containers Reclaim disk by pruning exited Docker containers. May 26" [ref=e337] [cursor=pointer]:
+                - /url: /items/detail/cmpmodtwk000gpsv5725sdy1o
+                - generic [ref=e340]:
+                  - generic [ref=e341]:
+                    - generic [ref=e342]:
+                      - img "command" [ref=e343]
+                      - heading "Remove all stopped containers" [level=3] [ref=e345]
+                    - paragraph [ref=e346]: Reclaim disk by pruning exited Docker containers.
+                  - time [ref=e347]: May 26
+              - link "command Undo last commit, keep changes Pinned Soft-reset to the previous commit, leaving work staged. May 26" [ref=e348] [cursor=pointer]:
+                - /url: /items/detail/cmpmodtit000fpsv5202xonc8
+                - generic [ref=e351]:
+                  - generic [ref=e352]:
+                    - generic [ref=e353]:
+                      - img "command" [ref=e354]
+                      - heading "Undo last commit, keep changes" [level=3] [ref=e356]
+                      - img "Pinned" [ref=e357]
+                    - paragraph [ref=e359]: Soft-reset to the previous commit, leaving work staged.
+                  - time [ref=e360]: May 26
+              - link "link GitHub Actions documentation Workflow syntax and CI/CD reference. May 26" [ref=e361] [cursor=pointer]:
+                - /url: /items/detail/cmpmodt1f000dpsv5gb7kj5v8
+                - generic [ref=e364]:
+                  - generic [ref=e365]:
+                    - generic [ref=e366]:
+                      - img "link" [ref=e367]
+                      - heading "GitHub Actions documentation" [level=3] [ref=e370]
+                    - paragraph [ref=e371]: Workflow syntax and CI/CD reference.
+                  - time [ref=e372]: May 26
+              - link "link Docker documentation Official Docker reference and guides. May 26" [ref=e373] [cursor=pointer]:
+                - /url: /items/detail/cmpmodsnn000cpsv5af2k8riw
+                - generic [ref=e376]:
+                  - generic [ref=e377]:
+                    - generic [ref=e378]:
+                      - img "link" [ref=e379]
+                      - heading "Docker documentation" [level=3] [ref=e382]
+                    - paragraph [ref=e383]: Official Docker reference and guides.
+                  - time [ref=e384]: May 26
+  - button "Open Next.js Dev Tools" [ref=e390] [cursor=pointer]:
+    - img [ref=e391]
+  - alert [ref=e394]

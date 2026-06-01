@@ -1,0 +1,36 @@
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: DS
+      - heading "Create your account" [level=1] [ref=e6]
+      - paragraph [ref=e7]: Join DevStash today
+    - generic [ref=e25]: Passwords do not match.
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]: Name
+        - textbox "Name" [ref=e11]:
+          - /placeholder: Your name
+          - text: Test User
+      - generic [ref=e12]:
+        - generic [ref=e13]: Email
+        - textbox "Email" [ref=e14]:
+          - /placeholder: you@example.com
+          - text: test@test.com
+      - generic [ref=e15]:
+        - generic [ref=e16]: Password
+        - textbox "Password" [ref=e17]:
+          - /placeholder: Min 8 characters
+          - text: password1
+      - generic [ref=e18]:
+        - generic [ref=e19]: Confirm password
+        - textbox "Confirm password" [ref=e20]:
+          - /placeholder: ••••••••
+          - text: password2
+      - button "Create account" [active] [ref=e21]:
+        - img
+        - text: Create account
+    - paragraph [ref=e22]:
+      - text: Already have an account?
+      - link "Sign in" [ref=e23] [cursor=pointer]:
+        - /url: /sign-in
+  - alert [ref=e24]

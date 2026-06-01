@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
 import {
@@ -19,7 +18,6 @@ import { Button } from "@/components/ui/button";
 
 export function DeleteAccountDialog() {
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   async function handleDelete() {
     setLoading(true);
