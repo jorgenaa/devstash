@@ -10,6 +10,7 @@ export default async function SignInPage({
     callbackUrl?: string;
     registered?: string;
     verified?: string;
+    reset?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -19,6 +20,7 @@ export default async function SignInPage({
       callbackUrl={params.callbackUrl}
       registered={params.registered === "1"}
       verified={params.verified === "1"}
+      reset={params.reset === "1"}
     />
   );
 }

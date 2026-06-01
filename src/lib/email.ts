@@ -23,3 +23,24 @@ export async function sendVerificationEmail(email: string, token: string) {
     `,
   });
 }
+
+export async function sendPasswordResetEmail(email: string, token: string) {
+  const resetUrl = `${BASE_URL}/reset-password?token=${token}`;
+
+  await resend.emails.send({
+    from: FROM,
+    to: email,
+    subject: "Reset your DevStash password",
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+        <div style="margin-bottom:24px;text-align:center">
+          <div style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;background:#6366f1;border-radius:8px;font-weight:700;font-size:14px;color:#fff">DS</div>
+        </div>
+        <h1 style="font-size:20px;font-weight:600;margin:0 0 8px">Reset your password</h1>
+        <p style="color:#6b7280;margin:0 0 24px">Click the button below to reset your DevStash password. This link expires in 1 hour.</p>
+        <a href="${resetUrl}" style="display:inline-block;background:#6366f1;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:600;font-size:14px">Reset password</a>
+        <p style="margin-top:24px;color:#9ca3af;font-size:12px">If you didn't request a password reset, you can safely ignore this email.</p>
+      </div>
+    `,
+  });
+}
