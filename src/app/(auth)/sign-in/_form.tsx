@@ -31,11 +31,13 @@ export function SignInForm({
   callbackUrl = "/dashboard",
   registered = false,
   verified = false,
+  reset = false,
 }: {
   error?: string;
   callbackUrl?: string;
   registered?: boolean;
   verified?: boolean;
+  reset?: boolean;
 }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -59,8 +61,11 @@ export function SignInForm({
     } else if (verified) {
       toastShown.current = true;
       toast.success("Email verified! You can now sign in.");
+    } else if (reset) {
+      toastShown.current = true;
+      toast.success("Password updated! You can now sign in with your new password.");
     }
-  }, [registered, verified]);
+  }, [registered, verified, reset]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -143,7 +148,15 @@ export function SignInForm({
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="password">Password</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link
+              href="/forgot-password"
+              className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <Input
             id="password"
             type="password"

@@ -1,18 +1,27 @@
-# Current Feature
-
-_None_
+# Current Feature: Forgot Password
 
 ## Status
 
-Completed
+In Progress
 
 ## Goals
 
-<!-- Populate with /feature load -->
+- "Forgot password?" link on the `/sign-in` page opens `/forgot-password`
+- `/forgot-password` page: email input form; on submit, issues a password-reset token via `VerificationToken` (identifier = `password-reset:{email}`) and sends a reset email via Resend; shows a success message regardless of whether the email exists (no user enumeration)
+- `/reset-password?token=…` page: new-password + confirm-password form; validates token exists and is not expired, hashes the new password with bcrypt, updates `user.password`, deletes the token, redirects to `/sign-in?reset=1`
+- `POST /api/auth/forgot-password` route: accepts `{ email }`, issues token, sends email; always returns 200
+- `POST /api/auth/reset-password` route: accepts `{ token, password, confirmPassword }`, validates inputs, verifies token, updates password, returns 200 or error
+- Reset email (via Resend) contains a link to `/reset-password?token=…` with 1-hour expiry
+- "Password reset successfully" toast shown on `/sign-in` when `?reset=1` is present
+- OAuth-only users (no `password` field) silently receive no email (or a "sign in with GitHub" message)
 
 ## Notes
 
-<!-- Additional context, constraints, or details -->
+- Reuse the existing `VerificationToken` model — use a namespaced identifier `password-reset:{email}` to avoid collisions with email verification tokens (which use plain email as identifier)
+- Reuse `issueVerificationToken` from `src/lib/tokens.ts` or add a parallel `issuePasswordResetToken` helper with a shorter expiry (1 hour instead of 24 hours)
+- Reuse `sendVerificationEmail` pattern from `src/lib/email.ts` — add a new `sendPasswordResetEmail` function
+- `EMAIL_VERIFICATION_ENABLED` flag does NOT gate the reset flow — password reset should always work
+- No schema migration needed (VerificationToken model is already in place)
 
 ## History
 
