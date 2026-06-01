@@ -1,27 +1,18 @@
-# Current Feature: Forgot Password
+# Current Feature
+
+_None_
 
 ## Status
 
-In Progress
+Completed
 
 ## Goals
 
-- "Forgot password?" link on the `/sign-in` page opens `/forgot-password`
-- `/forgot-password` page: email input form; on submit, issues a password-reset token via `VerificationToken` (identifier = `password-reset:{email}`) and sends a reset email via Resend; shows a success message regardless of whether the email exists (no user enumeration)
-- `/reset-password?token=…` page: new-password + confirm-password form; validates token exists and is not expired, hashes the new password with bcrypt, updates `user.password`, deletes the token, redirects to `/sign-in?reset=1`
-- `POST /api/auth/forgot-password` route: accepts `{ email }`, issues token, sends email; always returns 200
-- `POST /api/auth/reset-password` route: accepts `{ token, password, confirmPassword }`, validates inputs, verifies token, updates password, returns 200 or error
-- Reset email (via Resend) contains a link to `/reset-password?token=…` with 1-hour expiry
-- "Password reset successfully" toast shown on `/sign-in` when `?reset=1` is present
-- OAuth-only users (no `password` field) silently receive no email (or a "sign in with GitHub" message)
+<!-- Populate with /feature load -->
 
 ## Notes
 
-- Reuse the existing `VerificationToken` model — use a namespaced identifier `password-reset:{email}` to avoid collisions with email verification tokens (which use plain email as identifier)
-- Reuse `issueVerificationToken` from `src/lib/tokens.ts` or add a parallel `issuePasswordResetToken` helper with a shorter expiry (1 hour instead of 24 hours)
-- Reuse `sendVerificationEmail` pattern from `src/lib/email.ts` — add a new `sendPasswordResetEmail` function
-- `EMAIL_VERIFICATION_ENABLED` flag does NOT gate the reset flow — password reset should always work
-- No schema migration needed (VerificationToken model is already in place)
+<!-- Additional context, constraints, or details -->
 
 ## History
 
@@ -50,3 +41,5 @@ In Progress
 - 2026-05-31 — Email verification toggle completed. Added [src/lib/flags.ts](../src/lib/flags.ts) with `EMAIL_VERIFICATION_ENABLED` (reads `process.env.EMAIL_VERIFICATION_ENABLED`; defaults to `true`, disabled only when explicitly set to `"false"`). Updated [POST /api/auth/register](../src/app/api/auth/register/route.ts) to skip token issuance and email sending when disabled, and to set `emailVerified = now()` directly on user creation. Updated the `signIn` callback in [src/auth.ts](../src/auth.ts) to skip the unverified-user block when disabled. Added the flag to [.env.example](../.env.example) with an explanatory comment. `.env` set to `"false"` for local dev (Resend free tier blocks non-owner emails until a custom domain is linked).
 
 - 2026-05-31 — Email verification on register completed. Installed `resend`; added [src/lib/resend.ts](../src/lib/resend.ts) (Resend singleton), [src/lib/tokens.ts](../src/lib/tokens.ts) (`issueVerificationToken` — deletes old tokens, creates a new UUID token with 24h expiry), and [src/lib/email.ts](../src/lib/email.ts) (`sendVerificationEmail` — HTML email via `onboarding@resend.dev`). Updated [POST /api/auth/register](../src/app/api/auth/register/route.ts) to issue a token and send the verification email after user creation. Added [GET /api/auth/verify-email](../src/app/api/auth/verify-email/route.ts) — validates token, checks expiry, sets `emailVerified = now()`, deletes token, redirects to `/sign-in?verified=1`. Added [POST /api/auth/resend-verification](../src/app/api/auth/resend-verification/route.ts) — reissues token and resends email (silently no-ops for unknown emails). Added `signIn` callback to [src/auth.ts](../src/auth.ts) to block unverified credentials users and redirect to `/sign-in?error=EmailNotVerified`. Updated [sign-in form](../src/app/(auth)/sign-in/_form.tsx): `EmailNotVerified` and `InvalidToken` error messages, inline "Resend verification email" button, `verified=1` success toast. Added [scripts/purge-test-users.ts](../scripts/purge-test-users.ts) and `db:purge-test-users` npm script to delete all users except the two kept accounts. Created custom `/sign-in` page (email/password fields, GitHub OAuth button, link to register, error display, toast notification on post-registration redirect) and `/register` page (name/email/password/confirm, client-side validation for mismatch and length, POSTs to `/api/auth/register`, redirects to `/sign-in?registered=1`). Added `<Toaster>` (sonner) to root layout; used `useRef` guard to prevent Strict Mode double-fire. Built reusable [UserAvatar](../src/components/ui/user-avatar.tsx) component (renders `<AvatarImage>` when `image` present, falls back to two-letter initials). Updated [Sidebar.tsx](../src/components/dashboard/Sidebar.tsx) `UserFooter` to accept a `SidebarUser` prop and show a `DropdownMenu` (opens upward) with Profile and Sign Out items; Sign Out calls `signOut({ callbackUrl: "/sign-in" })` from `next-auth/react`. Updated [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) to accept and thread `user` prop to both desktop and mobile `<Sidebar>` instances. Updated [dashboard/page.tsx](../src/app/dashboard/page.tsx) and [items/[type]/page.tsx](../src/app/items/%5Btype%5D/page.tsx) to call `auth()` in parallel and pass `session?.user`. Made JWT and session callbacks in [auth.ts](../src/auth.ts) explicitly thread `name`, `email`, and `image` (via `token.picture`) to guarantee correct user data on every token round-trip. Set `pages.signIn: "/sign-in"` in NextAuth config; updated [proxy.ts](../src/proxy.ts) redirect to `/sign-in`. Added `force-dynamic` to all app pages. Fixed `prisma.config.ts` `DIRECT_URL` fallback to use `process.env` instead of `env()` (which throws on missing vars). Added shadcn `dropdown-menu`, `label`, and `sonner` components. Added Credentials provider to [src/auth.config.ts](../src/auth.config.ts) with an edge-safe `authorize: () => null` placeholder. Overrode it in [src/auth.ts](../src/auth.ts) with real bcrypt validation (lookup user by email, `bcrypt.compare`, return user object or null); restored the `...authConfig` spread so future edge-safe config additions propagate automatically. Created [src/app/api/auth/register/route.ts](../src/app/api/auth/register/route.ts) — `POST /api/auth/register` accepts `name/email/password/confirmPassword`, validates all fields present, passwords match, minimum 8 chars, no duplicate email (409), hashes with bcrypt 12 rounds, creates the user, returns `{ success: true }` (201) or `{ error }`. Verified: registration curl returns 201, duplicate returns 409, mismatch returns 400; unauthenticated `/dashboard` redirects to sign-in; email/password sign-in grants access to `/dashboard`.
+
+- 2026-06-01 — Forgot password completed. Added `issuePasswordResetToken(email)` to [src/lib/tokens.ts](../src/lib/tokens.ts) (1-hour expiry, identifier `password-reset:{email}`) and `sendPasswordResetEmail` to [src/lib/email.ts](../src/lib/email.ts). Created [POST /api/auth/forgot-password](../src/app/api/auth/forgot-password/route.ts) — issues token and sends email only if user has a `password` (skips OAuth-only accounts); always returns 200 to prevent user enumeration. Created [POST /api/auth/reset-password](../src/app/api/auth/reset-password/route.ts) — validates token (namespace check + expiry), bcrypt-hashes new password, updates user, deletes token. Added [/forgot-password](../src/app/(auth)/forgot-password/) page (email form; shows generic success regardless of whether email exists) and [/reset-password](../src/app/(auth)/reset-password/) page (new-password form; missing/invalid token shows a static error state with link to request a new one; on success redirects to `/sign-in?reset=1`). Updated [sign-in form](../src/app/(auth)/sign-in/_form.tsx) to add a "Forgot password?" link next to the password label and a "Password updated" success toast on `?reset=1`.
