@@ -2,7 +2,7 @@ import "dotenv/config";
 
 import { prisma } from "../src/lib/prisma";
 
-const KEEP = [""];
+const KEEP = ["jorgen.arnes@gmail.com"];
 
 async function main() {
   const targets = await prisma.user.findMany({
