@@ -21,6 +21,7 @@ function GitHubIcon({ className }: { className?: string }) {
 
 const ERROR_MESSAGES: Record<string, string> = {
   CredentialsSignin: "Invalid email or password.",
+  RateLimited: "Too many sign-in attempts. Please try again later.",
   EmailNotVerified: "Please verify your email before signing in.",
   InvalidToken: "This verification link is invalid or has expired.",
   default: "Something went wrong. Please try again.",
@@ -81,7 +82,7 @@ export function SignInForm({
     setLoading(false);
 
     if (result?.error) {
-      setError(ERROR_MESSAGES.CredentialsSignin);
+      setError(ERROR_MESSAGES[result.error] ?? ERROR_MESSAGES.CredentialsSignin);
       return;
     }
 
@@ -95,12 +96,19 @@ export function SignInForm({
       return;
     }
     setResendLoading(true);
-    await fetch("/api/auth/resend-verification", {
+    const res = await fetch("/api/auth/resend-verification", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
     setResendLoading(false);
+
+    if (!res.ok) {
+      const data = (await res.json()) as { error?: string };
+      toast.error(data.error ?? "Failed to resend. Please try again.");
+      return;
+    }
+
     toast.success("Verification email sent — check your inbox.");
   }
 

@@ -4,9 +4,14 @@ import { prisma } from "@/lib/prisma";
 import { issueVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/email";
 import { EMAIL_VERIFICATION_ENABLED } from "@/lib/flags";
+import { getClientIp, rateLimit, tooManyRequestsResponse } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
+    const rl = await rateLimit(`register:${ip}`, 3, "1 h");
+    if (!rl.success) return tooManyRequestsResponse(rl.reset);
+
     const body = await request.json();
     const { name, email, password, confirmPassword } = body as {
       name?: string;
