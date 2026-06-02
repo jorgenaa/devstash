@@ -47,7 +47,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   },
   ...authConfig,
   providers: [
-    GitHub,
+    GitHub({ allowDangerousEmailAccountLinking: true }),
     Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
