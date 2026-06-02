@@ -1,37 +1,18 @@
-# Current Feature: Rate Limiting for Auth
+# Current Feature
+
+_None_
 
 ## Status
 
-In Progress
+Completed
 
 ## Goals
 
-- Add rate limiting to all auth-related API routes using Upstash Redis + `@upstash/ratelimit`
-- Create a reusable `src/lib/rate-limit.ts` utility with sliding window algorithm
-- Protect 5 endpoints: login, register, forgot-password, reset-password, resend-verification
-- Return 429 responses with `Retry-After` header and user-friendly error messages
-- Display rate limit errors via toast on the frontend
-- Fail open if Upstash is unavailable
+<!-- Populate with /feature load -->
 
 ## Notes
 
-- Use `@upstash/ratelimit` with sliding window algorithm
-- Key by IP for most endpoints; key by IP + email for login and resend-verification
-- Extract IP from `x-forwarded-for` header (Vercel) or request
-- Login limiting is tricky with NextAuth credentials — may need a custom sign-in handler
-- Rate limiting should fail open (allow request) if Upstash is unavailable
-- Upstash free tier: 10k requests/day (sufficient for auth)
-- Env vars needed: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`
-
-### Limits
-
-| Endpoint | Limit | Window | Key By |
-|----------|-------|--------|--------|
-| `/api/auth/callback/credentials` (login) | 5 | 15 min | IP + email |
-| `/api/auth/register` | 3 | 1 hour | IP |
-| `/api/auth/forgot-password` | 3 | 1 hour | IP |
-| `/api/auth/reset-password` | 5 | 15 min | IP |
-| `/api/auth/resend-verification` | 3 | 15 min | IP + email |
+<!-- Additional context, constraints, or details -->
 
 ## History
 
@@ -63,4 +44,6 @@ In Progress
 
 - 2026-06-01 — Forgot password completed.
 
-- 2026-06-01 — Profile page completed. Added [src/lib/db/profile.ts](../src/lib/db/profile.ts) with `getProfileData(userId)` (user info, `hasPassword` flag, item counts by system type, total collections). Created [GET /profile](../src/app/profile/page.tsx) as a server component using `DashboardShell` layout — displays avatar (`UserAvatar`), name, email, joined date; a usage card with total items/collections and a per-type icon grid; a `ChangePasswordForm` (hidden for OAuth users without a password); and a Danger Zone with `DeleteAccountDialog`. Added [POST /api/auth/change-password](../src/app/api/auth/change-password/route.ts) — validates current password via bcrypt, updates hash; requires auth session. Added [DELETE /api/auth/delete-account](../src/app/api/auth/delete-account/route.ts) — deletes the authed user; client calls `signOut` after success. Built [ChangePasswordForm](../src/components/profile/ChangePasswordForm.tsx) (client component, three-field form, toast feedback) and [DeleteAccountDialog](../src/components/profile/DeleteAccountDialog.tsx) (Base UI `AlertDialog` with `render` prop trigger). Extended [proxy.ts](../src/proxy.ts) matcher to also protect `/profile`. Installed shadcn `alert-dialog` component (Base UI-based, uses `render` prop instead of Radix `asChild`). Added `issuePasswordResetToken(email)` to [src/lib/tokens.ts](../src/lib/tokens.ts) (1-hour expiry, identifier `password-reset:{email}`) and `sendPasswordResetEmail` to [src/lib/email.ts](../src/lib/email.ts). Created [POST /api/auth/forgot-password](../src/app/api/auth/forgot-password/route.ts) — issues token and sends email only if user has a `password` (skips OAuth-only accounts); always returns 200 to prevent user enumeration. Created [POST /api/auth/reset-password](../src/app/api/auth/reset-password/route.ts) — validates token (namespace check + expiry), bcrypt-hashes new password, updates user, deletes token. Added [/forgot-password](../src/app/(auth)/forgot-password/) page (email form; shows generic success regardless of whether email exists) and [/reset-password](../src/app/(auth)/reset-password/) page (new-password form; missing/invalid token shows a static error state with link to request a new one; on success redirects to `/sign-in?reset=1`). Updated [sign-in form](../src/app/(auth)/sign-in/_form.tsx) to add a "Forgot password?" link next to the password label and a "Password updated" success toast on `?reset=1`.
+- 2026-06-01 — Profile page completed.
+
+- 2026-06-02 — Rate limiting for auth completed. Installed `@upstash/ratelimit` and `@upstash/redis`. Created [src/lib/rate-limit.ts](../src/lib/rate-limit.ts) with `rateLimit(key, requests, window)` (sliding window, fails open if Redis is unavailable), `getClientIp(request)` (reads `x-forwarded-for`), and `tooManyRequestsResponse(reset)` (429 + `Retry-After` header + human-readable "try again in X minutes" message). Added rate limit checks to [register](../src/app/api/auth/register/route.ts) (3/hr by IP), [forgot-password](../src/app/api/auth/forgot-password/route.ts) (3/hr by IP), [reset-password](../src/app/api/auth/reset-password/route.ts) (5/15min by IP), and [resend-verification](../src/app/api/auth/resend-verification/route.ts) (3/15min by IP + email). Added login rate limiting in the `authorize` callback in [src/auth.ts](../src/auth.ts) using the `request` parameter (5/15min by IP + email); throws a `LoginRateLimitError extends CredentialsSignin` with `code = "RateLimited"` when exceeded. Updated [sign-in form](../src/app/(auth)/sign-in/_form.tsx): added `RateLimited` to `ERROR_MESSAGES`, changed `handleSubmit` to use `result.error` for message lookup, and fixed `handleResend()` to check the response status and show an error toast on failure (previously always showed success). Added `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` to [.env.example](../.env.example). Build passes. Added [src/lib/db/profile.ts](../src/lib/db/profile.ts) with `getProfileData(userId)` (user info, `hasPassword` flag, item counts by system type, total collections). Created [GET /profile](../src/app/profile/page.tsx) as a server component using `DashboardShell` layout — displays avatar (`UserAvatar`), name, email, joined date; a usage card with total items/collections and a per-type icon grid; a `ChangePasswordForm` (hidden for OAuth users without a password); and a Danger Zone with `DeleteAccountDialog`. Added [POST /api/auth/change-password](../src/app/api/auth/change-password/route.ts) — validates current password via bcrypt, updates hash; requires auth session. Added [DELETE /api/auth/delete-account](../src/app/api/auth/delete-account/route.ts) — deletes the authed user; client calls `signOut` after success. Built [ChangePasswordForm](../src/components/profile/ChangePasswordForm.tsx) (client component, three-field form, toast feedback) and [DeleteAccountDialog](../src/components/profile/DeleteAccountDialog.tsx) (Base UI `AlertDialog` with `render` prop trigger). Extended [proxy.ts](../src/proxy.ts) matcher to also protect `/profile`. Installed shadcn `alert-dialog` component (Base UI-based, uses `render` prop instead of Radix `asChild`). Added `issuePasswordResetToken(email)` to [src/lib/tokens.ts](../src/lib/tokens.ts) (1-hour expiry, identifier `password-reset:{email}`) and `sendPasswordResetEmail` to [src/lib/email.ts](../src/lib/email.ts). Created [POST /api/auth/forgot-password](../src/app/api/auth/forgot-password/route.ts) — issues token and sends email only if user has a `password` (skips OAuth-only accounts); always returns 200 to prevent user enumeration. Created [POST /api/auth/reset-password](../src/app/api/auth/reset-password/route.ts) — validates token (namespace check + expiry), bcrypt-hashes new password, updates user, deletes token. Added [/forgot-password](../src/app/(auth)/forgot-password/) page (email form; shows generic success regardless of whether email exists) and [/reset-password](../src/app/(auth)/reset-password/) page (new-password form; missing/invalid token shows a static error state with link to request a new one; on success redirects to `/sign-in?reset=1`). Updated [sign-in form](../src/app/(auth)/sign-in/_form.tsx) to add a "Forgot password?" link next to the password label and a "Password updated" success toast on `?reset=1`.
