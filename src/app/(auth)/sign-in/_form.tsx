@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { LogIn } from "lucide-react";
 import { toast } from "sonner";
 
+import { signInWithGitHub } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +25,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   RateLimited: "Too many sign-in attempts. Please try again later.",
   EmailNotVerified: "Please verify your email before signing in.",
   InvalidToken: "This verification link is invalid or has expired.",
+  OAuthAccountNotLinked: "An account with this email already exists. Please sign in with email and password.",
   default: "Something went wrong. Please try again.",
 };
 
@@ -191,15 +193,12 @@ export function SignInForm({
         </div>
       </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
-        onClick={() => signIn("github", { callbackUrl })}
-      >
-        <GitHubIcon className="size-4" />
-        Sign in with GitHub
-      </Button>
+      <form action={signInWithGitHub}>
+        <Button type="submit" variant="outline" className="w-full">
+          <GitHubIcon className="size-4" />
+          Sign in with GitHub
+        </Button>
+      </form>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         No account?{" "}
