@@ -1,18 +1,21 @@
-# Current Feature
-
-_None_
+# Current Feature: Item Listing Three-Column Grid
 
 ## Status
 
-Completed
+In Progress
 
 ## Goals
 
-<!-- Populate with /feature load -->
+- Change the items list page (`/items/[type]`) grid from 2 columns to 3 columns on large screens (`lg+`)
+- Keep the existing 2-column layout on medium screens (`md`)
+- Keep single-column layout on mobile (unchanged)
+- No changes to `ItemCard` internals — layout only
 
 ## Notes
 
-<!-- Additional context, constraints, or details -->
+- The grid is currently defined in [src/app/items/[type]/page.tsx](../src/app/items/%5Btype%5D/page.tsx) as `grid-cols-1 md:grid-cols-2`
+- Change to `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`
+- Verify cards still look good at the narrower width (title clamp, tags, date)
 
 ## History
 
