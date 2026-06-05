@@ -1,0 +1,70 @@
+import Link from "next/link";
+import { Pin, Star } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import type { DashboardItem } from "@/lib/db/items";
+import { ItemTypeIcon } from "@/lib/item-type-icons";
+
+const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+});
+
+export function ItemCard({ item }: { item: DashboardItem }) {
+  const { type } = item;
+
+  return (
+    <Link href={`/items/detail/${item.id}`} className="group block focus:outline-none">
+      <Card className="relative h-full px-4 pl-5 transition-colors hover:bg-muted/40 group-focus-visible:ring-2 group-focus-visible:ring-ring">
+        <span
+          aria-hidden
+          className="absolute inset-y-2 left-0 w-1 rounded-r-sm"
+          style={{ backgroundColor: type.color }}
+        />
+
+        <div className="flex flex-col gap-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-1.5">
+              <ItemTypeIcon
+                name={type.icon}
+                className="size-3.5 shrink-0"
+                style={{ color: type.color }}
+                aria-label={type.name}
+              />
+              <h3 className="truncate text-sm font-medium">{item.title}</h3>
+            </div>
+            <div className="flex shrink-0 items-center gap-1">
+              {item.isPinned && (
+                <Pin className="size-3 text-muted-foreground" aria-label="Pinned" />
+              )}
+              {item.isFavorite && (
+                <Star className="size-3 fill-yellow-400 text-yellow-400" aria-label="Favorite" />
+              )}
+            </div>
+          </div>
+
+          {item.description && (
+            <p className="line-clamp-2 text-xs text-muted-foreground">{item.description}</p>
+          )}
+
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-1">
+              {item.tags.slice(0, 3).map((tag) => (
+                <Badge key={tag} variant="secondary" className="text-[10px]">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+            <time
+              dateTime={item.createdAt.toISOString()}
+              className="shrink-0 text-xs text-muted-foreground"
+            >
+              {DATE_FORMATTER.format(item.createdAt)}
+            </time>
+          </div>
+        </div>
+      </Card>
+    </Link>
+  );
+}

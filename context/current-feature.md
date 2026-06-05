@@ -1,18 +1,25 @@
 # Current Feature
 
-_None_
+Items List View
 
 ## Status
 
-Completed
+In Progress
 
 ## Goals
 
-<!-- Populate with /feature load -->
+- Dynamic route `/items/[type]` displays items filtered by type (e.g. `/items/snippets`, `/items/notes`)
+- Fetch items from the database for the authenticated user, filtered by item type slug
+- Responsive grid of `ItemCard` components — two columns on `md` and up
+- Each card has a left border colored by the item type
+- Follow existing codebase patterns (server component, `DashboardShell`, sidebar data in parallel)
 
 ## Notes
 
-<!-- Additional context, constraints, or details -->
+- Route already exists as a stub at [src/app/items/[type]/page.tsx](../src/app/items/%5Btype%5D/page.tsx) — needs to be replaced with real implementation
+- Item type slug in the URL (e.g. `snippets`) maps to `ItemType.name` in the DB (lowercase singular form, e.g. `snippet`) — need to handle the plural→singular mapping
+- Reuse `DashboardShell` with sidebar data fetched in parallel (same pattern as dashboard and existing items page)
+- Cards should mirror the `ItemRow` accent-border pattern but use a card layout instead of a row
 
 ## History
 

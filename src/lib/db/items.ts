@@ -102,6 +102,18 @@ export type SidebarItemType = {
 
 const ITEM_TYPE_ORDER = ["snippet", "prompt", "command", "note", "file", "image", "link"];
 
+export async function getItemsByType(
+  userId: string,
+  typeName: string
+): Promise<DashboardItem[]> {
+  const items = await prisma.item.findMany({
+    where: { userId, itemType: { name: typeName } },
+    orderBy: { updatedAt: "desc" },
+    select: itemSelect,
+  });
+  return items.map(toDashboardItem);
+}
+
 export async function getSidebarItemTypes(): Promise<SidebarItemType[]> {
   const types = await prisma.itemType.findMany({
     where: { isSystem: true },
