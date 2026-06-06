@@ -1,19 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Calendar,
   Clipboard,
   ExternalLink,
   Pencil,
   Pin,
+  Save,
   Star,
   Trash2,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { updateItem } from "@/actions/items";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
@@ -39,6 +44,9 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
 function formatDate(iso: string) {
   return DATE_FORMATTER.format(new Date(iso));
 }
+
+const TEXT_CONTENT_TYPES = ["snippet", "prompt", "command", "note"];
+const LANGUAGE_TYPES = ["snippet", "command"];
 
 function DrawerSkeleton() {
   return (
@@ -73,8 +81,81 @@ function DrawerSkeleton() {
   );
 }
 
-function DrawerContent({ item }: { item: ItemDetailResponse }) {
+type EditState = {
+  title: string;
+  description: string;
+  content: string;
+  url: string;
+  language: string;
+  tags: string;
+};
+
+function toEditState(item: ItemDetailResponse): EditState {
+  return {
+    title: item.title,
+    description: item.description ?? "",
+    content: item.content ?? "",
+    url: item.url ?? "",
+    language: item.language ?? "",
+    tags: item.tags.join(", "),
+  };
+}
+
+type DrawerContentProps = {
+  item: ItemDetailResponse;
+  onItemUpdate: (updated: ItemDetailResponse) => void;
+};
+
+function DrawerContent({ item, onItemUpdate }: DrawerContentProps) {
+  const router = useRouter();
   const { type } = item;
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editState, setEditState] = useState<EditState>(() => toEditState(item));
+
+  function handleEdit() {
+    setEditState(toEditState(item));
+    setEditing(true);
+  }
+
+  function handleCancel() {
+    setEditing(false);
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    const tags = editState.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    const result = await updateItem(item.id, {
+      title: editState.title,
+      description: editState.description || null,
+      content: editState.content || null,
+      url: editState.url || null,
+      language: editState.language || null,
+      tags,
+    });
+
+    setSaving(false);
+
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+
+    const updated: ItemDetailResponse = {
+      ...result.data,
+      createdAt: result.data.createdAt.toISOString(),
+      updatedAt: result.data.updatedAt.toISOString(),
+    };
+
+    onItemUpdate(updated);
+    setEditing(false);
+    router.refresh();
+    toast.success("Item saved");
+  }
 
   async function handleCopy() {
     const text = item.content ?? item.url ?? "";
@@ -85,6 +166,14 @@ function DrawerContent({ item }: { item: ItemDetailResponse }) {
     await navigator.clipboard.writeText(text);
     toast.success("Copied to clipboard");
   }
+
+  function field(key: keyof EditState, value: string) {
+    setEditState((prev) => ({ ...prev, [key]: value }));
+  }
+
+  const showContent = TEXT_CONTENT_TYPES.includes(type.name);
+  const showLanguage = LANGUAGE_TYPES.includes(type.name);
+  const showUrl = type.name === "link";
 
   return (
     <>
@@ -100,143 +189,254 @@ function DrawerContent({ item }: { item: ItemDetailResponse }) {
               style={{ color: type.color }}
             />
           </div>
-          <SheetTitle className="truncate text-base">{item.title}</SheetTitle>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          <Badge variant="secondary" className="capitalize">
-            {type.name}
-          </Badge>
-          {item.language && (
-            <Badge variant="secondary">{item.language}</Badge>
+          {editing ? (
+            <Input
+              value={editState.title}
+              onChange={(e) => field("title", e.target.value)}
+              className="h-7 text-sm font-semibold"
+              placeholder="Title"
+            />
+          ) : (
+            <SheetTitle className="truncate text-base">{item.title}</SheetTitle>
           )}
         </div>
+        {!editing && (
+          <div className="flex flex-wrap gap-1.5">
+            <Badge variant="secondary" className="capitalize">
+              {type.name}
+            </Badge>
+            {item.language && (
+              <Badge variant="secondary">{item.language}</Badge>
+            )}
+          </div>
+        )}
       </SheetHeader>
 
       <Separator />
 
-      <div className="flex items-center gap-0.5 px-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          className={item.isFavorite ? "text-yellow-400 hover:text-yellow-400" : ""}
-        >
-          <Star
-            className={`mr-1 size-3.5 ${item.isFavorite ? "fill-yellow-400" : ""}`}
-          />
-          Favorite
-        </Button>
-        <Button variant="ghost" size="sm">
-          <Pin className="mr-1 size-3.5" />
-          Pin
-        </Button>
-        <Button variant="ghost" size="sm" onClick={handleCopy}>
-          <Clipboard className="mr-1 size-3.5" />
-          Copy
-        </Button>
-        <Button variant="ghost" size="sm">
-          <Pencil className="mr-1 size-3.5" />
-          Edit
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="ml-auto text-destructive hover:text-destructive"
-        >
-          <Trash2 className="size-3.5" />
-        </Button>
-      </div>
+      {editing ? (
+        <div className="flex items-center gap-2 px-4">
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={saving || !editState.title.trim()}
+          >
+            <Save className="mr-1 size-3.5" />
+            Save
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleCancel} disabled={saving}>
+            <X className="mr-1 size-3.5" />
+            Cancel
+          </Button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-0.5 px-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className={item.isFavorite ? "text-yellow-400 hover:text-yellow-400" : ""}
+          >
+            <Star
+              className={`mr-1 size-3.5 ${item.isFavorite ? "fill-yellow-400" : ""}`}
+            />
+            Favorite
+          </Button>
+          <Button variant="ghost" size="sm">
+            <Pin className="mr-1 size-3.5" />
+            Pin
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleCopy}>
+            <Clipboard className="mr-1 size-3.5" />
+            Copy
+          </Button>
+          <Button variant="ghost" size="sm" onClick={handleEdit}>
+            <Pencil className="mr-1 size-3.5" />
+            Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-auto text-destructive hover:text-destructive"
+          >
+            <Trash2 className="size-3.5" />
+          </Button>
+        </div>
+      )}
 
       <Separator />
 
       <div className="flex flex-col gap-5 overflow-y-auto px-4 pb-6">
-        {item.description && (
-          <section className="flex flex-col gap-1.5">
-            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Description
-            </h3>
-            <p className="text-sm">{item.description}</p>
-          </section>
-        )}
+        {editing ? (
+          <>
+            <section className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Description
+              </label>
+              <textarea
+                value={editState.description}
+                onChange={(e) => field("description", e.target.value)}
+                rows={3}
+                placeholder="Optional description"
+                className="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-ring"
+              />
+            </section>
 
-        {item.content && (
-          <section className="flex flex-col gap-1.5">
-            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Content
-            </h3>
-            <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs leading-relaxed whitespace-pre-wrap break-words">
-              {item.content}
-            </pre>
-          </section>
-        )}
+            {showContent && (
+              <section className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Content
+                </label>
+                <textarea
+                  value={editState.content}
+                  onChange={(e) => field("content", e.target.value)}
+                  rows={8}
+                  placeholder="Item content"
+                  className="w-full resize-y rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-ring"
+                />
+              </section>
+            )}
 
-        {item.url && (
-          <section className="flex flex-col gap-1.5">
-            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              URL
-            </h3>
-            <a
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 break-all text-sm text-blue-400 hover:underline"
-            >
-              {item.url}
-              <ExternalLink className="size-3 shrink-0" />
-            </a>
-          </section>
-        )}
+            {showUrl && (
+              <section className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  URL
+                </label>
+                <Input
+                  value={editState.url}
+                  onChange={(e) => field("url", e.target.value)}
+                  placeholder="https://..."
+                  type="url"
+                />
+              </section>
+            )}
 
-        {item.tags.length > 0 && (
-          <section className="flex flex-col gap-1.5">
-            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Tags
-            </h3>
-            <div className="flex flex-wrap gap-1.5">
-              {item.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          </section>
-        )}
+            {showLanguage && (
+              <section className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Language
+                </label>
+                <Input
+                  value={editState.language}
+                  onChange={(e) => field("language", e.target.value)}
+                  placeholder="e.g. typescript"
+                />
+              </section>
+            )}
 
-        {item.collections.length > 0 && (
-          <section className="flex flex-col gap-1.5">
-            <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Collections
-            </h3>
-            <div className="flex flex-wrap gap-1.5">
-              {item.collections.map((col) => (
-                <Badge key={col.id} variant="outline" className="text-xs">
-                  {col.name}
-                </Badge>
-              ))}
-            </div>
-          </section>
-        )}
+            <section className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Tags
+              </label>
+              <Input
+                value={editState.tags}
+                onChange={(e) => field("tags", e.target.value)}
+                placeholder="react, hooks, typescript"
+              />
+              <p className="text-[11px] text-muted-foreground">Comma-separated</p>
+            </section>
 
-        <section className="flex flex-col gap-2">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Details
-          </h3>
-          <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="size-3" />
-                <span>Created</span>
+            <section className="flex flex-col gap-1.5">
+              <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Type
+              </h3>
+              <Badge variant="secondary" className="w-fit capitalize">
+                {type.name}
+              </Badge>
+              <p className="text-[11px] text-muted-foreground">Type cannot be changed</p>
+            </section>
+          </>
+        ) : (
+          <>
+            {item.description && (
+              <section className="flex flex-col gap-1.5">
+                <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Description
+                </h3>
+                <p className="text-sm">{item.description}</p>
+              </section>
+            )}
+
+            {item.content && (
+              <section className="flex flex-col gap-1.5">
+                <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Content
+                </h3>
+                <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs leading-relaxed whitespace-pre-wrap wrap-break-word">
+                  {item.content}
+                </pre>
+              </section>
+            )}
+
+            {item.url && (
+              <section className="flex flex-col gap-1.5">
+                <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  URL
+                </h3>
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 break-all text-sm text-blue-400 hover:underline"
+                >
+                  {item.url}
+                  <ExternalLink className="size-3 shrink-0" />
+                </a>
+              </section>
+            )}
+
+            {item.tags.length > 0 && (
+              <section className="flex flex-col gap-1.5">
+                <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Tags
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {item.tags.map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {item.collections.length > 0 && (
+              <section className="flex flex-col gap-1.5">
+                <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Collections
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {item.collections.map((col) => (
+                    <Badge key={col.id} variant="outline" className="text-xs">
+                      {col.name}
+                    </Badge>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            <section className="flex flex-col gap-2">
+              <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Details
+              </h3>
+              <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="size-3" />
+                    <span>Created</span>
+                  </div>
+                  <span>{formatDate(item.createdAt)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="size-3" />
+                    <span>Updated</span>
+                  </div>
+                  <span>{formatDate(item.updatedAt)}</span>
+                </div>
               </div>
-              <span>{formatDate(item.createdAt)}</span>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="size-3" />
-                <span>Updated</span>
-              </div>
-              <span>{formatDate(item.updatedAt)}</span>
-            </div>
-          </div>
-        </section>
+            </section>
+          </>
+        )}
       </div>
     </>
   );
@@ -272,9 +472,13 @@ export function ItemDetailDrawer({ itemId, open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="flex w-full flex-col gap-0 p-0 sm:max-w-[480px]"
+        className="flex w-full flex-col gap-0 p-0 sm:max-w-120"
       >
-        {loading || !item ? <DrawerSkeleton /> : <DrawerContent item={item} />}
+        {loading || !item ? (
+          <DrawerSkeleton />
+        ) : (
+          <DrawerContent item={item} onItemUpdate={setItem} />
+        )}
       </SheetContent>
     </Sheet>
   );
