@@ -1,10 +1,12 @@
-import Link from "next/link";
+"use client";
+
 import { Pin, Star } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import type { DashboardItem } from "@/lib/db/items";
 import { ItemTypeIcon } from "@/lib/item-type-icons";
+import { useItemDrawer } from "@/components/items/ItemDrawerContext";
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -14,11 +16,13 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
 export function ItemRow({ item }: { item: DashboardItem }) {
   const { type } = item;
   const color = type.color;
+  const { openDrawer } = useItemDrawer();
 
   return (
-    <Link
-      href={`/items/detail/${item.id}`}
-      className="group block focus:outline-none"
+    <button
+      type="button"
+      onClick={() => openDrawer(item.id)}
+      className="group block w-full text-left focus:outline-none"
     >
       <Card
         size="sm"
@@ -79,6 +83,6 @@ export function ItemRow({ item }: { item: DashboardItem }) {
           </time>
         </div>
       </Card>
-    </Link>
+    </button>
   );
 }
