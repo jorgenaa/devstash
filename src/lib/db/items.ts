@@ -1,6 +1,25 @@
 import { prisma } from "@/lib/prisma";
 import { DEMO_EMAIL, validateLimit } from "@/lib/db/constants";
 
+export type ItemDetail = {
+  id: string;
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  language: string | null;
+  isFavorite: boolean;
+  isPinned: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  type: DashboardItemType;
+  tags: string[];
+  collections: { id: string; name: string }[];
+};
+
 export type DashboardItemType = {
   name: string;
   icon: string;
@@ -112,6 +131,56 @@ export async function getItemsByType(
     select: itemSelect,
   });
   return items.map(toDashboardItem);
+}
+
+export async function getItemDetail(
+  userId: string,
+  itemId: string
+): Promise<ItemDetail | null> {
+  const item = await prisma.item.findFirst({
+    where: { id: itemId, userId },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      content: true,
+      url: true,
+      fileUrl: true,
+      fileName: true,
+      fileSize: true,
+      language: true,
+      isFavorite: true,
+      isPinned: true,
+      createdAt: true,
+      updatedAt: true,
+      itemType: { select: { name: true, icon: true, color: true } },
+      tags: { select: { name: true } },
+      collections: {
+        select: { collection: { select: { id: true, name: true } } },
+      },
+    },
+  });
+
+  if (!item) return null;
+
+  return {
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    content: item.content,
+    url: item.url,
+    fileUrl: item.fileUrl,
+    fileName: item.fileName,
+    fileSize: item.fileSize,
+    language: item.language,
+    isFavorite: item.isFavorite,
+    isPinned: item.isPinned,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+    type: item.itemType,
+    tags: item.tags.map((t) => t.name),
+    collections: item.collections.map((c) => c.collection),
+  };
 }
 
 export async function getSidebarItemTypes(): Promise<SidebarItemType[]> {
