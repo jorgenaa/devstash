@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { PanelLeft, Plus, Search } from "lucide-react";
+import { PanelLeft, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Sidebar, type SidebarData, type SidebarUser } from "@/components/dashboard/Sidebar";
+import { NewItemDialog } from "@/components/items/NewItemDialog";
 
 export function DashboardShell({
   children,
@@ -62,10 +63,7 @@ export function DashboardShell({
         </div>
 
         <div className="flex items-center justify-end">
-          <Button>
-            <Plus className="size-4" />
-            New Item
-          </Button>
+          <NewItemDialog />
         </div>
       </header>
 
