@@ -1,16 +1,24 @@
-# Current Feature
+# Current Feature: Item Delete
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Clicking the Delete (trash) button in the item drawer opens a shadcn `AlertDialog` confirmation
+- Confirmation dialog shows the item title and asks "Are you sure?" with a destructive "Delete" button and a "Cancel" button
+- On confirm: calls a `deleteItem` server action that deletes the item from the DB (auth-gated, ownership-verified)
+- On success: closes the drawer, shows a sonner toast "Item deleted", and calls `router.refresh()` to update the card list
+- On error: shows an error toast, drawer stays open
 
 ## Notes
 
-<!-- Add notes here -->
+- `alert-dialog` shadcn component is already installed (used by `DeleteAccountDialog`)
+- `sonner` toast is already set up in root layout
+- The Delete trash icon button already exists in `ItemDetailDrawer` — wire it up, don't redesign the action bar
+- Follow the `{ success, data, error }` return pattern used by `updateItem` in `src/actions/items.ts`
+- DB delete must verify ownership before deleting (`userId` check)
 
 ## History
 
