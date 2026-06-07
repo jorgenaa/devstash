@@ -261,6 +261,95 @@ export async function updateItem(
   };
 }
 
+export type CreateItemInput = {
+  typeName: string;
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  language: string | null;
+  tags: string[];
+};
+
+const CONTENT_TYPE_MAP: Record<string, string> = {
+  snippet: "text",
+  prompt: "text",
+  command: "text",
+  note: "text",
+  link: "url",
+  file: "file",
+  image: "file",
+};
+
+export async function createItem(
+  userId: string,
+  data: CreateItemInput
+): Promise<ItemDetail | null> {
+  const itemType = await prisma.itemType.findFirst({
+    where: { name: data.typeName, isSystem: true },
+    select: { id: true, name: true, icon: true, color: true },
+  });
+  if (!itemType) return null;
+
+  const item = await prisma.item.create({
+    data: {
+      title: data.title,
+      description: data.description,
+      content: data.content,
+      url: data.url,
+      language: data.language,
+      contentType: CONTENT_TYPE_MAP[data.typeName] ?? "text",
+      userId,
+      itemTypeId: itemType.id,
+      tags: {
+        connectOrCreate: data.tags.map((name) => ({
+          where: { name },
+          create: { name },
+        })),
+      },
+    },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      content: true,
+      url: true,
+      fileUrl: true,
+      fileName: true,
+      fileSize: true,
+      language: true,
+      isFavorite: true,
+      isPinned: true,
+      createdAt: true,
+      updatedAt: true,
+      itemType: { select: { name: true, icon: true, color: true } },
+      tags: { select: { name: true } },
+      collections: {
+        select: { collection: { select: { id: true, name: true } } },
+      },
+    },
+  });
+
+  return {
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    content: item.content,
+    url: item.url,
+    fileUrl: item.fileUrl,
+    fileName: item.fileName,
+    fileSize: item.fileSize,
+    language: item.language,
+    isFavorite: item.isFavorite,
+    isPinned: item.isPinned,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+    type: item.itemType,
+    tags: item.tags.map((t) => t.name),
+    collections: item.collections.map((c) => c.collection),
+  };
+}
+
 export async function deleteItem(
   userId: string,
   itemId: string
