@@ -9,6 +9,7 @@ import {
   createItem as dbCreateItem,
 } from "@/lib/db/items";
 import type { ItemDetail } from "@/lib/db/items";
+import { deleteFromR2 } from "@/lib/r2";
 
 const UpdateItemSchema = z.object({
   title: z.string().trim().min(1, "Title is required"),
@@ -56,7 +57,9 @@ export async function updateItem(
   return { success: true, data: updated };
 }
 
-const CREATABLE_TYPES = ["snippet", "prompt", "command", "note", "link"] as const;
+const FILE_TYPES = ["file", "image"] as const;
+const TEXT_TYPES = ["snippet", "prompt", "command", "note", "link"] as const;
+const CREATABLE_TYPES = [...TEXT_TYPES, ...FILE_TYPES] as const;
 
 const CreateItemSchema = z
   .object({
@@ -70,6 +73,9 @@ const CreateItemSchema = z
       .nullable()
       .optional()
       .or(z.literal("").transform(() => null)),
+    fileUrl: z.string().nullable().optional(),
+    fileName: z.string().nullable().optional(),
+    fileSize: z.number().nullable().optional(),
     language: z.string().trim().nullable().optional(),
     tags: z.array(z.string().trim().min(1)).default([]),
   })
@@ -79,6 +85,13 @@ const CreateItemSchema = z
         code: z.ZodIssueCode.custom,
         message: "URL is required for links",
         path: ["url"],
+      });
+    }
+    if ((data.typeName === "file" || data.typeName === "image") && !data.fileUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "A file must be uploaded",
+        path: ["fileUrl"],
       });
     }
   });
@@ -101,7 +114,8 @@ export async function createItem(
     return { success: false, error: message };
   }
 
-  const { typeName, title, description, content, url, language, tags } = parsed.data;
+  const { typeName, title, description, content, url, fileUrl, fileName, fileSize, language, tags } =
+    parsed.data;
 
   const created = await dbCreateItem(session.user.id, {
     typeName,
@@ -109,6 +123,9 @@ export async function createItem(
     description: description ?? null,
     content: content ?? null,
     url: url ?? null,
+    fileUrl: fileUrl ?? null,
+    fileName: fileName ?? null,
+    fileSize: fileSize ?? null,
     language: language ?? null,
     tags,
   });
@@ -131,6 +148,10 @@ export async function deleteItem(itemId: string): Promise<DeleteItemResult> {
   const deleted = await dbDeleteItem(session.user.id, itemId);
   if (!deleted) {
     return { success: false, error: "Item not found" };
+  }
+
+  if (deleted.fileUrl) {
+    await deleteFromR2(deleted.fileUrl).catch(() => {});
   }
 
   return { success: true };

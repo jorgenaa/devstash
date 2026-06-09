@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { createItem } from "@/actions/items";
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "@/components/ui/code-editor";
+import { FileUpload, type UploadResult } from "@/components/ui/file-upload";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import {
   Dialog,
@@ -26,12 +27,15 @@ const ITEM_TYPES = [
   { name: "command", icon: "Terminal", label: "Command" },
   { name: "note", icon: "StickyNote", label: "Note" },
   { name: "link", icon: "Link", label: "Link" },
+  { name: "file", icon: "File", label: "File" },
+  { name: "image", icon: "Image", label: "Image" },
 ] as const;
 
 export type TypeName = (typeof ITEM_TYPES)[number]["name"];
 
 const TEXT_CONTENT_TYPES: TypeName[] = ["snippet", "prompt", "command", "note"];
 const LANGUAGE_TYPES: TypeName[] = ["snippet", "command"];
+const FILE_TYPES: TypeName[] = ["file", "image"];
 
 type FormState = {
   title: string;
@@ -62,6 +66,7 @@ export function NewItemDialog({ defaultType }: Props = {}) {
   const [open, setOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<TypeName>(defaultType ?? "snippet");
   const [form, setForm] = useState<FormState>(defaultForm);
+  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [saving, setSaving] = useState(false);
 
   function field(key: keyof FormState, value: string) {
@@ -73,7 +78,13 @@ export function NewItemDialog({ defaultType }: Props = {}) {
     if (!next) {
       setForm(defaultForm());
       setSelectedType(defaultType ?? "snippet");
+      setUploadResult(null);
     }
+  }
+
+  function handleTypeChange(type: TypeName) {
+    setSelectedType(type);
+    setUploadResult(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -85,12 +96,17 @@ export function NewItemDialog({ defaultType }: Props = {}) {
       .map((t) => t.trim())
       .filter(Boolean);
 
+    const isFileType = FILE_TYPES.includes(selectedType);
+
     const result = await createItem({
       typeName: selectedType,
       title: form.title,
       description: form.description || null,
-      content: form.content || null,
+      content: isFileType ? null : (form.content || null),
       url: form.url || null,
+      fileUrl: uploadResult?.key ?? null,
+      fileName: uploadResult?.fileName ?? null,
+      fileSize: uploadResult?.fileSize ?? null,
       language: form.language || null,
       tags,
     });
@@ -110,9 +126,12 @@ export function NewItemDialog({ defaultType }: Props = {}) {
   const showContent = TEXT_CONTENT_TYPES.includes(selectedType);
   const showLanguage = LANGUAGE_TYPES.includes(selectedType);
   const showUrl = selectedType === "link";
+  const showFileUpload = FILE_TYPES.includes(selectedType);
 
   const canSubmit =
-    form.title.trim().length > 0 && (!showUrl || form.url.trim().length > 0);
+    form.title.trim().length > 0 &&
+    (!showUrl || form.url.trim().length > 0) &&
+    (!showFileUpload || uploadResult !== null);
 
   const triggerLabel = defaultType
     ? `Add ${ITEM_TYPES.find((t) => t.name === defaultType)?.label ?? "Item"}`
@@ -134,7 +153,7 @@ export function NewItemDialog({ defaultType }: Props = {}) {
               <button
                 key={type.name}
                 type="button"
-                onClick={() => setSelectedType(type.name)}
+                onClick={() => handleTypeChange(type.name)}
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                   selectedType === type.name
                     ? "bg-primary text-primary-foreground"
@@ -171,6 +190,20 @@ export function NewItemDialog({ defaultType }: Props = {}) {
               className="resize-none"
             />
           </div>
+
+          {showFileUpload && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {selectedType === "image" ? "Image" : "File"}{" "}
+                <span className="text-destructive">*</span>
+              </label>
+              <FileUpload
+                itemType={selectedType as "file" | "image"}
+                onUpload={setUploadResult}
+                onClear={() => setUploadResult(null)}
+              />
+            </div>
+          )}
 
           {showContent && (
             <div className="flex flex-col gap-1.5">
