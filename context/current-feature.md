@@ -1,21 +1,12 @@
-# Current Feature: Image Gallery View
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Replace the standard `ItemCard` with an image thumbnail card on the `/items/images` page
-- Show a 3-column image grid/gallery layout
-- Images display at 16:9 aspect ratio (`aspect-video`) with `object-cover` fill
-- Subtle hover zoom effect (5% scale, 300ms transition)
-
 ## Notes
-
-- Only affects the `/items/images` route — all other item types keep the existing `ItemCard`
-- Image source comes from the download proxy (`/api/download/[...path]`) using the item's `fileUrl`
-- The existing drawer (open on click) should still work — the thumbnail card is just a different visual shell
 
 ## History
 
@@ -70,6 +61,8 @@ In Progress
 - 2026-06-07 — Item delete completed. Added `deleteItem(userId, itemId)` to [src/lib/db/items.ts](../src/lib/db/items.ts) — verifies ownership with `findFirst`, then deletes; returns `boolean`. Added `deleteItem(itemId)` server action to [src/actions/items.ts](../src/actions/items.ts) — auth-gated, delegates to DB function, returns `{ success, error }`. Updated [ItemDetailDrawer](../src/components/items/ItemDetailDrawer.tsx): wrapped the existing trash `Button` in a shadcn `AlertDialog` that shows `Delete "{item.title}"?` with a destructive Confirm and a Cancel; on confirm calls the server action; on success closes the drawer, shows a sonner toast "Item deleted", and calls `router.refresh()` to update the card list; on error shows an error toast and keeps the drawer open. Added [src/actions/items.test.ts](../src/actions/items.test.ts) with 3 unit tests covering all code paths of the `deleteItem` action (unauthorized, item not found, success); 9/9 tests pass.
 
 - 2026-06-09 — Markdown editor completed. Installed `react-markdown` and `remark-gfm`. Created [MarkdownEditor](../src/components/ui/markdown-editor.tsx) — client component with mac dots header matching `CodeEditor`, Write/Preview tab buttons (hidden in `readOnly` mode), copy button, and dark `bg-[#1e1e1e]` body. Preview renders via `<ReactMarkdown remarkPlugins={[remarkGfm]}>` inside a `.markdown-preview` div; Write shows a monospace `<textarea>`. Added `.markdown-preview` CSS block to [globals.css](../src/app/globals.css) (outside `@layer` to override Tailwind's preflight resets) covering h1–h6, p, ul/ol, code/pre, blockquote, links, tables, and hr. Updated [NewItemDialog](../src/components/items/NewItemDialog.tsx): prompt/note content field now uses `MarkdownEditor`; snippet/command still use `CodeEditor`. Updated [ItemDetailDrawer](../src/components/items/ItemDetailDrawer.tsx): view mode and edit mode both use `MarkdownEditor` for prompt/note types; snippet/command unchanged. Build passes; 15/15 tests pass.
+
+- 2026-06-10 — Image gallery view completed. Added `fileUrl: string | null` to `DashboardItem` type, `itemSelect`, and `toDashboardItem` in [src/lib/db/items.ts](../src/lib/db/items.ts) so item list queries carry the R2 key. Created [ImageCard](../src/components/items/ImageCard.tsx) — client component with a 16:9 `aspect-video` thumbnail (`object-cover`), 5% hover zoom (`group-hover:scale-105`, `duration-300`), pin/favorite badges overlaid top-right, and title/description strip below; image served via the `/api/download/[key]` proxy; falls back to a "No image" placeholder when `fileUrl` is null; clicking opens the existing item drawer. Updated [items/[type]/page.tsx](../src/app/items/%5Btype%5D/page.tsx) to render `<ImageCard>` in a `sm:grid-cols-2 lg:grid-cols-3` grid when `typeName === "image"`, and the existing `<ItemCard>` grid for all other types. Build passes; 15/15 tests pass.
 
 - 2026-06-09 — File and image upload with Cloudflare R2 completed. Installed `@aws-sdk/client-s3`. Created [src/lib/r2.ts](../src/lib/r2.ts) (R2 `S3Client` singleton; exports `uploadToR2`, `deleteFromR2`, `getFromR2`). Created [POST /api/upload](../src/app/api/upload/route.ts) — auth-gated; validates MIME type and size (images 5 MB, files 10 MB); uploads to R2; returns `{ key, fileName, fileSize, mimeType }`. Created [GET /api/download/[...path]](../src/app/api/download/%5B...path%5D/route.ts) — auth-gated download proxy; enforces owner-only access (key must start with `userId/`); returns `Content-Disposition: inline` for images, `attachment` for other files. Built [FileUpload](../src/components/ui/file-upload.tsx) — drag-and-drop dropzone; XHR upload with progress bar; image thumbnail preview on success; file name/size card on success; remove button. Updated [NewItemDialog](../src/components/items/NewItemDialog.tsx): File and Image added to type selector (7 types total); `FileUpload` shown for file/image types; Create button blocked until upload completes. Updated [ItemDetailDrawer](../src/components/items/ItemDetailDrawer.tsx): image types show `<img>` preview via download proxy; file types show name/size card; both get a Download button. Updated `deleteItem` in [src/lib/db/items.ts](../src/lib/db/items.ts) to return `{ fileUrl } | null` (changed from `boolean`); [deleteItem action](../src/actions/items.ts) calls `deleteFromR2` on the stored key after DB deletion. `CreateItemInput` gains `fileUrl/fileName/fileSize`. Updated [items/[type]/page.tsx](../src/app/items/%5Btype%5D/page.tsx): file and image added to `CREATABLE_TYPES`. Updated tests to match new `dbDeleteItem` return shape. Build passes; 15/15 tests pass.
 
