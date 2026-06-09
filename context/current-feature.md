@@ -1,16 +1,26 @@
-# Current Feature
+# Current Feature — Code Editor
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Monaco Editor component built with dark theme, display and edit modes
+- Snippets and commands use `CodeEditor`; notes, prompts, links keep `Textarea`
+- macOS window dots (red/yellow/green) in editor header
+- Quick copy button in editor header
+- Language label shown in editor header next to copy button
+- Fluid height editor with max 400px and themed scrollbar
 
 ## Notes
 
-<!-- Add notes here -->
+- Uses `@monaco-editor/react` package
+- `CodeEditor` is a client component (`'use client'`) — Monaco requires browser APIs
+- Display mode: `readOnly: true`, no cursor, clean look
+- Edit mode: full editor, language from item (e.g. `typescript`, `bash`)
+- Replace content `<Textarea>` in [ItemDetailDrawer](../src/components/items/ItemDetailDrawer.tsx) (view + edit mode) and [NewItemDialog](../src/components/items/NewItemDialog.tsx)
+- Condition: `typeName === 'snippet' || typeName === 'command'`
 
 ## History
 
