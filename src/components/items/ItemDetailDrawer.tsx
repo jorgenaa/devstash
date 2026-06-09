@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import {
   Calendar,
   Clipboard,
+  Download,
   ExternalLink,
+  File,
   Pencil,
   Pin,
   Save,
@@ -60,6 +62,13 @@ function formatDate(iso: string) {
 
 const TEXT_CONTENT_TYPES = ['snippet', 'prompt', 'command', 'note'];
 const LANGUAGE_TYPES = ['snippet', 'command'];
+const FILE_TYPES = ['file', 'image'];
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
 
 function DrawerSkeleton() {
   return (
@@ -206,6 +215,9 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
   const showContent = TEXT_CONTENT_TYPES.includes(type.name);
   const showLanguage = LANGUAGE_TYPES.includes(type.name);
   const showUrl = type.name === 'link';
+  const showFile = FILE_TYPES.includes(type.name);
+  const isImage = type.name === 'image';
+  const downloadUrl = item.fileUrl ? `/api/download/${item.fileUrl}` : null;
 
   return (
     <>
@@ -430,6 +442,45 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
                   Description
                 </h3>
                 <p className='text-sm'>{item.description}</p>
+              </section>
+            )}
+
+            {showFile && item.fileUrl && (
+              <section className='flex flex-col gap-2'>
+                <h3 className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                  {isImage ? 'Image' : 'File'}
+                </h3>
+                {isImage ? (
+                  <img
+                    src={downloadUrl!}
+                    alt={item.fileName ?? 'Image'}
+                    className='max-h-64 w-full rounded-lg object-contain'
+                  />
+                ) : (
+                  <div className='flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3'>
+                    <div className='flex size-10 shrink-0 items-center justify-center rounded bg-muted'>
+                      <File className='size-4 text-muted-foreground' />
+                    </div>
+                    <div className='min-w-0 flex-1'>
+                      <p className='truncate text-sm font-medium'>
+                        {item.fileName ?? 'File'}
+                      </p>
+                      {item.fileSize != null && (
+                        <p className='text-xs text-muted-foreground'>
+                          {formatBytes(item.fileSize)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {downloadUrl && (
+                  <a href={downloadUrl} download={item.fileName ?? undefined}>
+                    <Button variant='outline' size='sm' className='w-full' type='button'>
+                      <Download className='mr-1.5 size-3.5' />
+                      Download
+                    </Button>
+                  </a>
+                )}
               </section>
             )}
 

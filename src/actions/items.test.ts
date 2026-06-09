@@ -33,7 +33,7 @@ describe("deleteItem action", () => {
 
   it("returns not found when item does not exist or is not owned by user", async () => {
     mockAuth.mockResolvedValue({ user: { id: "user-1" } } as Awaited<ReturnType<typeof auth>>);
-    mockDbDelete.mockResolvedValue(false);
+    mockDbDelete.mockResolvedValue(null);
 
     const result = await deleteItem("item-999");
 
@@ -43,7 +43,7 @@ describe("deleteItem action", () => {
 
   it("returns success when item is deleted", async () => {
     mockAuth.mockResolvedValue({ user: { id: "user-1" } } as Awaited<ReturnType<typeof auth>>);
-    mockDbDelete.mockResolvedValue(true);
+    mockDbDelete.mockResolvedValue({ fileUrl: null });
 
     const result = await deleteItem("item-1");
 
@@ -143,6 +143,9 @@ describe("createItem action", () => {
       description: null,
       content: "console.log('hi')",
       url: null,
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
       language: "javascript",
       tags: ["js"],
     });

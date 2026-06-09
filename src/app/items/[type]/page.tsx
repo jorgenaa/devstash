@@ -11,7 +11,7 @@ import { getSidebarCollections } from "@/lib/db/collections";
 import { getItemsByType, getSidebarItemTypes } from "@/lib/db/items";
 import { ItemTypeIcon } from "@/lib/item-type-icons";
 
-const CREATABLE_TYPES = new Set<string>(["snippet", "prompt", "command", "note", "link"]);
+const CREATABLE_TYPES = new Set<string>(["snippet", "prompt", "command", "note", "link", "file", "image"]);
 
 const TYPE_SLUG_MAP: Record<string, string> = {
   snippets: "snippet",
