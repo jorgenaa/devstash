@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { createItem } from "@/actions/items";
 import { Button } from "@/components/ui/button";
+import { CodeEditor } from "@/components/ui/code-editor";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +27,7 @@ const ITEM_TYPES = [
   { name: "link", icon: "Link", label: "Link" },
 ] as const;
 
-type TypeName = (typeof ITEM_TYPES)[number]["name"];
+export type TypeName = (typeof ITEM_TYPES)[number]["name"];
 
 const TEXT_CONTENT_TYPES: TypeName[] = ["snippet", "prompt", "command", "note"];
 const LANGUAGE_TYPES: TypeName[] = ["snippet", "command"];
@@ -51,10 +52,14 @@ function defaultForm(): FormState {
   };
 }
 
-export function NewItemDialog() {
+type Props = {
+  defaultType?: TypeName;
+};
+
+export function NewItemDialog({ defaultType }: Props = {}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [selectedType, setSelectedType] = useState<TypeName>("snippet");
+  const [selectedType, setSelectedType] = useState<TypeName>(defaultType ?? "snippet");
   const [form, setForm] = useState<FormState>(defaultForm);
   const [saving, setSaving] = useState(false);
 
@@ -66,7 +71,7 @@ export function NewItemDialog() {
     setOpen(next);
     if (!next) {
       setForm(defaultForm());
-      setSelectedType("snippet");
+      setSelectedType(defaultType ?? "snippet");
     }
   }
 
@@ -108,11 +113,15 @@ export function NewItemDialog() {
   const canSubmit =
     form.title.trim().length > 0 && (!showUrl || form.url.trim().length > 0);
 
+  const triggerLabel = defaultType
+    ? `Add ${ITEM_TYPES.find((t) => t.name === defaultType)?.label ?? "Item"}`
+    : "New Item";
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={<Button />}>
         <Plus className="size-4" />
-        New Item
+        {triggerLabel}
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
@@ -167,13 +176,21 @@ export function NewItemDialog() {
               <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Content
               </label>
-              <Textarea
-                value={form.content}
-                onChange={(e) => field("content", e.target.value)}
-                placeholder="Item content"
-                rows={6}
-                className="resize-y font-mono text-xs"
-              />
+              {showLanguage ? (
+                <CodeEditor
+                  value={form.content}
+                  onChange={(v) => field("content", v)}
+                  language={form.language}
+                />
+              ) : (
+                <Textarea
+                  value={form.content}
+                  onChange={(e) => field("content", e.target.value)}
+                  placeholder="Item content"
+                  rows={6}
+                  className="resize-y font-mono text-xs"
+                />
+              )}
             </div>
           )}
 
