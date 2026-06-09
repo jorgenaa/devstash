@@ -1,26 +1,18 @@
-# Current Feature: Markdown Size Tokens
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Replace all hardcoded `rem`/`px` font-size values in `.markdown-preview` CSS with Tailwind v4 CSS custom properties (e.g. `var(--text-sm)`, `var(--text-lg)`, `var(--text-2xl)`)
-- Replace hardcoded spacing values (margin, padding) in `.markdown-preview` with Tailwind spacing tokens (e.g. `var(--spacing-3)`, `var(--spacing-4)`)
-- Keep visual output identical — this is a token-for-token substitution, not a redesign
-- All `.markdown-preview` rules must reference `@theme` variables only — no raw numeric values left
-
 ## Notes
-
-- Tailwind CSS v4 exposes theme values as CSS custom properties from the `@theme inline` block. Font sizes use the pattern `var(--text-{size})` (xs, sm, base, lg, xl, 2xl, etc.). Spacing uses `var(--spacing-{n})`.
-- Check that the variables actually exist in the project's `@theme inline` block in `globals.css` before using them — if a needed token is missing, add it there.
-- Do NOT create a `tailwind.config.ts` — we are on Tailwind v4 with CSS-only config.
-- The `.markdown-preview` block lives at the bottom of `src/app/globals.css`, outside `@layer` so it overrides Tailwind's preflight resets — keep it there.
 
 ## History
 
 <!-- Keep this updated. Earliest to latest -->
+
+- 2026-06-09 — Markdown size tokens completed. Replaced all hardcoded `rem`/`px` values in `.markdown-preview` (in [globals.css](../src/app/globals.css)) with Tailwind v4 CSS custom properties: font sizes use `var(--text-sm/base/lg/xl/2xl)`, spacing uses `calc(n * var(--spacing))`, and `pre` border-radius uses `var(--radius-sm)`. Added global thin scrollbar styles (`::webkit-scrollbar` + Firefox `scrollbar-width`/`scrollbar-color`) in `@layer base` using `oklch(1 0 0 / 15%)` to match the dark theme. Updated [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx): outer container changed from `min-h-screen` to `h-screen`, body row gets `min-h-0`, and `<main>` switches to `overflow-y-auto` so scrolling is contained to the content area rather than the browser chrome. Build passes; 15/15 tests pass.
 
 - 2026-06-09 — Code editor completed. Installed `@monaco-editor/react`. Created [CodeEditor](../src/components/ui/code-editor.tsx) — client component with a macOS-style dot header (red/yellow/green circles), language label, copy button, and Monaco in `vs-dark` theme; fluid height calculated from content up to 400px max via `editor.onDidContentSizeChange`; 6px themed scrollbar, no minimap. Updated [ItemDetailDrawer](../src/components/items/ItemDetailDrawer.tsx): view mode replaces `<pre>` with `<CodeEditor readOnly>` for snippet/command types; edit mode replaces content `<textarea>` with `<CodeEditor>` for the same types. Updated [NewItemDialog](../src/components/items/NewItemDialog.tsx): exported `TypeName`, added `defaultType` prop (sets initial selected type and reset target on close, shows "Add Snippet" / "Add Command" etc. on the trigger button); content `<Textarea>` replaced with `<CodeEditor>` for snippet/command. Updated [items/[type]/page.tsx](../src/app/items/%5Btype%5D/page.tsx): added `CREATABLE_TYPES` set and a `<NewItemDialog defaultType={typeName}>` button right-aligned in the page header for the 5 creatable types (not shown for file/image). Build passes; 15/15 tests pass.
 
