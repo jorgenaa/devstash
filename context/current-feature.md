@@ -1,16 +1,34 @@
-# Current Feature
+# Current Feature: Markdown Editor
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Create `MarkdownEditor` component with Write/Preview tab interface
+- Use `react-markdown` + `remark-gfm` for GitHub Flavored Markdown rendering
+- Match existing dark theme (same header style as `CodeEditor`: `bg-[#1e1e1e]` container, `bg-[#2d2d2d]` header)
+- Add copy button in header (same style as `CodeEditor`)
+- Readonly mode: show Preview tab only
+- Edit mode: default to Write tab, Preview available
+- Fluid height up to 400px max (matching `CodeEditor`)
+- Replace `Textarea` with `MarkdownEditor` in `NewItemDialog` for note and prompt types
+- Replace `Textarea`/`<pre>` with `MarkdownEditor` in `ItemDetailDrawer` for note and prompt types (view + edit modes)
+- Keep `CodeEditor` for snippet and command types — no changes
 
 ## Notes
 
-<!-- Add notes here -->
+- Styling requirements for markdown preview:
+  - Headings (h1–h6): visually distinct size and weight
+  - Code blocks: dark background, monospace font
+  - Inline code: subtle background highlight
+  - Lists: proper indentation and bullets
+  - Blockquotes: left border accent
+  - Links: blue with hover state
+  - Tables: borders and header background
+- Use custom CSS class (e.g. `.markdown-preview`) for reliable dark mode styling — do not rely on Tailwind's `prose` class alone
+- `react-markdown` and `remark-gfm` must be installed if not already present
 
 ## History
 

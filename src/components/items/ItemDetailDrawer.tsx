@@ -30,6 +30,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CodeEditor } from '@/components/ui/code-editor';
+import { MarkdownEditor } from '@/components/ui/markdown-editor';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -360,12 +361,9 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
                     language={editState.language}
                   />
                 ) : (
-                  <textarea
+                  <MarkdownEditor
                     value={editState.content}
-                    onChange={(e) => field('content', e.target.value)}
-                    rows={8}
-                    placeholder='Item content'
-                    className='w-full resize-y rounded-md border border-input bg-transparent px-3 py-2 font-mono text-xs outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-ring'
+                    onChange={(v) => field('content', v)}
                   />
                 )}
               </section>
@@ -443,9 +441,7 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
                 {showLanguage ? (
                   <CodeEditor value={item.content} language={item.language} readOnly />
                 ) : (
-                  <pre className='overflow-x-auto rounded-md bg-muted p-3 text-xs leading-relaxed whitespace-pre-wrap wrap-break-word'>
-                    {item.content}
-                  </pre>
+                  <MarkdownEditor value={item.content} readOnly />
                 )}
               </section>
             )}

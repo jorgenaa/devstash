@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { createItem } from "@/actions/items";
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "@/components/ui/code-editor";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import {
   Dialog,
   DialogContent,
@@ -183,12 +184,9 @@ export function NewItemDialog({ defaultType }: Props = {}) {
                   language={form.language}
                 />
               ) : (
-                <Textarea
+                <MarkdownEditor
                   value={form.content}
-                  onChange={(e) => field("content", e.target.value)}
-                  placeholder="Item content"
-                  rows={6}
-                  className="resize-y font-mono text-xs"
+                  onChange={(v) => field("content", v)}
                 />
               )}
             </div>
