@@ -1,30 +1,22 @@
-# Current Feature — Code Editor
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Monaco Editor component built with dark theme, display and edit modes
-- Snippets and commands use `CodeEditor`; notes, prompts, links keep `Textarea`
-- macOS window dots (red/yellow/green) in editor header
-- Quick copy button in editor header
-- Language label shown in editor header next to copy button
-- Fluid height editor with max 400px and themed scrollbar
+<!-- Add goals here -->
 
 ## Notes
 
-- Uses `@monaco-editor/react` package
-- `CodeEditor` is a client component (`'use client'`) — Monaco requires browser APIs
-- Display mode: `readOnly: true`, no cursor, clean look
-- Edit mode: full editor, language from item (e.g. `typescript`, `bash`)
-- Replace content `<Textarea>` in [ItemDetailDrawer](../src/components/items/ItemDetailDrawer.tsx) (view + edit mode) and [NewItemDialog](../src/components/items/NewItemDialog.tsx)
-- Condition: `typeName === 'snippet' || typeName === 'command'`
+<!-- Add notes here -->
 
 ## History
 
 <!-- Keep this updated. Earliest to latest -->
+
+- 2026-06-09 — Code editor completed. Installed `@monaco-editor/react`. Created [CodeEditor](../src/components/ui/code-editor.tsx) — client component with a macOS-style dot header (red/yellow/green circles), language label, copy button, and Monaco in `vs-dark` theme; fluid height calculated from content up to 400px max via `editor.onDidContentSizeChange`; 6px themed scrollbar, no minimap. Updated [ItemDetailDrawer](../src/components/items/ItemDetailDrawer.tsx): view mode replaces `<pre>` with `<CodeEditor readOnly>` for snippet/command types; edit mode replaces content `<textarea>` with `<CodeEditor>` for the same types. Updated [NewItemDialog](../src/components/items/NewItemDialog.tsx): exported `TypeName`, added `defaultType` prop (sets initial selected type and reset target on close, shows "Add Snippet" / "Add Command" etc. on the trigger button); content `<Textarea>` replaced with `<CodeEditor>` for snippet/command. Updated [items/[type]/page.tsx](../src/app/items/%5Btype%5D/page.tsx): added `CREATABLE_TYPES` set and a `<NewItemDialog defaultType={typeName}>` button right-aligned in the page header for the 5 creatable types (not shown for file/image). Build passes; 15/15 tests pass.
 
 - 2026-05-23 — Initial Next.js and Tailwind CSS v4 setup. Removed default Create Next App assets (`public/*.svg`), cleaned `src/app/page.tsx` and `src/app/globals.css`, added project context files under `context/`, and committed as `chore: initial next.js and tailwind setup`. Created private GitHub repo `jorgenaa/devstash` and pushed `main`.
 - 2026-05-23 — Dashboard UI Phase 1 completed. Initialized shadcn/ui and added `Button` and `Input` components. Scaffolded the `/dashboard` route with a dark-mode-default layout, a top bar containing a centered search input flanked by a "DS / DevStash" logo on the left and a "New Item" button on the right, and placeholder `Sidebar` and `Main` regions.
