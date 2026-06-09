@@ -22,7 +22,7 @@ export function DashboardShell({
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex h-screen flex-col">
       <header className="flex h-14 items-center gap-3 border-b border-border bg-background px-4">
         <div className="flex items-center gap-2">
           <div className="flex size-8 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
@@ -67,7 +67,7 @@ export function DashboardShell({
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex min-h-0 flex-1">
         <aside className="hidden border-r border-sidebar-border md:flex">
           <Sidebar data={sidebarData} user={user} collapsed={collapsed} />
         </aside>
@@ -83,7 +83,7 @@ export function DashboardShell({
           </SheetContent>
         </Sheet>
 
-        <main className="flex-1 overflow-x-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
   );

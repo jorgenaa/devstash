@@ -1,12 +1,22 @@
-# Current Feature
+# Current Feature: Markdown Size Tokens
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Replace all hardcoded `rem`/`px` font-size values in `.markdown-preview` CSS with Tailwind v4 CSS custom properties (e.g. `var(--text-sm)`, `var(--text-lg)`, `var(--text-2xl)`)
+- Replace hardcoded spacing values (margin, padding) in `.markdown-preview` with Tailwind spacing tokens (e.g. `var(--spacing-3)`, `var(--spacing-4)`)
+- Keep visual output identical — this is a token-for-token substitution, not a redesign
+- All `.markdown-preview` rules must reference `@theme` variables only — no raw numeric values left
+
 ## Notes
+
+- Tailwind CSS v4 exposes theme values as CSS custom properties from the `@theme inline` block. Font sizes use the pattern `var(--text-{size})` (xs, sm, base, lg, xl, 2xl, etc.). Spacing uses `var(--spacing-{n})`.
+- Check that the variables actually exist in the project's `@theme inline` block in `globals.css` before using them — if a needed token is missing, add it there.
+- Do NOT create a `tailwind.config.ts` — we are on Tailwind v4 with CSS-only config.
+- The `.markdown-preview` block lives at the bottom of `src/app/globals.css`, outside `@layer` so it overrides Tailwind's preflight resets — keep it there.
 
 ## History
 
