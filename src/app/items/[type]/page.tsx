@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { ImageCard } from "@/components/items/ImageCard";
 import { ItemCard } from "@/components/items/ItemCard";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ItemDrawerProvider } from "@/components/items/ItemDrawerContext";
@@ -83,6 +84,12 @@ export default async function ItemTypePage({
             <p className="text-sm text-muted-foreground">
               No {pageTitle.toLowerCase()} yet.
             </p>
+          ) : typeName === "image" ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {items.map((item) => (
+                <ImageCard key={item.id} item={item} />
+              ))}
+            </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {items.map((item) => (
