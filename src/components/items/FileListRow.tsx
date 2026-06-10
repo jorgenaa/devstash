@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   Download,
   FileArchive,
@@ -14,7 +15,9 @@ import {
 import type { DashboardItem } from "@/lib/db/items";
 import { useItemDrawer } from "@/components/items/ItemDrawerContext";
 
-function getFileIcon(fileName: string | null) {
+type IconComponent = React.ComponentType<{ className?: string }>;
+
+function getFileIcon(fileName: string | null): IconComponent {
   if (!fileName) return File;
   const ext = fileName.split(".").pop()?.toLowerCase() ?? "";
   if (["jpg", "jpeg", "png", "gif", "webp", "svg", "avif"].includes(ext)) return FileImage;
@@ -35,7 +38,6 @@ function formatFileSize(bytes: number | null): string {
 
 export function FileListRow({ item }: { item: DashboardItem }) {
   const { openDrawer } = useItemDrawer();
-  const Icon = getFileIcon(item.fileName);
   const downloadUrl = item.fileUrl ? `/api/download/${item.fileUrl}` : null;
 
   function handleDownload(e: React.MouseEvent) {
@@ -54,7 +56,7 @@ export function FileListRow({ item }: { item: DashboardItem }) {
       className="group flex w-full items-center gap-4 rounded-lg border border-border bg-card px-4 py-3 text-left transition-colors hover:bg-accent/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <div className="shrink-0 text-muted-foreground">
-        <Icon className="size-5" />
+        {React.createElement(getFileIcon(item.fileName), { className: "size-5" })}
       </div>
 
       <div className="min-w-0 flex-1">
