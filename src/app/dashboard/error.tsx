@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -8,7 +9,10 @@ interface ErrorProps {
   reset: () => void;
 }
 
-export default function DashboardError({ reset }: ErrorProps) {
+export default function DashboardError({ error, reset }: ErrorProps) {
+  useEffect(() => {
+    console.error("Dashboard error:", error);
+  }, [error]);
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
       <AlertCircle className="size-8 text-muted-foreground" />

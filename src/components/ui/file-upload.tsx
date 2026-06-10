@@ -118,6 +118,8 @@ export function FileUpload({ itemType, onUpload, onClear }: Props) {
     return (
       <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/30 p-3">
         {previewUrl ? (
+          // blob: URLs from createObjectURL are not supported by next/image
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={previewUrl}
             alt={result.fileName}

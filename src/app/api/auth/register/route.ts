@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { BCRYPT_ROUNDS } from "@/lib/auth-utils";
 import { issueVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/email";
 import { EMAIL_VERIFICATION_ENABLED } from "@/lib/flags";
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "An account with this email already exists" }, { status: 409 });
     }
 
-    const hashed = await bcrypt.hash(password, 12);
+    const hashed = await bcrypt.hash(password, BCRYPT_ROUNDS);
     await prisma.user.create({
       data: {
         name,

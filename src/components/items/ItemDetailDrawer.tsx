@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
   Calendar,
   Clipboard,
@@ -34,6 +35,7 @@ import { Button } from '@/components/ui/button';
 import { CodeEditor } from '@/components/ui/code-editor';
 import { MarkdownEditor } from '@/components/ui/markdown-editor';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import {
   Sheet,
@@ -352,12 +354,12 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
               <label className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>
                 Description
               </label>
-              <textarea
+              <Textarea
                 value={editState.description}
                 onChange={(e) => field('description', e.target.value)}
                 rows={3}
                 placeholder='Optional description'
-                className='w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-ring'
+                className='resize-none'
               />
             </section>
 
@@ -451,11 +453,16 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
                   {isImage ? 'Image' : 'File'}
                 </h3>
                 {isImage ? (
-                  <img
-                    src={downloadUrl!}
-                    alt={item.fileName ?? 'Image'}
-                    className='max-h-64 w-full rounded-lg object-contain'
-                  />
+                  <div className='relative h-64 w-full overflow-hidden rounded-lg'>
+                    <Image
+                      src={downloadUrl!}
+                      alt={item.fileName ?? 'Image'}
+                      fill
+                      unoptimized
+                      className='object-contain'
+                      sizes='480px'
+                    />
+                  </div>
                 ) : (
                   <div className='flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-3'>
                     <div className='flex size-10 shrink-0 items-center justify-center rounded bg-muted'>

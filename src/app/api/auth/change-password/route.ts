@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
+import { BCRYPT_ROUNDS } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 });
     }
 
-    const hashed = await bcrypt.hash(newPassword, 12);
+    const hashed = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
     await prisma.user.update({
       where: { id: session.user.id },
       data: { password: hashed },

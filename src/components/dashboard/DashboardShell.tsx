@@ -20,6 +20,7 @@ export function DashboardShell({
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <div className="flex h-screen flex-col">
@@ -59,6 +60,8 @@ export function DashboardShell({
             placeholder="Search items…"
             className="pl-8"
             aria-label="Search items"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 

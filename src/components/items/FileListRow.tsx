@@ -50,10 +50,12 @@ export function FileListRow({ item }: { item: DashboardItem }) {
   }
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => openDrawer(item.id)}
-      className="group flex w-full items-center gap-4 rounded-lg border border-border bg-card px-4 py-3 text-left transition-colors hover:bg-accent/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      onKeyDown={(e) => e.key === "Enter" && openDrawer(item.id)}
+      className="group flex w-full cursor-pointer items-center gap-4 rounded-lg border border-border bg-card px-4 py-3 text-left transition-colors hover:bg-accent/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <div className="shrink-0 text-muted-foreground">
         {React.createElement(getFileIcon(item.fileName), { className: "size-5" })}
@@ -88,6 +90,6 @@ export function FileListRow({ item }: { item: DashboardItem }) {
           <Download className="size-4" />
         </button>
       )}
-    </button>
+    </div>
   );
 }

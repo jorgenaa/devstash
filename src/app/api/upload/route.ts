@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/auth";
 import { uploadToR2, R2_BUCKET } from "@/lib/r2";
+import { rateLimit, tooManyRequestsResponse } from "@/lib/rate-limit";
 
 const IMAGE_MIME_TYPES = new Set([
   "image/png",
@@ -32,6 +33,9 @@ export async function POST(request: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const rl = await rateLimit(`upload:${session.user.id}`, 20, "1 h");
+  if (!rl.success) return tooManyRequestsResponse(rl.reset);
 
   if (!R2_BUCKET) {
     return NextResponse.json({ error: "Storage not configured" }, { status: 500 });
