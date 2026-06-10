@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { notFound, redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { FileListRow } from "@/components/items/FileListRow";
 import { ImageCard } from "@/components/items/ImageCard";
 import { ItemCard } from "@/components/items/ItemCard";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
@@ -88,6 +89,12 @@ export default async function ItemTypePage({
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((item) => (
                 <ImageCard key={item.id} item={item} />
+              ))}
+            </div>
+          ) : typeName === "file" ? (
+            <div className="flex flex-col gap-2">
+              {items.map((item) => (
+                <FileListRow key={item.id} item={item} />
               ))}
             </div>
           ) : (

@@ -31,6 +31,8 @@ export type DashboardItem = {
   title: string;
   description: string | null;
   fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
   isFavorite: boolean;
   isPinned: boolean;
   tags: string[];
@@ -45,6 +47,8 @@ const itemSelect = {
   title: true,
   description: true,
   fileUrl: true,
+  fileName: true,
+  fileSize: true,
   isFavorite: true,
   isPinned: true,
   createdAt: true,
@@ -58,6 +62,8 @@ type ItemRow = {
   title: string;
   description: string | null;
   fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
   isFavorite: boolean;
   isPinned: boolean;
   createdAt: Date;
@@ -72,6 +78,8 @@ function toDashboardItem(item: ItemRow): DashboardItem {
     title: item.title,
     description: item.description,
     fileUrl: item.fileUrl,
+    fileName: item.fileName,
+    fileSize: item.fileSize,
     isFavorite: item.isFavorite,
     isPinned: item.isPinned,
     tags: item.tags.map((tag) => tag.name),
