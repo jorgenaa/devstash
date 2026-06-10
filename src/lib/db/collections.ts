@@ -78,8 +78,10 @@ export async function getSidebarCollections(): Promise<{
   const collections = await prisma.collection.findMany({
     where: { user: { email: DEMO_EMAIL } },
     orderBy: { updatedAt: "desc" },
+    take: 20,
     include: {
       items: {
+        take: 20,
         include: {
           item: {
             select: {

@@ -11,11 +11,16 @@ import {
 import type { ItemDetail } from "@/lib/db/items";
 import { deleteFromR2 } from "@/lib/r2";
 
+const HTTP_URL = z
+  .string()
+  .url("Must be a valid URL")
+  .refine((u) => /^https?:\/\//i.test(u), "URL must start with http:// or https://");
+
 const UpdateItemSchema = z.object({
   title: z.string().trim().min(1, "Title is required"),
   description: z.string().trim().nullable().optional(),
   content: z.string().nullable().optional(),
-  url: z.string().url("Must be a valid URL").nullable().optional().or(z.literal("").transform(() => null)),
+  url: HTTP_URL.nullable().optional().or(z.literal("").transform(() => null)),
   language: z.string().trim().nullable().optional(),
   tags: z.array(z.string().trim().min(1)).default([]),
 });
@@ -67,12 +72,7 @@ const CreateItemSchema = z
     title: z.string().trim().min(1, "Title is required"),
     description: z.string().trim().nullable().optional(),
     content: z.string().nullable().optional(),
-    url: z
-      .string()
-      .url("Must be a valid URL")
-      .nullable()
-      .optional()
-      .or(z.literal("").transform(() => null)),
+    url: HTTP_URL.nullable().optional().or(z.literal("").transform(() => null)),
     fileUrl: z.string().nullable().optional(),
     fileName: z.string().nullable().optional(),
     fileSize: z.number().nullable().optional(),

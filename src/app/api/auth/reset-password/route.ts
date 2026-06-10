@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { BCRYPT_ROUNDS } from "@/lib/auth-utils";
 import { getClientIp, rateLimit, tooManyRequestsResponse } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
     }
 
     const email = record.identifier.replace("password-reset:", "");
-    const hashed = await bcrypt.hash(password, 12);
+    const hashed = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     await prisma.user.update({
       where: { email },

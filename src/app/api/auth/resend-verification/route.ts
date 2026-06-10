@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     }
 
     if (user.emailVerified) {
-      return NextResponse.json({ error: "Email is already verified" }, { status: 400 });
+      return NextResponse.json({ success: true }, { status: 200 });
     }
 
     const token = await issueVerificationToken(email);
