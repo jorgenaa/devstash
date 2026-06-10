@@ -2,31 +2,11 @@
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-Fix five security and quality issues identified during the code audit:
-
-1. **Bcrypt rounds constant** — `12` is hardcoded in three separate files ([register](../src/app/api/auth/register/route.ts:40), [reset-password](../src/app/api/auth/reset-password/route.ts:43), [change-password](../src/app/api/auth/change-password/route.ts:46)). Extract to a shared `BCRYPT_ROUNDS` constant in `src/lib/auth-utils.ts` (or `src/lib/db/constants.ts`) and import it in all three.
-
-2. **Debounce for search input** — The search input in `DashboardShell` fires on every keystroke with no debounce. Create a `useDebounce` custom hook in `src/hooks/use-debounce.ts` and apply it to the search input to delay input handling until the user stops typing (300ms).
-
-3. **URL protocol validation** — The Zod `z.string().url()` validator in [src/actions/items.ts](../src/actions/items.ts) accepts `javascript:` and `data:` URLs, which are XSS vectors when rendered as `href` values. Add a `.refine()` check (or regex) that restricts accepted protocols to `https://` and `http://` only. Apply to both `UpdateItemSchema` and `CreateItemSchema`.
-
-4. **Replace `<img>` with `next/image`** — Three components use bare `<img>` tags for images served through the `/api/download/` proxy:
-   - [src/components/items/ImageCard.tsx:21](../src/components/items/ImageCard.tsx) — gallery thumbnail
-   - [src/components/items/ItemDetailDrawer.tsx:455](../src/components/items/ItemDetailDrawer.tsx) — drawer image preview
-   - [src/components/ui/file-upload.tsx:121](../src/components/ui/file-upload.tsx) — upload preview thumbnail
-   
-   Replace with Next.js `<Image>` for automatic optimisation. Since these URLs are proxied through the same origin (`/api/download/...`), no `remotePatterns` config is needed — use `fill` or explicit `width`/`height` props as appropriate per component.
-
-5. **Upload rate limiting** — [POST /api/upload](../src/app/api/upload/route.ts) has no rate limiting. Add a limit (e.g. 20 uploads per hour per user ID) using the existing `rateLimit()` helper in `src/lib/rate-limit.ts`. Key on `userId` rather than IP since uploads require auth.
-
 ## Notes
-
-- The `useDebounce` hook will be useful later when search is fully wired up — make it generic (`<T>`) so it can debounce any value, not just strings.
-- For `next/image` in the file-upload preview, the image is a local blob URL from `URL.createObjectURL` — use a plain `<img>` for blobs since `<Image>` does not support `blob:` URLs. Only replace the `/api/download/` proxy usages.
 
 ## History
 
@@ -93,3 +73,5 @@ Fix five security and quality issues identified during the code audit:
 - 2026-06-10 — Copy icon added to item cards. Added `content: string | null` and `url: string | null` to `DashboardItem`, `itemSelect`, and `toDashboardItem` in [src/lib/db/items.ts](../src/lib/db/items.ts). Updated [ItemCard](../src/components/items/ItemCard.tsx): outer `<button>` changed to `<div role="button">` to allow a nested copy `<button>`; card restructured into a left content column (title, description, tags) and a right metadata column (date centered, copy icon at bottom); copy button appears on hover, copies `content` for text types or `url` for links, shows a green check for 1.5s on success. File and image cards show no copy button (no copyable text).
 
 - 2026-06-10 — Code quality fixes from scanner audit. Fixed 4 medium-severity issues: (1) [src/app/dashboard/error.tsx](../src/app/dashboard/error.tsx) — added `useEffect` to log the `error` prop via `console.error` instead of silently swallowing it. (2) [src/app/api/auth/resend-verification/route.ts](../src/app/api/auth/resend-verification/route.ts) — already-verified accounts now return `{ success: true }` (200) instead of a distinct 400 error, eliminating the account-existence enumeration vector. (3) [src/components/items/ItemDetailDrawer.tsx](../src/components/items/ItemDetailDrawer.tsx) — replaced raw `<textarea>` with shadcn `<Textarea>` component in edit mode, consistent with `NewItemDialog`. (4) [src/lib/db/collections.ts](../src/lib/db/collections.ts) — added `take: 20` on both the collections query and the nested items join in `getSidebarCollections` to cap unbounded per-page-load data fetching. Build passes; 15/15 tests pass.
+
+- 2026-06-11 — Security and quality audit fixes completed. (1) Extracted `BCRYPT_ROUNDS = 12` to [src/lib/auth-utils.ts](../src/lib/auth-utils.ts) and imported it in [register](../src/app/api/auth/register/route.ts), [reset-password](../src/app/api/auth/reset-password/route.ts), and [change-password](../src/app/api/auth/change-password/route.ts) routes. (2) Created generic `useDebounce<T>` hook at [src/hooks/use-debounce.ts](../src/hooks/use-debounce.ts); wired controlled search input in [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) ready for when search is implemented. (3) Added shared `HTTP_URL` Zod validator with `.refine()` blocking `javascript:` and `data:` protocol URLs; applied to `UpdateItemSchema` and `CreateItemSchema` in [src/actions/items.ts](../src/actions/items.ts). (4) Replaced `<img>` with `<Image unoptimized>` from `next/image` in [ImageCard.tsx](../src/components/items/ImageCard.tsx) and [ItemDetailDrawer.tsx](../src/components/items/ItemDetailDrawer.tsx) — `unoptimized` required because `/api/download/` is auth-gated and Next.js image optimization cannot pass session cookies; blob URL preview in [FileUpload](../src/components/ui/file-upload.tsx) kept as `<img>` with eslint-disable comment. (5) Added rate limit (20/hr per `userId`) to [POST /api/upload](../src/app/api/upload/route.ts) using the existing `rateLimit()` helper. Also fixed a nested `<button>` hydration error in [FileListRow.tsx](../src/components/items/FileListRow.tsx) by changing the outer row element to `<div role="button" tabIndex={0}>`. Build passes; 15/15 tests pass.
