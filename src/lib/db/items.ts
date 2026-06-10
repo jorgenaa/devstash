@@ -30,6 +30,8 @@ export type DashboardItem = {
   id: string;
   title: string;
   description: string | null;
+  content: string | null;
+  url: string | null;
   fileUrl: string | null;
   fileName: string | null;
   fileSize: number | null;
@@ -46,6 +48,8 @@ const itemSelect = {
   id: true,
   title: true,
   description: true,
+  content: true,
+  url: true,
   fileUrl: true,
   fileName: true,
   fileSize: true,
@@ -61,6 +65,8 @@ type ItemRow = {
   id: string;
   title: string;
   description: string | null;
+  content: string | null;
+  url: string | null;
   fileUrl: string | null;
   fileName: string | null;
   fileSize: number | null;
@@ -77,6 +83,8 @@ function toDashboardItem(item: ItemRow): DashboardItem {
     id: item.id,
     title: item.title,
     description: item.description,
+    content: item.content,
+    url: item.url,
     fileUrl: item.fileUrl,
     fileName: item.fileName,
     fileSize: item.fileSize,
