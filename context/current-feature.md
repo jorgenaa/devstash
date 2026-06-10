@@ -1,24 +1,12 @@
-# Current Feature: File List View
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Replace the grid layout on `/items/files` with a single-column list view
-- Each row displays: file icon (by extension), file name, file size, upload date, and a download button
-- Row hover highlight
-- Clicking a row opens the existing ItemDrawer
-- Download button triggers direct file download (stop propagation so it doesn't open the drawer)
-- Responsive: stack info vertically on mobile
-
 ## Notes
-
-- Layout should resemble Google Drive / Dropbox file list style
-- Use the existing `/api/download/[...path]` proxy for downloads
-- File icon should reflect the file extension (e.g. PDF, ZIP, DOCX, etc.)
-- Only applies to `/items/files` — images already have their own gallery view
 
 ## History
 
@@ -75,6 +63,8 @@ In Progress
 - 2026-06-09 — Markdown editor completed. Installed `react-markdown` and `remark-gfm`. Created [MarkdownEditor](../src/components/ui/markdown-editor.tsx) — client component with mac dots header matching `CodeEditor`, Write/Preview tab buttons (hidden in `readOnly` mode), copy button, and dark `bg-[#1e1e1e]` body. Preview renders via `<ReactMarkdown remarkPlugins={[remarkGfm]}>` inside a `.markdown-preview` div; Write shows a monospace `<textarea>`. Added `.markdown-preview` CSS block to [globals.css](../src/app/globals.css) (outside `@layer` to override Tailwind's preflight resets) covering h1–h6, p, ul/ol, code/pre, blockquote, links, tables, and hr. Updated [NewItemDialog](../src/components/items/NewItemDialog.tsx): prompt/note content field now uses `MarkdownEditor`; snippet/command still use `CodeEditor`. Updated [ItemDetailDrawer](../src/components/items/ItemDetailDrawer.tsx): view mode and edit mode both use `MarkdownEditor` for prompt/note types; snippet/command unchanged. Build passes; 15/15 tests pass.
 
 - 2026-06-10 — Image gallery view completed. Added `fileUrl: string | null` to `DashboardItem` type, `itemSelect`, and `toDashboardItem` in [src/lib/db/items.ts](../src/lib/db/items.ts) so item list queries carry the R2 key. Created [ImageCard](../src/components/items/ImageCard.tsx) — client component with a 16:9 `aspect-video` thumbnail (`object-cover`), 5% hover zoom (`group-hover:scale-105`, `duration-300`), pin/favorite badges overlaid top-right, and title/description strip below; image served via the `/api/download/[key]` proxy; falls back to a "No image" placeholder when `fileUrl` is null; clicking opens the existing item drawer. Updated [items/[type]/page.tsx](../src/app/items/%5Btype%5D/page.tsx) to render `<ImageCard>` in a `sm:grid-cols-2 lg:grid-cols-3` grid when `typeName === "image"`, and the existing `<ItemCard>` grid for all other types. Build passes; 15/15 tests pass.
+
+- 2026-06-10 — File list view completed. Added `fileName: string | null` and `fileSize: number | null` to `DashboardItem`, `itemSelect`, `ItemRow`, and `toDashboardItem` in [src/lib/db/items.ts](../src/lib/db/items.ts). Created [FileListRow](../src/components/items/FileListRow.tsx) — client component rendering a single-column list row with a file-type icon (mapped from extension: image/video/archive/spreadsheet/code/text/generic), file name, file size formatted as B/KB/MB, upload date, and a Download button that appears on row hover and triggers a direct download (`stopPropagation` so clicking elsewhere on the row still opens the drawer). Row has hover highlight (`hover:bg-accent/50`) and full-width button with `focus-visible` ring. Updated [items/[type]/page.tsx](../src/app/items/%5Btype%5D/page.tsx) to render `<FileListRow>` in a `flex flex-col gap-2` list when `typeName === "file"`. Build passes; 15/15 tests pass.
 
 - 2026-06-09 — File and image upload with Cloudflare R2 completed. Installed `@aws-sdk/client-s3`. Created [src/lib/r2.ts](../src/lib/r2.ts) (R2 `S3Client` singleton; exports `uploadToR2`, `deleteFromR2`, `getFromR2`). Created [POST /api/upload](../src/app/api/upload/route.ts) — auth-gated; validates MIME type and size (images 5 MB, files 10 MB); uploads to R2; returns `{ key, fileName, fileSize, mimeType }`. Created [GET /api/download/[...path]](../src/app/api/download/%5B...path%5D/route.ts) — auth-gated download proxy; enforces owner-only access (key must start with `userId/`); returns `Content-Disposition: inline` for images, `attachment` for other files. Built [FileUpload](../src/components/ui/file-upload.tsx) — drag-and-drop dropzone; XHR upload with progress bar; image thumbnail preview on success; file name/size card on success; remove button. Updated [NewItemDialog](../src/components/items/NewItemDialog.tsx): File and Image added to type selector (7 types total); `FileUpload` shown for file/image types; Create button blocked until upload completes. Updated [ItemDetailDrawer](../src/components/items/ItemDetailDrawer.tsx): image types show `<img>` preview via download proxy; file types show name/size card; both get a Download button. Updated `deleteItem` in [src/lib/db/items.ts](../src/lib/db/items.ts) to return `{ fileUrl } | null` (changed from `boolean`); [deleteItem action](../src/actions/items.ts) calls `deleteFromR2` on the stored key after DB deletion. `CreateItemInput` gains `fileUrl/fileName/fileSize`. Updated [items/[type]/page.tsx](../src/app/items/%5Btype%5D/page.tsx): file and image added to `CREATABLE_TYPES`. Updated tests to match new `dbDeleteItem` return shape. Build passes; 15/15 tests pass.
 
