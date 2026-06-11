@@ -20,6 +20,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ItemTypeIcon } from "@/lib/item-type-icons";
+import { TEXT_CONTENT_TYPES, LANGUAGE_TYPES, FILE_TYPES } from "@/lib/item-type-constants";
+import { FormField } from "@/components/ui/form-field";
 
 const ITEM_TYPES = [
   { name: "snippet", icon: "Code", label: "Snippet" },
@@ -32,10 +34,6 @@ const ITEM_TYPES = [
 ] as const;
 
 export type TypeName = (typeof ITEM_TYPES)[number]["name"];
-
-const TEXT_CONTENT_TYPES: TypeName[] = ["snippet", "prompt", "command", "note"];
-const LANGUAGE_TYPES: TypeName[] = ["snippet", "command"];
-const FILE_TYPES: TypeName[] = ["file", "image"];
 
 type FormState = {
   title: string;
@@ -96,7 +94,7 @@ export function NewItemDialog({ defaultType }: Props = {}) {
       .map((t) => t.trim())
       .filter(Boolean);
 
-    const isFileType = FILE_TYPES.includes(selectedType);
+    const isFileType = (FILE_TYPES as readonly string[]).includes(selectedType);
 
     const result = await createItem({
       typeName: selectedType,
@@ -123,10 +121,10 @@ export function NewItemDialog({ defaultType }: Props = {}) {
     router.refresh();
   }
 
-  const showContent = TEXT_CONTENT_TYPES.includes(selectedType);
-  const showLanguage = LANGUAGE_TYPES.includes(selectedType);
+  const showContent = (TEXT_CONTENT_TYPES as readonly string[]).includes(selectedType);
+  const showLanguage = (LANGUAGE_TYPES as readonly string[]).includes(selectedType);
   const showUrl = selectedType === "link";
-  const showFileUpload = FILE_TYPES.includes(selectedType);
+  const showFileUpload = (FILE_TYPES as readonly string[]).includes(selectedType);
 
   const canSubmit =
     form.title.trim().length > 0 &&
@@ -166,22 +164,16 @@ export function NewItemDialog({ defaultType }: Props = {}) {
             ))}
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Title <span className="text-destructive">*</span>
-            </label>
+          <FormField label="Title" required>
             <Input
               value={form.title}
               onChange={(e) => field("title", e.target.value)}
               placeholder="Item title"
               autoFocus
             />
-          </div>
+          </FormField>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Description
-            </label>
+          <FormField label="Description">
             <Textarea
               value={form.description}
               onChange={(e) => field("description", e.target.value)}
@@ -189,27 +181,20 @@ export function NewItemDialog({ defaultType }: Props = {}) {
               rows={2}
               className="resize-none"
             />
-          </div>
+          </FormField>
 
           {showFileUpload && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {selectedType === "image" ? "Image" : "File"}{" "}
-                <span className="text-destructive">*</span>
-              </label>
+            <FormField label={selectedType === "image" ? "Image" : "File"} required>
               <FileUpload
                 itemType={selectedType as "file" | "image"}
                 onUpload={setUploadResult}
                 onClear={() => setUploadResult(null)}
               />
-            </div>
+            </FormField>
           )}
 
           {showContent && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Content
-              </label>
+            <FormField label="Content">
               {showLanguage ? (
                 <CodeEditor
                   value={form.content}
@@ -222,47 +207,37 @@ export function NewItemDialog({ defaultType }: Props = {}) {
                   onChange={(v) => field("content", v)}
                 />
               )}
-            </div>
+            </FormField>
           )}
 
           {showUrl && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                URL <span className="text-destructive">*</span>
-              </label>
+            <FormField label="URL" required>
               <Input
                 value={form.url}
                 onChange={(e) => field("url", e.target.value)}
                 placeholder="https://..."
                 type="url"
               />
-            </div>
+            </FormField>
           )}
 
           {showLanguage && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Language
-              </label>
+            <FormField label="Language">
               <Input
                 value={form.language}
                 onChange={(e) => field("language", e.target.value)}
                 placeholder="e.g. typescript"
               />
-            </div>
+            </FormField>
           )}
 
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Tags
-            </label>
+          <FormField label="Tags" hint="Comma-separated">
             <Input
               value={form.tags}
               onChange={(e) => field("tags", e.target.value)}
               placeholder="react, hooks, typescript"
             />
-            <p className="text-[11px] text-muted-foreground">Comma-separated</p>
-          </div>
+          </FormField>
 
           <div className="flex justify-end gap-2">
             <Button

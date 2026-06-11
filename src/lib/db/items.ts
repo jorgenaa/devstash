@@ -153,36 +153,47 @@ export async function getItemsByType(
   return items.map(toDashboardItem);
 }
 
-export async function getItemDetail(
-  userId: string,
-  itemId: string
-): Promise<ItemDetail | null> {
-  const item = await prisma.item.findFirst({
-    where: { id: itemId, userId },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      content: true,
-      url: true,
-      fileUrl: true,
-      fileName: true,
-      fileSize: true,
-      language: true,
-      isFavorite: true,
-      isPinned: true,
-      createdAt: true,
-      updatedAt: true,
-      itemType: { select: { name: true, icon: true, color: true } },
-      tags: { select: { name: true } },
-      collections: {
-        select: { collection: { select: { id: true, name: true } } },
-      },
-    },
-  });
+const itemDetailSelect = {
+  id: true,
+  title: true,
+  description: true,
+  content: true,
+  url: true,
+  fileUrl: true,
+  fileName: true,
+  fileSize: true,
+  language: true,
+  isFavorite: true,
+  isPinned: true,
+  createdAt: true,
+  updatedAt: true,
+  itemType: { select: { name: true, icon: true, color: true } },
+  tags: { select: { name: true } },
+  collections: {
+    select: { collection: { select: { id: true, name: true } } },
+  },
+} as const;
 
-  if (!item) return null;
+type ItemDetailRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  language: string | null;
+  isFavorite: boolean;
+  isPinned: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  itemType: DashboardItemType;
+  tags: { name: string }[];
+  collections: { collection: { id: string; name: string } }[];
+};
 
+function toItemDetail(item: ItemDetailRow): ItemDetail {
   return {
     id: item.id,
     title: item.title,
@@ -201,6 +212,18 @@ export async function getItemDetail(
     tags: item.tags.map((t) => t.name),
     collections: item.collections.map((c) => c.collection),
   };
+}
+
+export async function getItemDetail(
+  userId: string,
+  itemId: string
+): Promise<ItemDetail | null> {
+  const item = await prisma.item.findFirst({
+    where: { id: itemId, userId },
+    select: itemDetailSelect,
+  });
+
+  return item ? toItemDetail(item) : null;
 }
 
 export type UpdateItemInput = {
@@ -239,46 +262,10 @@ export async function updateItem(
         })),
       },
     },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      content: true,
-      url: true,
-      fileUrl: true,
-      fileName: true,
-      fileSize: true,
-      language: true,
-      isFavorite: true,
-      isPinned: true,
-      createdAt: true,
-      updatedAt: true,
-      itemType: { select: { name: true, icon: true, color: true } },
-      tags: { select: { name: true } },
-      collections: {
-        select: { collection: { select: { id: true, name: true } } },
-      },
-    },
+    select: itemDetailSelect,
   });
 
-  return {
-    id: item.id,
-    title: item.title,
-    description: item.description,
-    content: item.content,
-    url: item.url,
-    fileUrl: item.fileUrl,
-    fileName: item.fileName,
-    fileSize: item.fileSize,
-    language: item.language,
-    isFavorite: item.isFavorite,
-    isPinned: item.isPinned,
-    createdAt: item.createdAt,
-    updatedAt: item.updatedAt,
-    type: item.itemType,
-    tags: item.tags.map((t) => t.name),
-    collections: item.collections.map((c) => c.collection),
-  };
+  return toItemDetail(item);
 }
 
 export type CreateItemInput = {
@@ -334,46 +321,10 @@ export async function createItem(
         })),
       },
     },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      content: true,
-      url: true,
-      fileUrl: true,
-      fileName: true,
-      fileSize: true,
-      language: true,
-      isFavorite: true,
-      isPinned: true,
-      createdAt: true,
-      updatedAt: true,
-      itemType: { select: { name: true, icon: true, color: true } },
-      tags: { select: { name: true } },
-      collections: {
-        select: { collection: { select: { id: true, name: true } } },
-      },
-    },
+    select: itemDetailSelect,
   });
 
-  return {
-    id: item.id,
-    title: item.title,
-    description: item.description,
-    content: item.content,
-    url: item.url,
-    fileUrl: item.fileUrl,
-    fileName: item.fileName,
-    fileSize: item.fileSize,
-    language: item.language,
-    isFavorite: item.isFavorite,
-    isPinned: item.isPinned,
-    createdAt: item.createdAt,
-    updatedAt: item.updatedAt,
-    type: item.itemType,
-    tags: item.tags.map((t) => t.name),
-    collections: item.collections.map((c) => c.collection),
-  };
+  return toItemDetail(item);
 }
 
 export async function deleteItem(
