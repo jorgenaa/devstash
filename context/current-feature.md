@@ -2,29 +2,15 @@
 
 ## Status
 
-Completed
+Not Started
 
 ## Goals
 
-Four refactoring extractions to reduce duplication and split large components:
-
-1. **`itemDetailSelect` + `toItemDetail` in `items.ts`** — The Prisma `select` block and object-mapping code for `ItemDetail` are duplicated verbatim in `getItemDetail`, `updateItem`, and `createItem`. Extract a shared `itemDetailSelect` const and a `toItemDetail()` function used by all three.
-
-2. **`src/lib/item-type-constants.ts`** — `TEXT_CONTENT_TYPES`, `LANGUAGE_TYPES`, and `FILE_TYPES` arrays are defined identically in both `NewItemDialog.tsx` and `ItemDetailDrawer.tsx`. Extract to a single shared module imported by both.
-
-3. **`<FormField>` component (`src/components/ui/form-field.tsx`)** — Both `NewItemDialog` and `ItemDetailDrawer` repeat the same labeled-input wrapper (`<div className="flex flex-col gap-1.5"><label ...>{label}</label>{children}</div>`) ~10 times total. Extract to a reusable `<FormField label required>` component.
-
-4. **Split `DrawerContent` in `ItemDetailDrawer.tsx`** — `DrawerContent` renders both view mode and edit mode in a single large function. Split into:
-   - `DrawerActionBar` — the favorite/pin/copy/edit/delete toolbar (view) and save/cancel (edit)
-   - `DrawerViewBody` — view-mode sections (description, file, content, URL, tags, collections, dates)
-   - `DrawerEditBody` — edit-mode form fields (description, content, URL, language, tags, type)
-   `DrawerContent` becomes a thin coordinator that holds state and delegates rendering.
+<!-- Describe what success looks like for the current feature -->
 
 ## Notes
 
-- `item-type-constants.ts` should use `as const` arrays so components can use `includes()` without type errors.
-- `FormField` goes in `src/components/ui/` alongside other shared primitives.
-- Keep all existing behaviour identical — this is pure structural refactoring, no logic changes.
+<!-- Additional context, constraints, or details -->
 
 ## History
 
