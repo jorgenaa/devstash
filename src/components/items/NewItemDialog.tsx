@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { createItem } from "@/actions/items";
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "@/components/ui/code-editor";
+import { CollectionSelect } from "@/components/ui/collection-select";
 import { FileUpload, type UploadResult } from "@/components/ui/file-upload";
 import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import {
@@ -35,6 +36,8 @@ const ITEM_TYPES = [
 
 export type TypeName = (typeof ITEM_TYPES)[number]["name"];
 
+type UserCollection = { id: string; name: string };
+
 type FormState = {
   title: string;
   description: string;
@@ -42,6 +45,7 @@ type FormState = {
   url: string;
   language: string;
   tags: string;
+  collectionIds: string[];
 };
 
 function defaultForm(): FormState {
@@ -52,6 +56,7 @@ function defaultForm(): FormState {
     url: "",
     language: "",
     tags: "",
+    collectionIds: [],
   };
 }
 
@@ -66,6 +71,7 @@ export function NewItemDialog({ defaultType }: Props = {}) {
   const [form, setForm] = useState<FormState>(defaultForm);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [saving, setSaving] = useState(false);
+  const [collections, setCollections] = useState<UserCollection[]>([]);
 
   function field(key: keyof FormState, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -73,7 +79,12 @@ export function NewItemDialog({ defaultType }: Props = {}) {
 
   function handleOpenChange(next: boolean) {
     setOpen(next);
-    if (!next) {
+    if (next) {
+      fetch("/api/collections")
+        .then((res) => res.ok ? res.json() as Promise<UserCollection[]> : [])
+        .then(setCollections)
+        .catch(() => {});
+    } else {
       setForm(defaultForm());
       setSelectedType(defaultType ?? "snippet");
       setUploadResult(null);
@@ -107,6 +118,7 @@ export function NewItemDialog({ defaultType }: Props = {}) {
       fileSize: uploadResult?.fileSize ?? null,
       language: form.language || null,
       tags,
+      collectionIds: form.collectionIds,
     });
 
     setSaving(false);
@@ -236,6 +248,14 @@ export function NewItemDialog({ defaultType }: Props = {}) {
               value={form.tags}
               onChange={(e) => field("tags", e.target.value)}
               placeholder="react, hooks, typescript"
+            />
+          </FormField>
+
+          <FormField label="Collections">
+            <CollectionSelect
+              collections={collections}
+              value={form.collectionIds}
+              onChange={(ids) => setForm((prev) => ({ ...prev, collectionIds: ids }))}
             />
           </FormField>
 

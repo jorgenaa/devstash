@@ -19,6 +19,7 @@ import {
 import { toast } from 'sonner';
 
 import { deleteItem, updateItem } from '@/actions/items';
+import { CollectionSelect } from '@/components/ui/collection-select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -103,6 +104,8 @@ function DrawerSkeleton() {
   );
 }
 
+type UserCollection = { id: string; name: string };
+
 type EditState = {
   title: string;
   description: string;
@@ -110,6 +113,7 @@ type EditState = {
   url: string;
   language: string;
   tags: string;
+  collectionIds: string[];
 };
 
 function toEditState(item: ItemDetailResponse): EditState {
@@ -120,6 +124,7 @@ function toEditState(item: ItemDetailResponse): EditState {
     url: item.url ?? '',
     language: item.language ?? '',
     tags: item.tags.join(', '),
+    collectionIds: item.collections.map((c) => c.id),
   };
 }
 
@@ -371,10 +376,12 @@ type DrawerEditBodyProps = {
   showContent: boolean;
   showLanguage: boolean;
   showUrl: boolean;
+  collections: UserCollection[];
   field: (key: keyof EditState, value: string) => void;
+  setCollectionIds: (ids: string[]) => void;
 };
 
-function DrawerEditBody({ editState, typeName, showContent, showLanguage, showUrl, field }: DrawerEditBodyProps) {
+function DrawerEditBody({ editState, typeName, showContent, showLanguage, showUrl, collections, field, setCollectionIds }: DrawerEditBodyProps) {
   return (
     <>
       <FormField label='Description'>
@@ -433,6 +440,14 @@ function DrawerEditBody({ editState, typeName, showContent, showLanguage, showUr
         />
       </FormField>
 
+      <FormField label='Collections'>
+        <CollectionSelect
+          collections={collections}
+          value={editState.collectionIds}
+          onChange={setCollectionIds}
+        />
+      </FormField>
+
       <FormField label='Type' hint='Type cannot be changed'>
         <Badge variant='secondary' className='w-fit capitalize'>
           {typeName}
@@ -457,14 +472,25 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [editState, setEditState] = useState<EditState>(() => toEditState(item));
+  const [availableCollections, setAvailableCollections] = useState<UserCollection[]>([]);
 
   function field(key: keyof EditState, value: string) {
     setEditState((prev) => ({ ...prev, [key]: value }));
   }
 
+  function setCollectionIds(ids: string[]) {
+    setEditState((prev) => ({ ...prev, collectionIds: ids }));
+  }
+
   function handleEdit() {
     setEditState(toEditState(item));
     setEditing(true);
+    if (availableCollections.length === 0) {
+      fetch('/api/collections')
+        .then((res) => res.ok ? res.json() as Promise<UserCollection[]> : [])
+        .then(setAvailableCollections)
+        .catch(() => {});
+    }
   }
 
   function handleCancel() {
@@ -482,6 +508,7 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
       url: editState.url || null,
       language: editState.language || null,
       tags,
+      collectionIds: editState.collectionIds,
     });
 
     setSaving(false);
@@ -594,7 +621,9 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
             showContent={showContent}
             showLanguage={showLanguage}
             showUrl={showUrl}
+            collections={availableCollections}
             field={field}
+            setCollectionIds={setCollectionIds}
           />
         ) : (
           <DrawerViewBody

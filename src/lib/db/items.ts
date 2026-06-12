@@ -233,6 +233,7 @@ export type UpdateItemInput = {
   url: string | null;
   language: string | null;
   tags: string[];
+  collectionIds: string[];
 };
 
 export async function updateItem(
@@ -261,6 +262,10 @@ export async function updateItem(
           create: { name },
         })),
       },
+      collections: {
+        deleteMany: {},
+        create: data.collectionIds.map((collectionId) => ({ collectionId })),
+      },
     },
     select: itemDetailSelect,
   });
@@ -279,6 +284,7 @@ export type CreateItemInput = {
   fileSize: number | null;
   language: string | null;
   tags: string[];
+  collectionIds: string[];
 };
 
 const CONTENT_TYPE_MAP: Record<string, string> = {
@@ -319,6 +325,9 @@ export async function createItem(
           where: { name },
           create: { name },
         })),
+      },
+      collections: {
+        create: data.collectionIds.map((collectionId) => ({ collectionId })),
       },
     },
     select: itemDetailSelect,
