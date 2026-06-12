@@ -23,6 +23,7 @@ const UpdateItemSchema = z.object({
   url: HTTP_URL.nullable().optional().or(z.literal("").transform(() => null)),
   language: z.string().trim().nullable().optional(),
   tags: z.array(z.string().trim().min(1)).default([]),
+  collectionIds: z.array(z.string()).default([]),
 });
 
 type UpdateItemResult =
@@ -44,7 +45,7 @@ export async function updateItem(
     return { success: false, error: message };
   }
 
-  const { title, description, content, url, language, tags } = parsed.data;
+  const { title, description, content, url, language, tags, collectionIds } = parsed.data;
 
   const updated = await dbUpdateItem(session.user.id, itemId, {
     title,
@@ -53,6 +54,7 @@ export async function updateItem(
     url: url ?? null,
     language: language ?? null,
     tags,
+    collectionIds,
   });
 
   if (!updated) {
@@ -78,6 +80,7 @@ const CreateItemSchema = z
     fileSize: z.number().nullable().optional(),
     language: z.string().trim().nullable().optional(),
     tags: z.array(z.string().trim().min(1)).default([]),
+    collectionIds: z.array(z.string()).default([]),
   })
   .superRefine((data, ctx) => {
     if (data.typeName === "link" && !data.url) {
@@ -114,7 +117,7 @@ export async function createItem(
     return { success: false, error: message };
   }
 
-  const { typeName, title, description, content, url, fileUrl, fileName, fileSize, language, tags } =
+  const { typeName, title, description, content, url, fileUrl, fileName, fileSize, language, tags, collectionIds } =
     parsed.data;
 
   const created = await dbCreateItem(session.user.id, {
@@ -128,6 +131,7 @@ export async function createItem(
     fileSize: fileSize ?? null,
     language: language ?? null,
     tags,
+    collectionIds,
   });
 
   if (!created) {

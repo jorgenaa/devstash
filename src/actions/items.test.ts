@@ -148,6 +148,7 @@ describe("createItem action", () => {
       fileSize: null,
       language: "javascript",
       tags: ["js"],
+      collectionIds: [],
     });
   });
 

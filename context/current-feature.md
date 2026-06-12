@@ -1,16 +1,25 @@
-# Current Feature
+# Current Feature: Add Item to Collections
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Describe what success looks like for the current feature -->
+- The New Item dialog includes a collections multi-select input so users can assign an item to one or more collections at creation time
+- The Edit Item form (drawer edit mode) includes the same multi-select input so users can add or remove collections from an existing item
+- Available collections are fetched from the database for the authenticated user
+- Selecting/deselecting collections in the UI updates the `ItemCollection` join table atomically
+- The item drawer view already shows which collections an item belongs to — this feature ensures those are editable
 
 ## Notes
 
-<!-- Additional context, constraints, or details -->
+- Do not implement collection detail pages (`/collections/[id]`) in this feature — out of scope
+- The `ItemCollection` model is a join table (`itemId + collectionId`); use `set` pattern on update (same as tags) to replace the collection set atomically
+- `createItem` server action needs a `collectionIds: string[]` field added to its Zod schema
+- `updateItem` server action needs a `collectionIds: string[]` field added to its Zod schema  
+- The collections multi-select should show collection names with a checkbox or pill UI; consider a simple dropdown with checkboxes or a combobox
+- Fetch available collections via a new `getUserCollections(userId)` DB query (name + id only)
 
 ## History
 

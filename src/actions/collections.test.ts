@@ -35,7 +35,7 @@ describe("createCollection action", () => {
   });
 
   it("returns validation error when name is empty", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } } as Awaited<ReturnType<typeof auth>>);
+    mockAuth.mockResolvedValue({ user: { id: "user-1" } } as unknown as Awaited<ReturnType<typeof auth>>);
 
     const result = await createCollection({ name: "   " });
 
@@ -44,7 +44,7 @@ describe("createCollection action", () => {
   });
 
   it("returns success with created collection data", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } } as Awaited<ReturnType<typeof auth>>);
+    mockAuth.mockResolvedValue({ user: { id: "user-1" } } as unknown as Awaited<ReturnType<typeof auth>>);
     mockDbCreate.mockResolvedValue(mockCollection);
 
     const result = await createCollection({
@@ -60,7 +60,7 @@ describe("createCollection action", () => {
   });
 
   it("creates collection with null description when omitted", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } } as Awaited<ReturnType<typeof auth>>);
+    mockAuth.mockResolvedValue({ user: { id: "user-1" } } as unknown as Awaited<ReturnType<typeof auth>>);
     mockDbCreate.mockResolvedValue({ ...mockCollection, description: null });
 
     const result = await createCollection({ name: "React Patterns" });
