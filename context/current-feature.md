@@ -1,16 +1,28 @@
-# Current Feature
+# Current Feature: Collections Pages
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Describe what success looks like for the current feature -->
+- `/collections` page lists all the user's collections using the existing `CollectionCard` component
+- `/collections/[id]` page shows the items inside a single collection, reusing `ItemCard`, `ImageCard`, and `FileListRow` as appropriate per item type
+- "View all collections" link in the sidebar navigates to `/collections`
+- Each `CollectionCard` on the dashboard and the `/collections` page links to `/collections/[id]`
+- Both new routes are protected (added to proxy matcher)
+- Both pages use `DashboardShell` for consistent layout
 
 ## Notes
 
-<!-- Additional context, constraints, or details -->
+- Reuse existing `CollectionCard` for the all-collections grid — same design as the dashboard section
+- Reuse `ItemCard`, `ImageCard`, `FileListRow` for the per-collection item list — same rendering logic as `/items/[type]`
+- The `/collections` page should have a header (title + collection count) and a "New Collection" button (reuse `NewCollectionDialog`)
+- The `/collections/[id]` page header should show: collection name, description, item count, and a back link to `/collections`
+- Wrap item lists in `ItemDrawerProvider` so the drawer works on both pages
+- Add DB query `getCollectionWithItems(userId, collectionId)` to `src/lib/db/collections.ts`
+- Add DB query `getAllCollections(userId)` (or reuse/extend existing queries) for the all-collections page
+- `notFound()` if collection doesn't belong to the user
 
 ## History
 
