@@ -1,7 +1,30 @@
-import Link from "next/link";
-import { Star } from "lucide-react";
+"use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { MoreHorizontal, Pencil, Star, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
+import { deleteCollection } from "@/actions/collections";
+import { EditCollectionDialog } from "@/components/collections/EditCollectionDialog";
 import { Card } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { DashboardCollection } from "@/lib/db/collections";
 import { ItemTypeIcon } from "@/lib/item-type-icons";
 
@@ -10,60 +33,150 @@ export function CollectionCard({
 }: {
   collection: DashboardCollection;
 }) {
+  const router = useRouter();
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  async function handleDelete() {
+    setDeleting(true);
+    const result = await deleteCollection(collection.id);
+    setDeleting(false);
+
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+
+    toast.success("Collection deleted");
+    setDeleteOpen(false);
+    router.refresh();
+  }
+
   return (
-    <Link
-      href={`/collections/${collection.id}`}
-      className="group block focus:outline-none"
-    >
-      <Card
-        size="sm"
-        className="h-full gap-3 border-l-2 border-l-transparent px-4 transition-colors hover:bg-muted/40 group-focus-visible:ring-2 group-focus-visible:ring-ring"
-        style={
-          collection.accentColor
-            ? { borderLeftColor: collection.accentColor }
-            : undefined
-        }
+    <>
+      <EditCollectionDialog
+        collection={collection}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSuccess={() => router.refresh()}
+      />
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete &ldquo;{collection.name}&rdquo;?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              The collection will be removed. Items inside will not be deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div
+        className="group relative cursor-pointer focus:outline-none"
+        role="button"
+        tabIndex={0}
+        onClick={() => router.push(`/collections/${collection.id}`)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            router.push(`/collections/${collection.id}`);
+          }
+        }}
       >
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <div className="flex items-center gap-1.5">
-              <h3 className="truncate text-sm font-medium">
-                {collection.name}
-              </h3>
-              {collection.isFavorite && (
-                <Star
-                  className="size-3.5 shrink-0 fill-yellow-400 text-yellow-400"
-                  aria-label="Favorite"
-                />
-              )}
+        <Card
+          size="sm"
+          className="h-full gap-3 border-l-2 border-l-transparent px-4 transition-colors hover:bg-muted/40"
+          style={
+            collection.accentColor
+              ? { borderLeftColor: collection.accentColor }
+              : undefined
+          }
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <div className="flex items-center gap-1.5">
+                <h3 className="truncate text-sm font-medium">
+                  {collection.name}
+                </h3>
+                {collection.isFavorite && (
+                  <Star
+                    className="size-3.5 shrink-0 fill-yellow-400 text-yellow-400"
+                    aria-label="Favorite"
+                  />
+                )}
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {collection.itemCount}{" "}
+                {collection.itemCount === 1 ? "item" : "items"}
+              </span>
             </div>
-            <span className="text-xs text-muted-foreground">
-              {collection.itemCount}{" "}
-              {collection.itemCount === 1 ? "item" : "items"}
-            </span>
-          </div>
-        </div>
 
-        {collection.description && (
-          <p className="line-clamp-2 text-xs text-muted-foreground">
-            {collection.description}
-          </p>
-        )}
-
-        {collection.types.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            {collection.types.map((type) => (
-              <ItemTypeIcon
-                key={type.id}
-                name={type.icon}
-                className="size-3.5 shrink-0"
-                style={{ color: type.color }}
-                aria-label={type.name}
-              />
-            ))}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Collection options"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="size-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuItem
+                  onClick={() => setEditOpen(true)}
+                  className="gap-2"
+                >
+                  <Pencil className="size-3.5" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-2 text-muted-foreground" disabled>
+                  <Star className="size-3.5" />
+                  Favorite
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setDeleteOpen(true)}
+                  className="gap-2 text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="size-3.5" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        )}
-      </Card>
-    </Link>
+
+          {collection.description && (
+            <p className="line-clamp-2 text-xs text-muted-foreground">
+              {collection.description}
+            </p>
+          )}
+
+          {collection.types.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              {collection.types.map((type) => (
+                <ItemTypeIcon
+                  key={type.id}
+                  name={type.icon}
+                  className="size-3.5 shrink-0"
+                  style={{ color: type.color }}
+                  aria-label={type.name}
+                />
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+    </>
   );
 }

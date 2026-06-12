@@ -2,9 +2,10 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, Star } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import { auth } from "@/auth";
+import { CollectionActions } from "@/components/collections/CollectionActions";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { FileListRow } from "@/components/items/FileListRow";
 import { ImageCard } from "@/components/items/ImageCard";
@@ -62,24 +63,21 @@ export default async function CollectionDetailPage({
                   : undefined
               }
             >
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-semibold">{collection.name}</h1>
-                {collection.isFavorite && (
-                  <Star
-                    className="size-4 shrink-0 fill-yellow-400 text-yellow-400"
-                    aria-label="Favorite"
-                  />
-                )}
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h1 className="text-lg font-semibold">{collection.name}</h1>
+                  {collection.description && (
+                    <p className="mt-0.5 text-sm text-muted-foreground">
+                      {collection.description}
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {collection.itemCount}{" "}
+                    {collection.itemCount === 1 ? "item" : "items"}
+                  </p>
+                </div>
+                <CollectionActions collection={collection} />
               </div>
-              {collection.description && (
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  {collection.description}
-                </p>
-              )}
-              <p className="mt-1 text-xs text-muted-foreground">
-                {collection.itemCount}{" "}
-                {collection.itemCount === 1 ? "item" : "items"}
-              </p>
             </div>
           </div>
 
