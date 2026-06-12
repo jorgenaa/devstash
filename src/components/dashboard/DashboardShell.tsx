@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Sidebar, type SidebarData, type SidebarUser } from "@/components/dashboard/Sidebar";
 import { NewItemDialog } from "@/components/items/NewItemDialog";
+import { NewCollectionDialog } from "@/components/collections/NewCollectionDialog";
 
 export function DashboardShell({
   children,
@@ -65,7 +66,8 @@ export function DashboardShell({
           />
         </div>
 
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-2">
+          <NewCollectionDialog />
           <NewItemDialog />
         </div>
       </header>
