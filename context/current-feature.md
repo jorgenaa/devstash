@@ -1,28 +1,16 @@
-# Current Feature: Collection Create
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- A "New Collection" button appears in the top bar of the dashboard shell
-- Clicking the button opens a modal dialog with fields for name and description
-- On save, a new collection is created for the authenticated user in the database
-- The sidebar and dashboard collections list update to reflect the new collection
-- A success toast is shown on creation; an error toast is shown on failure
-- The modal closes and resets after a successful save
-- All data access follows the same patterns as items: lib/db functions for server-side queries, API routes for client-side calls
-- Collections are user-scoped (linked to the session user ID)
+<!-- Describe what success looks like for the current feature -->
 
 ## Notes
 
-- Follow the same patterns as items: `lib/db/collections.ts` for DB queries, a server action or API route for the mutation
-- The "New Collection" button should be placed in the top bar alongside or near the existing "New Item" button in `DashboardShell.tsx`
-- Use a shadcn `Dialog` (already installed) for the modal
-- Fields: `name` (required), `description` (optional)
-- After creation, call `router.refresh()` to update server components (sidebar counts, recent collections on dashboard)
-- Show a sonner toast on success ("Collection created") and on error
+<!-- Additional context, constraints, or details -->
 
 ## History
 
@@ -92,4 +80,6 @@ In Progress
 
 - 2026-06-11 — Code extraction refactor completed. (1) Extracted shared `itemDetailSelect` const and `toItemDetail()` function in [src/lib/db/items.ts](../src/lib/db/items.ts) — eliminates 3× duplication of the Prisma select block and object-mapping across `getItemDetail`, `updateItem`, and `createItem`. (2) Created [src/lib/item-type-constants.ts](../src/lib/item-type-constants.ts) with `TEXT_CONTENT_TYPES`, `LANGUAGE_TYPES`, `FILE_TYPES` (`as const` arrays with exported types) — removes identical local definitions from both `ItemDetailDrawer` and `NewItemDialog`. (3) Created [src/components/ui/form-field.tsx](../src/components/ui/form-field.tsx) with a `<FormField label required hint>` component — replaces ~10 repeated labeled-input wrapper divs across both dialog and drawer. (4) Split `DrawerContent` in [ItemDetailDrawer.tsx](../src/components/items/ItemDetailDrawer.tsx) into three focused sub-components: `DrawerActionBar` (discriminated-union props for editing vs view mode toolbar), `DrawerViewBody` (view-mode sections: description, file, content, URL, tags, collections, dates), and `DrawerEditBody` (edit-mode form fields); `DrawerContent` becomes a thin state coordinator. Also fixed TypeScript `includes()` narrowing errors on `as const` arrays in both `NewItemDialog` and `ItemDetailDrawer` by casting to `readonly string[]`. Build passes; 15/15 tests pass.
 
-- 2026-06-11 — Security and quality audit fixes completed. (1) Extracted `BCRYPT_ROUNDS = 12` to [src/lib/auth-utils.ts](../src/lib/auth-utils.ts) and imported it in [register](../src/app/api/auth/register/route.ts), [reset-password](../src/app/api/auth/reset-password/route.ts), and [change-password](../src/app/api/auth/change-password/route.ts) routes. (2) Created generic `useDebounce<T>` hook at [src/hooks/use-debounce.ts](../src/hooks/use-debounce.ts); wired controlled search input in [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) ready for when search is implemented. (3) Added shared `HTTP_URL` Zod validator with `.refine()` blocking `javascript:` and `data:` protocol URLs; applied to `UpdateItemSchema` and `CreateItemSchema` in [src/actions/items.ts](../src/actions/items.ts). (4) Replaced `<img>` with `<Image unoptimized>` from `next/image` in [ImageCard.tsx](../src/components/items/ImageCard.tsx) and [ItemDetailDrawer.tsx](../src/components/items/ItemDetailDrawer.tsx) — `unoptimized` required because `/api/download/` is auth-gated and Next.js image optimization cannot pass session cookies; blob URL preview in [FileUpload](../src/components/ui/file-upload.tsx) kept as `<img>` with eslint-disable comment. (5) Added rate limit (20/hr per `userId`) to [POST /api/upload](../src/app/api/upload/route.ts) using the existing `rateLimit()` helper. Also fixed a nested `<button>` hydration error in [FileListRow.tsx](../src/components/items/FileListRow.tsx) by changing the outer row element to `<div role="button" tabIndex={0}>`. Build passes; 15/15 tests pass.
+- 2026-06-11 — Security and quality audit fixes completed.
+
+- 2026-06-12 — Collection create completed. Added `createCollection(userId, data)` to [src/lib/db/collections.ts](../src/lib/db/collections.ts) — creates a collection for the given user, returns `CollectionSummary`. Created [src/actions/collections.ts](../src/actions/collections.ts) with a `createCollection` server action — Zod validates `name` (required) and `description` (optional); auth-gated; returns `{ success, data, error }`. Built [NewCollectionDialog](../src/components/collections/NewCollectionDialog.tsx) — shadcn Dialog with name input (required, Enter submits) and description textarea (optional); Create button disabled while name is empty or saving; on success shows "Collection created" toast, closes modal, resets form, calls `router.refresh()`; on error shows error toast. Added `<NewCollectionDialog>` to the top bar in [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) alongside the existing "New Item" button. Added [src/actions/collections.test.ts](../src/actions/collections.test.ts) with 4 unit tests (unauthorized, empty name, success with description, success without description); 19/19 tests pass. Build passes. (1) Extracted `BCRYPT_ROUNDS = 12` to [src/lib/auth-utils.ts](../src/lib/auth-utils.ts) and imported it in [register](../src/app/api/auth/register/route.ts), [reset-password](../src/app/api/auth/reset-password/route.ts), and [change-password](../src/app/api/auth/change-password/route.ts) routes. (2) Created generic `useDebounce<T>` hook at [src/hooks/use-debounce.ts](../src/hooks/use-debounce.ts); wired controlled search input in [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) ready for when search is implemented. (3) Added shared `HTTP_URL` Zod validator with `.refine()` blocking `javascript:` and `data:` protocol URLs; applied to `UpdateItemSchema` and `CreateItemSchema` in [src/actions/items.ts](../src/actions/items.ts). (4) Replaced `<img>` with `<Image unoptimized>` from `next/image` in [ImageCard.tsx](../src/components/items/ImageCard.tsx) and [ItemDetailDrawer.tsx](../src/components/items/ItemDetailDrawer.tsx) — `unoptimized` required because `/api/download/` is auth-gated and Next.js image optimization cannot pass session cookies; blob URL preview in [FileUpload](../src/components/ui/file-upload.tsx) kept as `<img>` with eslint-disable comment. (5) Added rate limit (20/hr per `userId`) to [POST /api/upload](../src/app/api/upload/route.ts) using the existing `rateLimit()` helper. Also fixed a nested `<button>` hydration error in [FileListRow.tsx](../src/components/items/FileListRow.tsx) by changing the outer row element to `<div role="button" tabIndex={0}>`. Build passes; 15/15 tests pass.
