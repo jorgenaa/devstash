@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PanelLeft, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -9,19 +9,35 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Sidebar, type SidebarData, type SidebarUser } from "@/components/dashboard/Sidebar";
 import { NewItemDialog } from "@/components/items/NewItemDialog";
 import { NewCollectionDialog } from "@/components/collections/NewCollectionDialog";
+import { ItemDrawerProvider } from "@/components/items/ItemDrawerContext";
+import { CommandPalette } from "@/components/search/CommandPalette";
+import type { SearchData } from "@/lib/db/search";
 
 export function DashboardShell({
   children,
   sidebarData,
   user,
+  searchData,
 }: {
   children: React.ReactNode;
   sidebarData: SidebarData;
   user: SidebarUser | null;
+  searchData: SearchData;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
     <div className="flex h-screen flex-col">
@@ -58,11 +74,11 @@ export function DashboardShell({
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search items…"
-            className="pl-8"
-            aria-label="Search items"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search… ⌘K"
+            className="cursor-pointer pl-8"
+            aria-label="Open search"
+            readOnly
+            onClick={() => setPaletteOpen(true)}
           />
         </div>
 
@@ -72,24 +88,32 @@ export function DashboardShell({
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1">
-        <aside className="hidden border-r border-sidebar-border md:flex">
-          <Sidebar data={sidebarData} user={user} collapsed={collapsed} />
-        </aside>
+      <ItemDrawerProvider>
+        <CommandPalette
+          open={paletteOpen}
+          onOpenChange={setPaletteOpen}
+          searchData={searchData}
+        />
 
-        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent
-            side="left"
-            className="w-64 bg-sidebar p-0 sm:max-w-xs"
-            showCloseButton={false}
-          >
-            <SheetTitle className="sr-only">Navigation</SheetTitle>
-            <Sidebar data={sidebarData} user={user} onNavigate={() => setMobileOpen(false)} />
-          </SheetContent>
-        </Sheet>
+        <div className="flex min-h-0 flex-1">
+          <aside className="hidden border-r border-sidebar-border md:flex">
+            <Sidebar data={sidebarData} user={user} collapsed={collapsed} />
+          </aside>
 
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
-      </div>
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetContent
+              side="left"
+              className="w-64 bg-sidebar p-0 sm:max-w-xs"
+              showCloseButton={false}
+            >
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
+              <Sidebar data={sidebarData} user={user} onNavigate={() => setMobileOpen(false)} />
+            </SheetContent>
+          </Sheet>
+
+          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        </div>
+      </ItemDrawerProvider>
     </div>
   );
 }
