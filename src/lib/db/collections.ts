@@ -113,6 +113,27 @@ export async function getSidebarCollections(): Promise<{
   };
 }
 
+export type CollectionSummary = {
+  id: string;
+  name: string;
+  description: string | null;
+};
+
+export async function createCollection(
+  userId: string,
+  data: { name: string; description?: string | null },
+): Promise<CollectionSummary> {
+  const collection = await prisma.collection.create({
+    data: {
+      name: data.name,
+      description: data.description ?? null,
+      userId,
+    },
+    select: { id: true, name: true, description: true },
+  });
+  return collection;
+}
+
 export async function getCollectionStats(): Promise<{
   total: number;
   favorites: number;

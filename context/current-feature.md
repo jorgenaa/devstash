@@ -1,16 +1,28 @@
-# Current Feature
+# Current Feature: Collection Create
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Describe what success looks like for the current feature -->
+- A "New Collection" button appears in the top bar of the dashboard shell
+- Clicking the button opens a modal dialog with fields for name and description
+- On save, a new collection is created for the authenticated user in the database
+- The sidebar and dashboard collections list update to reflect the new collection
+- A success toast is shown on creation; an error toast is shown on failure
+- The modal closes and resets after a successful save
+- All data access follows the same patterns as items: lib/db functions for server-side queries, API routes for client-side calls
+- Collections are user-scoped (linked to the session user ID)
 
 ## Notes
 
-<!-- Additional context, constraints, or details -->
+- Follow the same patterns as items: `lib/db/collections.ts` for DB queries, a server action or API route for the mutation
+- The "New Collection" button should be placed in the top bar alongside or near the existing "New Item" button in `DashboardShell.tsx`
+- Use a shadcn `Dialog` (already installed) for the modal
+- Fields: `name` (required), `description` (optional)
+- After creation, call `router.refresh()` to update server components (sidebar counts, recent collections on dashboard)
+- Show a sonner toast on success ("Collection created") and on error
 
 ## History
 
