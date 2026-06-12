@@ -268,6 +268,38 @@ export async function getCollectionWithItems(
   return { collection: dashboardCollection, items };
 }
 
+export async function updateCollection(
+  userId: string,
+  collectionId: string,
+  data: { name: string; description?: string | null },
+): Promise<CollectionSummary | null> {
+  const existing = await prisma.collection.findFirst({
+    where: { id: collectionId, userId },
+    select: { id: true },
+  });
+  if (!existing) return null;
+
+  return prisma.collection.update({
+    where: { id: collectionId },
+    data: { name: data.name, description: data.description ?? null },
+    select: { id: true, name: true, description: true },
+  });
+}
+
+export async function deleteCollection(
+  userId: string,
+  collectionId: string,
+): Promise<boolean> {
+  const existing = await prisma.collection.findFirst({
+    where: { id: collectionId, userId },
+    select: { id: true },
+  });
+  if (!existing) return false;
+
+  await prisma.collection.delete({ where: { id: collectionId } });
+  return true;
+}
+
 export async function getCollectionStats(): Promise<{
   total: number;
   favorites: number;

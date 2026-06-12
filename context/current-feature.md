@@ -1,16 +1,27 @@
-# Current Feature
+# Current Feature: Collection Management Actions
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Describe what success looks like for the current feature -->
+- `/collections/[id]` page has Edit, Delete, and Favorite buttons in the header
+- Edit opens a modal to update the collection name and description; saves to DB
+- Delete shows a confirmation dialog; removes the collection (NOT the items); redirects to `/collections`
+- Favorite button renders the icon/UI only — no backend wiring yet
+- `CollectionCard` on `/collections` and `/dashboard` shows a 3-dots (`MoreHorizontal`) dropdown with Edit, Delete, and Favorite options
+- Clicking anywhere on the card outside the 3-dots navigates to the collection page (no longer the whole card being a link)
+- All mutations refresh the page/list after success via `router.refresh()`
 
 ## Notes
 
-<!-- Additional context, constraints, or details -->
+- Favorites: render the `Heart` or `Star` icon button; no action on click (deferred)
+- Delete collection: only the collection row and its `ItemCollection` join rows are removed — items survive
+- The 3-dots dropdown reuses the existing shadcn `DropdownMenu` (already installed)
+- Alert dialog for delete confirmation reuses the existing shadcn `AlertDialog` (already installed)
+- `CollectionCard` is used in both `/dashboard` (RecentCollections) and `/collections` — the card refactor needs to work in both places
+- Edit modal is similar to `NewCollectionDialog` — reuse pattern, possibly extract shared form
 
 ## History
 
