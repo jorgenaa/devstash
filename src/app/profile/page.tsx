@@ -4,6 +4,7 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { getSidebarCollections } from "@/lib/db/collections";
 import { getSidebarItemTypes } from "@/lib/db/items";
 import { getProfileData } from "@/lib/db/profile";
+import { getSearchData } from "@/lib/db/search";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { ItemTypeIcon } from "@/lib/item-type-icons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,10 @@ export default async function ProfilePage() {
     redirect("/sign-in");
   }
 
-  const profile = await getProfileData(session.user.id);
+  const [profile, searchData] = await Promise.all([
+    getProfileData(session.user.id),
+    getSearchData(session.user.id),
+  ]);
 
   if (!profile) {
     redirect("/sign-in");
@@ -40,6 +44,7 @@ export default async function ProfilePage() {
     <DashboardShell
       sidebarData={{ itemTypes, favorites, recent }}
       user={session.user}
+      searchData={searchData}
     >
       <div className="mx-auto flex max-w-2xl flex-col gap-8">
         <header className="flex flex-col gap-1">

@@ -8,6 +8,7 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { NewCollectionDialog } from "@/components/collections/NewCollectionDialog";
 import { getAllCollections, getSidebarCollections } from "@/lib/db/collections";
 import { getSidebarItemTypes } from "@/lib/db/items";
+import { getSearchData } from "@/lib/db/search";
 
 export default async function CollectionsPage() {
   const [session, itemTypes, { favorites, recent }] = await Promise.all([
@@ -18,12 +19,16 @@ export default async function CollectionsPage() {
 
   if (!session?.user?.id) redirect("/sign-in");
 
-  const collections = await getAllCollections(session.user.id);
+  const [collections, searchData] = await Promise.all([
+    getAllCollections(session.user.id),
+    getSearchData(session.user.id),
+  ]);
 
   return (
     <DashboardShell
       sidebarData={{ itemTypes, favorites, recent }}
       user={session.user}
+      searchData={searchData}
     >
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between gap-3">
