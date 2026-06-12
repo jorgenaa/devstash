@@ -4,7 +4,7 @@ import authConfig from "./auth.config";
 const { auth } = NextAuth(authConfig);
 
 export const proxy = auth((req) => {
-  const protectedPaths = ["/dashboard", "/profile", "/items"];
+  const protectedPaths = ["/dashboard", "/profile", "/items", "/collections"];
   const isProtected = protectedPaths.some((p) => req.nextUrl.pathname.startsWith(p));
   if (!req.auth && isProtected) {
     const signInUrl = new URL("/sign-in", req.nextUrl.origin);
@@ -13,5 +13,5 @@ export const proxy = auth((req) => {
 });
 
 export const config = {
-  matcher: ["/dashboard", "/dashboard/:path*", "/profile", "/items/:path*"],
+  matcher: ["/dashboard", "/dashboard/:path*", "/profile", "/items/:path*", "/collections", "/collections/:path*"],
 };

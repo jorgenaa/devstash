@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { DEMO_EMAIL, validateLimit } from "@/lib/db/constants";
+import type { DashboardItem, DashboardItemType } from "@/lib/db/items";
 
 export type CollectionType = {
   id: string;
@@ -142,6 +143,129 @@ export async function getUserCollections(userId: string): Promise<UserCollection
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
+}
+
+export async function getAllCollections(
+  userId: string,
+): Promise<DashboardCollection[]> {
+  const collections = await prisma.collection.findMany({
+    where: { userId },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      _count: { select: { items: true } },
+      items: {
+        include: {
+          item: {
+            select: {
+              itemType: {
+                select: { id: true, name: true, icon: true, color: true },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return collections.map((collection) => {
+    const counts = new Map<string, { type: CollectionType; count: number }>();
+    for (const { item } of collection.items) {
+      const type = item.itemType;
+      const entry = counts.get(type.id) ?? { type, count: 0 };
+      entry.count += 1;
+      counts.set(type.id, entry);
+    }
+    const byFrequency = [...counts.values()].sort((a, b) => b.count - a.count);
+    return {
+      id: collection.id,
+      name: collection.name,
+      description: collection.description,
+      isFavorite: collection.isFavorite,
+      itemCount: collection._count.items,
+      types: byFrequency.map((entry) => entry.type),
+      accentColor: byFrequency[0]?.type.color ?? null,
+    };
+  });
+}
+
+const collectionItemSelect = {
+  id: true,
+  title: true,
+  description: true,
+  content: true,
+  url: true,
+  fileUrl: true,
+  fileName: true,
+  fileSize: true,
+  isFavorite: true,
+  isPinned: true,
+  createdAt: true,
+  updatedAt: true,
+  itemType: { select: { id: true, name: true, icon: true, color: true } },
+  tags: { select: { name: true } },
+} as const;
+
+export type CollectionWithItems = {
+  collection: DashboardCollection;
+  items: DashboardItem[];
+};
+
+export async function getCollectionWithItems(
+  userId: string,
+  collectionId: string,
+): Promise<CollectionWithItems | null> {
+  const collection = await prisma.collection.findFirst({
+    where: { id: collectionId, userId },
+    include: {
+      _count: { select: { items: true } },
+      items: {
+        orderBy: { addedAt: "desc" },
+        include: {
+          item: { select: collectionItemSelect },
+        },
+      },
+    },
+  });
+
+  if (!collection) return null;
+
+  const counts = new Map<string, { type: CollectionType; count: number }>();
+  for (const { item } of collection.items) {
+    const type = item.itemType;
+    const entry = counts.get(type.id) ?? { type, count: 0 };
+    entry.count += 1;
+    counts.set(type.id, entry);
+  }
+  const byFrequency = [...counts.values()].sort((a, b) => b.count - a.count);
+
+  const dashboardCollection: DashboardCollection = {
+    id: collection.id,
+    name: collection.name,
+    description: collection.description,
+    isFavorite: collection.isFavorite,
+    itemCount: collection._count.items,
+    types: byFrequency.map((entry) => entry.type),
+    accentColor: byFrequency[0]?.type.color ?? null,
+  };
+
+  const items: DashboardItem[] = collection.items.map(({ item }) => ({
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    content: item.content,
+    url: item.url,
+    fileUrl: item.fileUrl,
+    fileName: item.fileName,
+    fileSize: item.fileSize,
+    isFavorite: item.isFavorite,
+    isPinned: item.isPinned,
+    tags: item.tags.map((t) => t.name),
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+    type: item.itemType,
+  }));
+
+  return { collection: dashboardCollection, items };
 }
 
 export async function getCollectionStats(): Promise<{
