@@ -1,16 +1,27 @@
-# Current Feature
+# Current Feature: Settings Page
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Describe what success looks like for the current feature -->
+- `/settings` route exists and is protected by the proxy (auth-gated, redirects to `/sign-in` when unauthenticated)
+- Sidebar user icon dropdown includes a "Settings" link pointing to `/settings`, above or alongside the existing "Profile" and "Sign Out" items
+- Settings page renders inside `DashboardShell` with the same layout as Profile and Collections pages
+- Account section on Settings page contains:
+  - **Change Password** form (hidden for OAuth users without a password) — moved from `/profile`
+  - **Delete Account** danger zone with confirmation dialog — moved from `/profile`
+- Profile page no longer shows the Change Password form or Delete Account section (those components are removed from `/profile`)
+- Build passes and all existing tests continue to pass
 
 ## Notes
 
-<!-- Additional context, constraints, or details -->
+- `ChangePasswordForm` and `DeleteAccountDialog` components already exist under `src/components/profile/` — reuse them on the settings page, do not duplicate
+- The underlying API routes (`POST /api/auth/change-password`, `DELETE /api/auth/delete-account`) remain unchanged
+- `/settings` must be added to the proxy matcher in `src/proxy.ts` alongside `/profile`
+- Use `DashboardShell` layout consistent with other protected pages; fetch `sidebarData`, `searchData`, and `session` in parallel
+- The sidebar dropdown already has "Profile" and "Sign Out" — add "Settings" as a new item (use a `Settings` or `Cog` lucide icon)
 
 ## History
 
