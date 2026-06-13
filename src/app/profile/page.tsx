@@ -1,34 +1,17 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
-import { getSidebarCollections } from "@/lib/db/collections";
-import { getSidebarItemTypes } from "@/lib/db/items";
 import { getProfileData } from "@/lib/db/profile";
-import { getSearchData } from "@/lib/db/search";
+import { getShellData } from "@/lib/shell";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { ItemTypeIcon } from "@/lib/item-type-icons";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { ChangePasswordForm } from "@/components/profile/ChangePasswordForm";
-import { DeleteAccountDialog } from "@/components/profile/DeleteAccountDialog";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
-  const [session, itemTypes, { favorites, recent }] = await Promise.all([
-    auth(),
-    getSidebarItemTypes(),
-    getSidebarCollections(),
-  ]);
+  const { session, userId, sidebarData, searchData } = await getShellData();
 
-  if (!session?.user?.id) {
-    redirect("/sign-in");
-  }
-
-  const [profile, searchData] = await Promise.all([
-    getProfileData(session.user.id),
-    getSearchData(session.user.id),
-  ]);
+  const profile = await getProfileData(userId);
 
   if (!profile) {
     redirect("/sign-in");
@@ -42,7 +25,7 @@ export default async function ProfilePage() {
 
   return (
     <DashboardShell
-      sidebarData={{ itemTypes, favorites, recent }}
+      sidebarData={sidebarData}
       user={session.user}
       searchData={searchData}
     >
@@ -50,7 +33,7 @@ export default async function ProfilePage() {
         <header className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
           <p className="text-sm text-muted-foreground">
-            Your account information and settings
+            Your account information
           </p>
         </header>
 
@@ -102,22 +85,6 @@ export default async function ProfilePage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Change password */}
-        {profile.hasPassword && <ChangePasswordForm />}
-
-        <Separator />
-
-        {/* Danger zone */}
-        <div className="flex flex-col gap-3">
-          <div>
-            <h2 className="text-sm font-semibold text-destructive">Danger Zone</h2>
-            <p className="text-xs text-muted-foreground">
-              Permanently delete your account and all associated data.
-            </p>
-          </div>
-          <DeleteAccountDialog />
-        </div>
       </div>
     </DashboardShell>
   );

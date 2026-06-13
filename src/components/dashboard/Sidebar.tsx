@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { ChevronDown, ChevronUp, LogOut, Star, User } from "lucide-react";
+import { ChevronDown, ChevronUp, LogOut, Settings, Star, User } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -310,6 +310,10 @@ function UserFooter({
           <DropdownMenuItem onClick={() => router.push("/profile")}>
             <User className="size-4" />
             Profile
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/settings")}>
+            <Settings className="size-4" />
+            Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
