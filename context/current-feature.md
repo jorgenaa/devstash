@@ -1,24 +1,16 @@
-# Current Feature: Pagination
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Pagination controls on `/items/[type]` pages with numbered page links and prev/next buttons
-- Pagination controls on `/collections/[id]` pages for items within a collection
-- Prev/Next buttons are disabled (greyed out) when not applicable (first/last page)
-- Only fetch the items/collections needed for the current page (no loading all records)
-- Use constants: `ITEMS_PER_PAGE = 21`, `COLLECTIONS_PER_PAGE = 21`
-- Dashboard limits remain: `DASHBOARD_COLLECTIONS_LIMIT = 6`, `DASHBOARD_RECENT_ITEMS_LIMIT = 10`
+<!-- Describe what success looks like for the current feature -->
 
 ## Notes
 
-- Page is driven by a `?page=` query param (URL-based, server-rendered)
-- `getItemsByType` and `getCollectionWithItems` DB functions need `skip`/`take` + total count
-- Build a reusable `<Pagination>` component shared between both pages
-- Dashboard pages are unaffected — they use separate limit constants
+<!-- Additional context, constraints, or details -->
 
 ## History
 
@@ -98,4 +90,6 @@ In Progress
 
 - 2026-06-12 — Collection management actions completed. Added `updateCollection` and `deleteCollection` to [src/lib/db/collections.ts](../src/lib/db/collections.ts) — both verify ownership before mutating; delete removes the collection row (cascade removes `ItemCollection` join rows; items survive). Added `updateCollection` and `deleteCollection` server actions to [src/actions/collections.ts](../src/actions/collections.ts) (Zod validation, auth-gated). Created [EditCollectionDialog](../src/components/collections/EditCollectionDialog.tsx) — controlled Dialog (no built-in trigger) pre-filled from the collection prop; saves via `updateCollection` action; toasts on success/error. Created [CollectionActions](../src/components/collections/CollectionActions.tsx) — client component for the `/collections/[id]` header with Star (disabled, Favorite deferred), Pencil (opens `EditCollectionDialog`), and Trash (opens `AlertDialog`; on confirm calls `deleteCollection` then `router.push('/collections')`). Refactored [CollectionCard](../src/components/dashboard/CollectionCard.tsx) from a server `<Link>` wrapper to a client component: card body uses `onClick → router.push` for navigation; 3-dots `DropdownMenuTrigger` renders inline with `e.stopPropagation()`; dropdown has Edit, Favorite (disabled), and Delete items; delete uses `AlertDialog` confirmation and calls `router.refresh()` on success. Updated [/collections/[id]/page.tsx](../src/app/collections/%5Bid%5D/page.tsx) to render `<CollectionActions>` in the header. Build passes; 19/19 tests pass.
 
-- 2026-06-12 — Global search / command palette completed. Installed shadcn `cmdk` (`command` + `input-group` components). Added `getSearchData(userId)` to [src/lib/db/search.ts](../src/lib/db/search.ts) — fetches all items (id, title, type, contentPreview) and collections (id, name, itemCount) for the user in parallel. Built [CommandPalette](../src/components/search/CommandPalette.tsx) — client component using `CommandDialog` + `Command` wrapper (required by shadcn v4); grouped Items and Collections results with type icons and item counts; selecting an item closes the palette and opens the item drawer via `useItemDrawer`; selecting a collection navigates to `/collections/[id]`. Moved `ItemDrawerProvider` from individual pages into [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) so the palette has access to the drawer context from the shell header. Updated `DashboardShell` to accept `searchData` prop, listen for Cmd+K/Ctrl+K, and open the palette on search input click; placeholder updated to "Search… ⌘K". Updated all 5 pages (`dashboard`, `items/[type]`, `collections`, `collections/[id]`, `profile`) to fetch `getSearchData(userId)` in parallel and pass it to `DashboardShell`. Search matches only against item titles and collection names (content preview is display-only) to avoid over-broad fuzzy matches. Added 4 unit tests for `getSearchData` mapping logic. Build passes; 23/23 tests pass.
+- 2026-06-12 — Global search / command palette completed.
+
+- 2026-06-13 — Pagination completed. Installed shadcn `cmdk` (`command` + `input-group` components). Added `getSearchData(userId)` to [src/lib/db/search.ts](../src/lib/db/search.ts) — fetches all items (id, title, type, contentPreview) and collections (id, name, itemCount) for the user in parallel. Built [CommandPalette](../src/components/search/CommandPalette.tsx) — client component using `CommandDialog` + `Command` wrapper (required by shadcn v4); grouped Items and Collections results with type icons and item counts; selecting an item closes the palette and opens the item drawer via `useItemDrawer`; selecting a collection navigates to `/collections/[id]`. Moved `ItemDrawerProvider` from individual pages into [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) so the palette has access to the drawer context from the shell header. Updated `DashboardShell` to accept `searchData` prop, listen for Cmd+K/Ctrl+K, and open the palette on search input click; placeholder updated to "Search… ⌘K". Updated all 5 pages (`dashboard`, `items/[type]`, `collections`, `collections/[id]`, `profile`) to fetch `getSearchData(userId)` in parallel and pass it to `DashboardShell`. Search matches only against item titles and collection names (content preview is display-only) to avoid over-broad fuzzy matches. Added 4 unit tests for `getSearchData` mapping logic. Build passes; 23/23 tests pass.
