@@ -1,27 +1,16 @@
-# Current Feature: Settings Page
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- `/settings` route exists and is protected by the proxy (auth-gated, redirects to `/sign-in` when unauthenticated)
-- Sidebar user icon dropdown includes a "Settings" link pointing to `/settings`, above or alongside the existing "Profile" and "Sign Out" items
-- Settings page renders inside `DashboardShell` with the same layout as Profile and Collections pages
-- Account section on Settings page contains:
-  - **Change Password** form (hidden for OAuth users without a password) — moved from `/profile`
-  - **Delete Account** danger zone with confirmation dialog — moved from `/profile`
-- Profile page no longer shows the Change Password form or Delete Account section (those components are removed from `/profile`)
-- Build passes and all existing tests continue to pass
+<!-- Describe what success looks like for the current feature -->
 
 ## Notes
 
-- `ChangePasswordForm` and `DeleteAccountDialog` components already exist under `src/components/profile/` — reuse them on the settings page, do not duplicate
-- The underlying API routes (`POST /api/auth/change-password`, `DELETE /api/auth/delete-account`) remain unchanged
-- `/settings` must be added to the proxy matcher in `src/proxy.ts` alongside `/profile`
-- Use `DashboardShell` layout consistent with other protected pages; fetch `sidebarData`, `searchData`, and `session` in parallel
-- The sidebar dropdown already has "Profile" and "Sign Out" — add "Settings" as a new item (use a `Settings` or `Cog` lucide icon)
+<!-- Additional context, constraints, or details -->
 
 ## History
 
@@ -104,3 +93,5 @@ In Progress
 - 2026-06-12 — Global search / command palette completed.
 
 - 2026-06-13 — Pagination completed. Installed shadcn `cmdk` (`command` + `input-group` components). Added `getSearchData(userId)` to [src/lib/db/search.ts](../src/lib/db/search.ts) — fetches all items (id, title, type, contentPreview) and collections (id, name, itemCount) for the user in parallel. Built [CommandPalette](../src/components/search/CommandPalette.tsx) — client component using `CommandDialog` + `Command` wrapper (required by shadcn v4); grouped Items and Collections results with type icons and item counts; selecting an item closes the palette and opens the item drawer via `useItemDrawer`; selecting a collection navigates to `/collections/[id]`. Moved `ItemDrawerProvider` from individual pages into [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) so the palette has access to the drawer context from the shell header. Updated `DashboardShell` to accept `searchData` prop, listen for Cmd+K/Ctrl+K, and open the palette on search input click; placeholder updated to "Search… ⌘K". Updated all 5 pages (`dashboard`, `items/[type]`, `collections`, `collections/[id]`, `profile`) to fetch `getSearchData(userId)` in parallel and pass it to `DashboardShell`. Search matches only against item titles and collection names (content preview is display-only) to avoid over-broad fuzzy matches. Added 4 unit tests for `getSearchData` mapping logic. Build passes; 23/23 tests pass.
+
+- 2026-06-13 — Settings page completed. Created [src/lib/shell.ts](../src/lib/shell.ts) with `getShellData()` — fetches `auth`, sidebar item types/collections, and search data in parallel, then redirects to `/sign-in` if unauthenticated; eliminates the repeated boilerplate across all protected pages. Created [/settings](../src/app/settings/page.tsx) — server component using `getShellData()` + `getProfileData()`; renders `ChangePasswordForm` (conditionally, for password users) inside a Card and `DeleteAccountDialog` in a Danger Zone section. Removed `ChangePasswordForm` and `DeleteAccountDialog` from [/profile](../src/app/profile/page.tsx) (profile now shows only account info and usage stats); refactored profile to use `getShellData()`. Added "Settings" `DropdownMenuItem` (with `Settings` lucide icon) to the sidebar user footer dropdown between "Profile" and "Sign Out" in [Sidebar.tsx](../src/components/dashboard/Sidebar.tsx). Added `/settings` to the protected paths and `matcher` in [proxy.ts](../src/proxy.ts). Build passes; 23/23 tests pass.
