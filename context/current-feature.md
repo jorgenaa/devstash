@@ -1,30 +1,12 @@
-# Current Feature: Editor Preferences Settings
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Font size dropdown in settings
-- Tab size dropdown in settings
-- Word wrap toggle (default: on)
-- Minimap toggle (default: off)
-- Theme dropdown: vs-dark, monokai, github-dark (default: vs-dark)
-- Preferences stored in a JSON `editorPreferences` column on the User model
-- Migration created and run (never `db push`)
-- Server action to update preferences
-- Settings applied to Monaco editor component
-- Auto-save on change (no save button needed)
-- Success toast shown on save
-- `EditorPreferencesContext` for sharing settings with client components
-
 ## Notes
-
-- Preferences are persisted server-side in the `users` table via a new `editorPreferences Json?` column
-- A Prisma migration must be generated with `prisma migrate dev`
-- The Monaco `CodeEditor` component must read from context instead of hard-coded defaults
-- Auto-save means each individual toggle/dropdown change fires the server action immediately
 
 ## History
 
@@ -109,3 +91,5 @@ In Progress
 - 2026-06-13 — Pagination completed. Installed shadcn `cmdk` (`command` + `input-group` components). Added `getSearchData(userId)` to [src/lib/db/search.ts](../src/lib/db/search.ts) — fetches all items (id, title, type, contentPreview) and collections (id, name, itemCount) for the user in parallel. Built [CommandPalette](../src/components/search/CommandPalette.tsx) — client component using `CommandDialog` + `Command` wrapper (required by shadcn v4); grouped Items and Collections results with type icons and item counts; selecting an item closes the palette and opens the item drawer via `useItemDrawer`; selecting a collection navigates to `/collections/[id]`. Moved `ItemDrawerProvider` from individual pages into [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) so the palette has access to the drawer context from the shell header. Updated `DashboardShell` to accept `searchData` prop, listen for Cmd+K/Ctrl+K, and open the palette on search input click; placeholder updated to "Search… ⌘K". Updated all 5 pages (`dashboard`, `items/[type]`, `collections`, `collections/[id]`, `profile`) to fetch `getSearchData(userId)` in parallel and pass it to `DashboardShell`. Search matches only against item titles and collection names (content preview is display-only) to avoid over-broad fuzzy matches. Added 4 unit tests for `getSearchData` mapping logic. Build passes; 23/23 tests pass.
 
 - 2026-06-13 — Settings page completed. Created [src/lib/shell.ts](../src/lib/shell.ts) with `getShellData()` — fetches `auth`, sidebar item types/collections, and search data in parallel, then redirects to `/sign-in` if unauthenticated; eliminates the repeated boilerplate across all protected pages. Created [/settings](../src/app/settings/page.tsx) — server component using `getShellData()` + `getProfileData()`; renders `ChangePasswordForm` (conditionally, for password users) inside a Card and `DeleteAccountDialog` in a Danger Zone section. Removed `ChangePasswordForm` and `DeleteAccountDialog` from [/profile](../src/app/profile/page.tsx) (profile now shows only account info and usage stats); refactored profile to use `getShellData()`. Added "Settings" `DropdownMenuItem` (with `Settings` lucide icon) to the sidebar user footer dropdown between "Profile" and "Sign Out" in [Sidebar.tsx](../src/components/dashboard/Sidebar.tsx). Added `/settings` to the protected paths and `matcher` in [proxy.ts](../src/proxy.ts). Build passes; 23/23 tests pass.
+
+- 2026-06-13 — Editor preferences settings completed. Added `editorPreferences Json?` column to the User model with migration `20260613193706_add_editor_preferences`. Created [src/types/editor-preferences.ts](../src/types/editor-preferences.ts) with `EditorPreferences` interface, `DEFAULT_EDITOR_PREFERENCES`, and option arrays for font size (11–16), tab size (2/4/8), and theme (vs-dark/monokai/github-dark). Created [src/lib/db/editor-preferences.ts](../src/lib/db/editor-preferences.ts) with `EditorPreferencesSchema` (Zod) and `getEditorPreferences(userId)` — returns stored JSON parsed against schema, falling back to defaults on missing or invalid data. Created [src/actions/settings.ts](../src/actions/settings.ts) with `updateEditorPreferences` server action — auth-gated, Zod-validates input, updates User row. Created [src/contexts/editor-preferences-context.tsx](../src/contexts/editor-preferences-context.tsx) with `EditorPreferencesProvider` (optimistic update + rollback on error, success/error toasts) and `useEditorPreferences()` hook. Built [EditorPreferencesForm](../src/components/settings/EditorPreferencesForm.tsx) — client form with shadcn `Select` (font size, tab size, theme) and `Switch` (word wrap, minimap) controls; each change auto-saves via `updatePref`. Installed shadcn `select` and `switch` components. Updated [CodeEditor](../src/components/ui/code-editor.tsx) to read from context (`useEditorPreferences`) and apply all 5 preferences to Monaco; custom themes (monokai, github-dark) defined via `beforeMount`. Updated [src/lib/shell.ts](../src/lib/shell.ts) to fetch `editorPreferences` in parallel with `searchData` and return it from `getShellData()`. Updated [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) to accept `editorPreferences` prop and wrap content in `EditorPreferencesProvider`. Updated all 6 protected pages to pass `editorPreferences` to `DashboardShell`. Added 8 unit tests (4 for action, 4 for DB helper); 31/31 tests pass. Build passes.
