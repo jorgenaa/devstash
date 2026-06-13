@@ -10,6 +10,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { getAllCollections, getSidebarCollections } from "@/lib/db/collections";
 import { getSidebarItemTypes } from "@/lib/db/items";
 import { getSearchData } from "@/lib/db/search";
+import { getEditorPreferences } from "@/lib/db/editor-preferences";
 import { COLLECTIONS_PER_PAGE } from "@/lib/db/constants";
 
 export default async function CollectionsPage({
@@ -28,9 +29,10 @@ export default async function CollectionsPage({
 
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
 
-  const [{ collections, totalCount }, searchData] = await Promise.all([
+  const [{ collections, totalCount }, searchData, editorPreferences] = await Promise.all([
     getAllCollections(session.user.id, page),
     getSearchData(session.user.id),
+    getEditorPreferences(session.user.id),
   ]);
 
   const totalPages = Math.ceil(totalCount / COLLECTIONS_PER_PAGE);
@@ -40,6 +42,7 @@ export default async function CollectionsPage({
       sidebarData={{ itemTypes, favorites, recent }}
       user={session.user}
       searchData={searchData}
+      editorPreferences={editorPreferences}
     >
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between gap-3">

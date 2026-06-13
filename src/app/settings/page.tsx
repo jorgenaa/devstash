@@ -6,11 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { ChangePasswordForm } from "@/components/profile/ChangePasswordForm";
 import { DeleteAccountDialog } from "@/components/profile/DeleteAccountDialog";
+import { EditorPreferencesForm } from "@/components/settings/EditorPreferencesForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const { session, userId, sidebarData, searchData } = await getShellData();
+  const { session, userId, sidebarData, searchData, editorPreferences } = await getShellData();
 
   const profile = await getProfileData(userId);
 
@@ -23,6 +24,7 @@ export default async function SettingsPage() {
       sidebarData={sidebarData}
       user={session.user}
       searchData={searchData}
+      editorPreferences={editorPreferences}
     >
       <div className="mx-auto flex max-w-2xl flex-col gap-8">
         <header className="flex flex-col gap-1">
@@ -31,6 +33,17 @@ export default async function SettingsPage() {
             Manage your account settings
           </p>
         </header>
+
+        {/* Editor preferences */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Editor Preferences</CardTitle>
+            <CardDescription>Customize the code editor appearance and behavior</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <EditorPreferencesForm />
+          </CardContent>
+        </Card>
 
         {/* Change password */}
         {profile.hasPassword && (

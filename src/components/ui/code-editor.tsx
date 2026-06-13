@@ -1,11 +1,62 @@
 'use client';
 
 import { useState } from 'react';
-import Editor from '@monaco-editor/react';
+import Editor, { type Monaco } from '@monaco-editor/react';
 import { Clipboard } from 'lucide-react';
 import { toast } from 'sonner';
+import { useEditorPreferences } from '@/contexts/editor-preferences-context';
 
 const MAC_DOTS = ['#ff5f57', '#febc2e', '#28c840'] as const;
+
+function defineCustomThemes(monaco: Monaco) {
+  monaco.editor.defineTheme('monokai', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: 'comment', foreground: '75715e', fontStyle: 'italic' },
+      { token: 'keyword', foreground: 'f92672' },
+      { token: 'string', foreground: 'e6db74' },
+      { token: 'number', foreground: 'ae81ff' },
+      { token: 'type', foreground: '66d9ef', fontStyle: 'italic' },
+      { token: 'class', foreground: 'a6e22e' },
+      { token: 'function', foreground: 'a6e22e' },
+      { token: 'variable', foreground: 'f8f8f2' },
+      { token: 'operator', foreground: 'f92672' },
+    ],
+    colors: {
+      'editor.background': '#272822',
+      'editor.foreground': '#f8f8f2',
+      'editor.lineHighlightBackground': '#3e3d3280',
+      'editor.selectionBackground': '#49483e',
+      'editorLineNumber.foreground': '#75715e',
+      'editorCursor.foreground': '#f8f8f0',
+    },
+  });
+
+  monaco.editor.defineTheme('github-dark', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: 'comment', foreground: '8b949e', fontStyle: 'italic' },
+      { token: 'keyword', foreground: 'ff7b72' },
+      { token: 'string', foreground: 'a5d6ff' },
+      { token: 'number', foreground: '79c0ff' },
+      { token: 'type', foreground: 'ff7b72' },
+      { token: 'class', foreground: 'f0883e' },
+      { token: 'function', foreground: 'd2a8ff' },
+      { token: 'variable', foreground: 'ffa657' },
+      { token: 'operator', foreground: 'ff7b72' },
+    ],
+    colors: {
+      'editor.background': '#0d1117',
+      'editor.foreground': '#c9d1d9',
+      'editor.lineHighlightBackground': '#161b2280',
+      'editor.selectionBackground': '#264f78',
+      'editorLineNumber.foreground': '#8b949e',
+      'editorCursor.foreground': '#c9d1d9',
+    },
+  });
+}
 
 type Props = {
   value: string;
@@ -16,6 +67,7 @@ type Props = {
 
 export function CodeEditor({ value, onChange, language, readOnly = false }: Props) {
   const [height, setHeight] = useState(120);
+  const { prefs } = useEditorPreferences();
   const lang = language?.toLowerCase() || 'plaintext';
 
   async function handleCopy() {
@@ -56,15 +108,16 @@ export function CodeEditor({ value, onChange, language, readOnly = false }: Prop
       <Editor
         value={value}
         language={lang}
-        theme='vs-dark'
+        theme={prefs.theme}
         height={Math.min(height, 400)}
         options={{
           readOnly,
-          fontSize: 12,
-          lineHeight: 19,
-          minimap: { enabled: false },
+          fontSize: prefs.fontSize,
+          tabSize: prefs.tabSize,
+          lineHeight: Math.round(prefs.fontSize * 1.6),
+          minimap: { enabled: prefs.minimap },
           scrollBeyondLastLine: false,
-          wordWrap: 'on',
+          wordWrap: prefs.wordWrap ? 'on' : 'off',
           automaticLayout: true,
           padding: { top: 8, bottom: 8 },
           scrollbar: {
@@ -79,10 +132,11 @@ export function CodeEditor({ value, onChange, language, readOnly = false }: Prop
           contextmenu: false,
         }}
         loading={
-          <div className='flex h-[120px] items-center justify-center bg-[#1e1e1e] text-xs text-zinc-500'>
+          <div className='flex h-30 items-center justify-center bg-[#1e1e1e] text-xs text-zinc-500'>
             Loading editor…
           </div>
         }
+        beforeMount={defineCustomThemes}
         onMount={(editor) => {
           const update = () => {
             setHeight(Math.max(120, editor.getContentHeight()));
