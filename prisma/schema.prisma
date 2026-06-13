@@ -61,6 +61,7 @@ model User {
   image                String?
   password             String? // hashed, null for OAuth users
   isPro                Boolean   @default(false)
+  editorPreferences    Json?
   stripeCustomerId     String?   @unique
   stripeSubscriptionId String?   @unique
   createdAt            DateTime  @default(now())

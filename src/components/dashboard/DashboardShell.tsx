@@ -11,18 +11,22 @@ import { NewItemDialog } from "@/components/items/NewItemDialog";
 import { NewCollectionDialog } from "@/components/collections/NewCollectionDialog";
 import { ItemDrawerProvider } from "@/components/items/ItemDrawerContext";
 import { CommandPalette } from "@/components/search/CommandPalette";
+import { EditorPreferencesProvider } from "@/contexts/editor-preferences-context";
 import type { SearchData } from "@/lib/db/search";
+import { DEFAULT_EDITOR_PREFERENCES, type EditorPreferences } from "@/types/editor-preferences";
 
 export function DashboardShell({
   children,
   sidebarData,
   user,
   searchData,
+  editorPreferences = DEFAULT_EDITOR_PREFERENCES,
 }: {
   children: React.ReactNode;
   sidebarData: SidebarData;
   user: SidebarUser | null;
   searchData: SearchData;
+  editorPreferences?: EditorPreferences;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -40,6 +44,7 @@ export function DashboardShell({
   }, []);
 
   return (
+    <EditorPreferencesProvider initial={editorPreferences}>
     <div className="flex h-screen flex-col">
       <header className="flex h-14 items-center gap-3 border-b border-border bg-background px-4">
         <div className="flex items-center gap-2">
@@ -115,5 +120,6 @@ export function DashboardShell({
         </div>
       </ItemDrawerProvider>
     </div>
+    </EditorPreferencesProvider>
   );
 }

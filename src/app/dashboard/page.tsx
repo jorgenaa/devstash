@@ -7,6 +7,8 @@ import { StatsCards } from "@/components/dashboard/StatsCards";
 import { getSidebarCollections } from "@/lib/db/collections";
 import { getSidebarItemTypes } from "@/lib/db/items";
 import { getSearchData } from "@/lib/db/search";
+import { getEditorPreferences } from "@/lib/db/editor-preferences";
+import { DEFAULT_EDITOR_PREFERENCES } from "@/types/editor-preferences";
 import type { SearchData } from "@/lib/db/search";
 
 export const dynamic = "force-dynamic";
@@ -18,15 +20,18 @@ export default async function DashboardPage() {
     getSidebarCollections(),
   ]);
 
-  const searchData: SearchData = session?.user?.id
-    ? await getSearchData(session.user.id)
-    : { items: [], collections: [] };
+  const userId = session?.user?.id;
+  const [searchData, editorPreferences] = await Promise.all([
+    userId ? getSearchData(userId) : Promise.resolve<SearchData>({ items: [], collections: [] }),
+    userId ? getEditorPreferences(userId) : Promise.resolve(DEFAULT_EDITOR_PREFERENCES),
+  ]);
 
   return (
     <DashboardShell
       sidebarData={{ itemTypes, favorites, recent }}
       user={session?.user ?? null}
       searchData={searchData}
+      editorPreferences={editorPreferences}
     >
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <header className="flex flex-col gap-1">
