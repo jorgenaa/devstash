@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { DEMO_EMAIL, validateLimit } from "@/lib/db/constants";
+import { DEMO_EMAIL, ITEMS_PER_PAGE, validateLimit } from "@/lib/db/constants";
 
 export type ItemDetail = {
   id: string;
@@ -143,14 +143,22 @@ const ITEM_TYPE_ORDER = ["snippet", "prompt", "command", "note", "file", "image"
 
 export async function getItemsByType(
   userId: string,
-  typeName: string
-): Promise<DashboardItem[]> {
-  const items = await prisma.item.findMany({
-    where: { userId, itemType: { name: typeName } },
-    orderBy: { updatedAt: "desc" },
-    select: itemSelect,
-  });
-  return items.map(toDashboardItem);
+  typeName: string,
+  page = 1,
+): Promise<{ items: DashboardItem[]; totalCount: number }> {
+  const where = { userId, itemType: { name: typeName } };
+  const skip = (page - 1) * ITEMS_PER_PAGE;
+  const [items, totalCount] = await Promise.all([
+    prisma.item.findMany({
+      where,
+      orderBy: { updatedAt: "desc" },
+      skip,
+      take: ITEMS_PER_PAGE,
+      select: itemSelect,
+    }),
+    prisma.item.count({ where }),
+  ]);
+  return { items: items.map(toDashboardItem), totalCount };
 }
 
 const itemDetailSelect = {

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { DEMO_EMAIL, validateLimit } from "@/lib/db/constants";
+import { COLLECTIONS_PER_PAGE, DEMO_EMAIL, validateLimit } from "@/lib/db/constants";
 import type { DashboardItem, DashboardItemType } from "@/lib/db/items";
 
 export type CollectionType = {
@@ -147,27 +147,34 @@ export async function getUserCollections(userId: string): Promise<UserCollection
 
 export async function getAllCollections(
   userId: string,
-): Promise<DashboardCollection[]> {
-  const collections = await prisma.collection.findMany({
-    where: { userId },
-    orderBy: { updatedAt: "desc" },
-    include: {
-      _count: { select: { items: true } },
-      items: {
-        include: {
-          item: {
-            select: {
-              itemType: {
-                select: { id: true, name: true, icon: true, color: true },
+  page = 1,
+): Promise<{ collections: DashboardCollection[]; totalCount: number }> {
+  const skip = (page - 1) * COLLECTIONS_PER_PAGE;
+  const [rawCollections, totalCount] = await Promise.all([
+    prisma.collection.findMany({
+      where: { userId },
+      orderBy: { updatedAt: "desc" },
+      skip,
+      take: COLLECTIONS_PER_PAGE,
+      include: {
+        _count: { select: { items: true } },
+        items: {
+          include: {
+            item: {
+              select: {
+                itemType: {
+                  select: { id: true, name: true, icon: true, color: true },
+                },
               },
             },
           },
         },
       },
-    },
-  });
+    }),
+    prisma.collection.count({ where: { userId } }),
+  ]);
 
-  return collections.map((collection) => {
+  const collections = rawCollections.map((collection) => {
     const counts = new Map<string, { type: CollectionType; count: number }>();
     for (const { item } of collection.items) {
       const type = item.itemType;
@@ -186,6 +193,8 @@ export async function getAllCollections(
       accentColor: byFrequency[0]?.type.color ?? null,
     };
   });
+
+  return { collections, totalCount };
 }
 
 const collectionItemSelect = {
@@ -208,18 +217,23 @@ const collectionItemSelect = {
 export type CollectionWithItems = {
   collection: DashboardCollection;
   items: DashboardItem[];
+  totalCount: number;
 };
 
 export async function getCollectionWithItems(
   userId: string,
   collectionId: string,
+  page = 1,
 ): Promise<CollectionWithItems | null> {
+  const skip = (page - 1) * COLLECTIONS_PER_PAGE;
   const collection = await prisma.collection.findFirst({
     where: { id: collectionId, userId },
     include: {
       _count: { select: { items: true } },
       items: {
         orderBy: { addedAt: "desc" },
+        skip,
+        take: COLLECTIONS_PER_PAGE,
         include: {
           item: { select: collectionItemSelect },
         },
@@ -265,7 +279,7 @@ export async function getCollectionWithItems(
     type: item.itemType,
   }));
 
-  return { collection: dashboardCollection, items };
+  return { collection: dashboardCollection, items, totalCount: collection._count.items };
 }
 
 export async function updateCollection(

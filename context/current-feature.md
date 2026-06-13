@@ -1,16 +1,24 @@
-# Current Feature
+# Current Feature: Pagination
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Describe what success looks like for the current feature -->
+- Pagination controls on `/items/[type]` pages with numbered page links and prev/next buttons
+- Pagination controls on `/collections/[id]` pages for items within a collection
+- Prev/Next buttons are disabled (greyed out) when not applicable (first/last page)
+- Only fetch the items/collections needed for the current page (no loading all records)
+- Use constants: `ITEMS_PER_PAGE = 21`, `COLLECTIONS_PER_PAGE = 21`
+- Dashboard limits remain: `DASHBOARD_COLLECTIONS_LIMIT = 6`, `DASHBOARD_RECENT_ITEMS_LIMIT = 10`
 
 ## Notes
 
-<!-- Additional context, constraints, or details -->
+- Page is driven by a `?page=` query param (URL-based, server-rendered)
+- `getItemsByType` and `getCollectionWithItems` DB functions need `skip`/`take` + total count
+- Build a reusable `<Pagination>` component shared between both pages
+- Dashboard pages are unaffected — they use separate limit constants
 
 ## History
 

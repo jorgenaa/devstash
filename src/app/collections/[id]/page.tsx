@@ -10,17 +10,22 @@ import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { FileListRow } from "@/components/items/FileListRow";
 import { ImageCard } from "@/components/items/ImageCard";
 import { ItemCard } from "@/components/items/ItemCard";
+import { Pagination } from "@/components/ui/pagination";
 import { getCollectionWithItems, getSidebarCollections } from "@/lib/db/collections";
 import { getSidebarItemTypes } from "@/lib/db/items";
 import { getSearchData } from "@/lib/db/search";
+import { COLLECTIONS_PER_PAGE } from "@/lib/db/constants";
 
 export default async function CollectionDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
-  const [{ id }, session, itemTypes, { favorites, recent }] = await Promise.all([
+  const [{ id }, { page: pageParam }, session, itemTypes, { favorites, recent }] = await Promise.all([
     params,
+    searchParams,
     auth(),
     getSidebarItemTypes(),
     getSidebarCollections(),
@@ -28,14 +33,17 @@ export default async function CollectionDetailPage({
 
   if (!session?.user?.id) redirect("/sign-in");
 
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
+
   const [result, searchData] = await Promise.all([
-    getCollectionWithItems(session.user.id, id),
+    getCollectionWithItems(session.user.id, id, page),
     getSearchData(session.user.id),
   ]);
 
   if (!result) notFound();
 
-  const { collection, items } = result;
+  const { collection, items, totalCount } = result;
+  const totalPages = Math.ceil(totalCount / COLLECTIONS_PER_PAGE);
 
   const imageItems = items.filter((item) => item.type.name === "image");
   const fileItems = items.filter((item) => item.type.name === "file");
@@ -85,7 +93,7 @@ export default async function CollectionDetailPage({
           </div>
         </div>
 
-        {items.length === 0 ? (
+        {totalCount === 0 ? (
           <p className="text-sm text-muted-foreground">
             No items in this collection yet.
           </p>
@@ -133,6 +141,12 @@ export default async function CollectionDetailPage({
             )}
           </div>
         )}
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          buildHref={(p) => `/collections/${id}?page=${p}`}
+        />
       </div>
     </DashboardShell>
   );

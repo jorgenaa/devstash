@@ -8,10 +8,12 @@ import { ImageCard } from "@/components/items/ImageCard";
 import { ItemCard } from "@/components/items/ItemCard";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { NewItemDialog, type TypeName } from "@/components/items/NewItemDialog";
+import { Pagination } from "@/components/ui/pagination";
 import { getSidebarCollections } from "@/lib/db/collections";
 import { getItemsByType, getSidebarItemTypes } from "@/lib/db/items";
 import { getSearchData } from "@/lib/db/search";
 import { ItemTypeIcon } from "@/lib/item-type-icons";
+import { ITEMS_PER_PAGE } from "@/lib/db/constants";
 
 const CREATABLE_TYPES = new Set<string>(["snippet", "prompt", "command", "note", "link", "file", "image"]);
 
@@ -27,12 +29,15 @@ const TYPE_SLUG_MAP: Record<string, string> = {
 
 export default async function ItemTypePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ type: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
-  const [{ type: slug }, session, itemTypes, { favorites, recent }] =
+  const [{ type: slug }, { page: pageParam }, session, itemTypes, { favorites, recent }] =
     await Promise.all([
       params,
+      searchParams,
       auth(),
       getSidebarItemTypes(),
       getSidebarCollections(),
@@ -46,11 +51,14 @@ export default async function ItemTypePage({
   const currentType = itemTypes.find((t) => t.name === typeName);
   if (!currentType) notFound();
 
-  const [items, searchData] = await Promise.all([
-    getItemsByType(session.user.id, typeName),
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
+
+  const [{ items, totalCount }, searchData] = await Promise.all([
+    getItemsByType(session.user.id, typeName, page),
     getSearchData(session.user.id),
   ]);
 
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
   const pageTitle = slug.charAt(0).toUpperCase() + slug.slice(1);
 
   return (
@@ -75,7 +83,7 @@ export default async function ItemTypePage({
             <div>
               <h2 className="text-lg font-semibold">{pageTitle}</h2>
               <p className="text-xs text-muted-foreground">
-                {items.length} {items.length === 1 ? "item" : "items"}
+                {totalCount} {totalCount === 1 ? "item" : "items"}
               </p>
             </div>
           </div>
@@ -84,7 +92,7 @@ export default async function ItemTypePage({
           )}
         </div>
 
-        {items.length === 0 ? (
+        {totalCount === 0 ? (
           <p className="text-sm text-muted-foreground">
             No {pageTitle.toLowerCase()} yet.
           </p>
@@ -107,6 +115,12 @@ export default async function ItemTypePage({
             ))}
           </div>
         )}
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          buildHref={(p) => `/items/${slug}?page=${p}`}
+        />
       </div>
     </DashboardShell>
   );

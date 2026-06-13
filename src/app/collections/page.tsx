@@ -6,12 +6,19 @@ import { auth } from "@/auth";
 import { CollectionCard } from "@/components/dashboard/CollectionCard";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { NewCollectionDialog } from "@/components/collections/NewCollectionDialog";
+import { Pagination } from "@/components/ui/pagination";
 import { getAllCollections, getSidebarCollections } from "@/lib/db/collections";
 import { getSidebarItemTypes } from "@/lib/db/items";
 import { getSearchData } from "@/lib/db/search";
+import { COLLECTIONS_PER_PAGE } from "@/lib/db/constants";
 
-export default async function CollectionsPage() {
-  const [session, itemTypes, { favorites, recent }] = await Promise.all([
+export default async function CollectionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const [{ page: pageParam }, session, itemTypes, { favorites, recent }] = await Promise.all([
+    searchParams,
     auth(),
     getSidebarItemTypes(),
     getSidebarCollections(),
@@ -19,10 +26,14 @@ export default async function CollectionsPage() {
 
   if (!session?.user?.id) redirect("/sign-in");
 
-  const [collections, searchData] = await Promise.all([
-    getAllCollections(session.user.id),
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
+
+  const [{ collections, totalCount }, searchData] = await Promise.all([
+    getAllCollections(session.user.id, page),
     getSearchData(session.user.id),
   ]);
+
+  const totalPages = Math.ceil(totalCount / COLLECTIONS_PER_PAGE);
 
   return (
     <DashboardShell
@@ -35,14 +46,14 @@ export default async function CollectionsPage() {
           <div>
             <h1 className="text-lg font-semibold">Collections</h1>
             <p className="text-xs text-muted-foreground">
-              {collections.length}{" "}
-              {collections.length === 1 ? "collection" : "collections"}
+              {totalCount}{" "}
+              {totalCount === 1 ? "collection" : "collections"}
             </p>
           </div>
           <NewCollectionDialog />
         </div>
 
-        {collections.length === 0 ? (
+        {totalCount === 0 ? (
           <p className="text-sm text-muted-foreground">No collections yet.</p>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -51,6 +62,12 @@ export default async function CollectionsPage() {
             ))}
           </div>
         )}
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          buildHref={(p) => `/collections?page=${p}`}
+        />
       </div>
     </DashboardShell>
   );
