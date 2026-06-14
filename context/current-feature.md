@@ -1,12 +1,29 @@
-# Current Feature
+# Current Feature: Pinned Items
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Create `toggleItemPin` server action (follow Favorite Button pattern)
+- Wire the Pin button in `ItemDetailDrawer` (currently has no `onClick`)
+- Optimistic UI updates for instant feedback
+- Toast notification on success/error
+- Pinned items sort to the top of item listings (`/items/[type]`)
+- Pinned items appear in the dashboard Pinned section
+- Pin icon on `ItemCard` remains a static indicator (read-only badge)
+- Items only — no collection pinning
+
 ## Notes
+
+- Follow the exact same pattern as the Favorite toggle: `toggleItemFavorite` action + `onFavorite`/`toggling` props on `DrawerActionBar`
+- DB function: `toggleItemPin(userId, itemId)` in `src/lib/db/items.ts` — reads `isPinned`, flips it, returns `{ isPinned: boolean }`
+- Server action: `toggleItemPin(itemId)` in `src/actions/items.ts` — auth-gated, returns `{ success, isPinned }`
+- `DrawerActionBar` gets `onPin` + `pinning` props (discriminated union view-mode branch)
+- `DrawerContent` gets `handlePin` calling the action, updates in-drawer state via `onItemUpdate`, toasts "Pinned" / "Unpinned", calls `router.refresh()`
+- Listings: `getItemsByType` already orders by `updatedAt desc`; add a secondary sort so pinned items float to top (e.g., `orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }]`)
+- Dashboard pinned section already reads `getPinnedItems()` — `router.refresh()` after toggle is sufficient
 
 ## History
 

@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { deleteItem, updateItem, toggleItemFavorite } from '@/actions/items';
+import { deleteItem, updateItem, toggleItemFavorite, toggleItemPin } from '@/actions/items';
 import { CollectionSelect } from '@/components/ui/collection-select';
 import {
   AlertDialog,
@@ -141,10 +141,13 @@ type DrawerActionBarProps =
   | {
       editing: false;
       isFavorite: boolean;
+      isPinned: boolean;
       toggling: boolean;
+      pinning: boolean;
       deleting: boolean;
       itemTitle: string;
       onFavorite: () => void;
+      onPin: () => void;
       onCopy: () => void;
       onEdit: () => void;
       onDelete: () => void;
@@ -178,9 +181,15 @@ function DrawerActionBar(props: DrawerActionBarProps) {
         <Star className={`mr-1 size-3.5 ${props.isFavorite ? 'fill-yellow-400' : ''}`} />
         Favorite
       </Button>
-      <Button variant='ghost' size='sm'>
-        <Pin className='mr-1 size-3.5' />
-        Pin
+      <Button
+        variant='ghost'
+        size='sm'
+        className={props.isPinned ? 'text-orange-400 hover:text-orange-400' : ''}
+        onClick={props.onPin}
+        disabled={props.pinning}
+      >
+        <Pin className={`mr-1 size-3.5 ${props.isPinned ? 'fill-orange-400' : ''}`} />
+        {props.isPinned ? 'Unpin' : 'Pin'}
       </Button>
       <Button variant='ghost' size='sm' onClick={props.onCopy}>
         <Clipboard className='mr-1 size-3.5' />
@@ -476,6 +485,7 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [pinning, setPinning] = useState(false);
   const [editState, setEditState] = useState<EditState>(() => toEditState(item));
   const [availableCollections, setAvailableCollections] = useState<UserCollection[]>([]);
 
@@ -531,6 +541,21 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
     setEditing(false);
     router.refresh();
     toast.success('Item saved');
+  }
+
+  async function handlePin() {
+    setPinning(true);
+    const result = await toggleItemPin(item.id);
+    setPinning(false);
+
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+
+    onItemUpdate({ ...item, isPinned: result.isPinned });
+    toast.success(result.isPinned ? 'Pinned' : 'Unpinned');
+    router.refresh();
   }
 
   async function handleFavorite() {
@@ -623,10 +648,13 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
         <DrawerActionBar
           editing={false}
           isFavorite={item.isFavorite}
+          isPinned={item.isPinned}
           toggling={toggling}
+          pinning={pinning}
           deleting={deleting}
           itemTitle={item.title}
           onFavorite={handleFavorite}
+          onPin={handlePin}
           onCopy={handleCopy}
           onEdit={handleEdit}
           onDelete={handleDelete}
