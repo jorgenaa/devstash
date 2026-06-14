@@ -1,28 +1,12 @@
-# Current Feature: Favorites Page
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add a star icon button to the TopBar linking to `/favorites`
-- Create a `/favorites` route (protected via proxy)
-- Fetch all favorited items and collections for the authenticated user
-- Render a compact, high-density list view (VS Code/terminal style — no cards)
-- Each row: type icon, title, type badge, relative date
-- Separate sections for Items (with count) and Collections (with count)
-- Clicking an item opens the `ItemDetailDrawer` in-place
-- Clicking a collection navigates to `/collections/[id]`
-- Empty state when no favorites exist
-- Sort by most recently updated (`updatedAt` desc)
-
 ## Notes
-
-- Style: monospace/semi-monospace font, minimal padding, subtle hover states, clean lines only — no heavy borders or card chrome
-- Reuse `ItemDrawerProvider` + `useItemDrawer` (already available in `DashboardShell`)
-- Use `getShellData()` from `src/lib/shell.ts` for auth + sidebar + search in one call
-- Add `/favorites` to the proxy matcher in `src/proxy.ts`
 
 ## History
 
@@ -108,4 +92,6 @@ In Progress
 
 - 2026-06-13 — Settings page completed. Created [src/lib/shell.ts](../src/lib/shell.ts) with `getShellData()` — fetches `auth`, sidebar item types/collections, and search data in parallel, then redirects to `/sign-in` if unauthenticated; eliminates the repeated boilerplate across all protected pages. Created [/settings](../src/app/settings/page.tsx) — server component using `getShellData()` + `getProfileData()`; renders `ChangePasswordForm` (conditionally, for password users) inside a Card and `DeleteAccountDialog` in a Danger Zone section. Removed `ChangePasswordForm` and `DeleteAccountDialog` from [/profile](../src/app/profile/page.tsx) (profile now shows only account info and usage stats); refactored profile to use `getShellData()`. Added "Settings" `DropdownMenuItem` (with `Settings` lucide icon) to the sidebar user footer dropdown between "Profile" and "Sign Out" in [Sidebar.tsx](../src/components/dashboard/Sidebar.tsx). Added `/settings` to the protected paths and `matcher` in [proxy.ts](../src/proxy.ts). Build passes; 23/23 tests pass.
 
-- 2026-06-13 — Editor preferences settings completed. Added `editorPreferences Json?` column to the User model with migration `20260613193706_add_editor_preferences`. Created [src/types/editor-preferences.ts](../src/types/editor-preferences.ts) with `EditorPreferences` interface, `DEFAULT_EDITOR_PREFERENCES`, and option arrays for font size (11–16), tab size (2/4/8), and theme (vs-dark/monokai/github-dark). Created [src/lib/db/editor-preferences.ts](../src/lib/db/editor-preferences.ts) with `EditorPreferencesSchema` (Zod) and `getEditorPreferences(userId)` — returns stored JSON parsed against schema, falling back to defaults on missing or invalid data. Created [src/actions/settings.ts](../src/actions/settings.ts) with `updateEditorPreferences` server action — auth-gated, Zod-validates input, updates User row. Created [src/contexts/editor-preferences-context.tsx](../src/contexts/editor-preferences-context.tsx) with `EditorPreferencesProvider` (optimistic update + rollback on error, success/error toasts) and `useEditorPreferences()` hook. Built [EditorPreferencesForm](../src/components/settings/EditorPreferencesForm.tsx) — client form with shadcn `Select` (font size, tab size, theme) and `Switch` (word wrap, minimap) controls; each change auto-saves via `updatePref`. Installed shadcn `select` and `switch` components. Updated [CodeEditor](../src/components/ui/code-editor.tsx) to read from context (`useEditorPreferences`) and apply all 5 preferences to Monaco; custom themes (monokai, github-dark) defined via `beforeMount`. Updated [src/lib/shell.ts](../src/lib/shell.ts) to fetch `editorPreferences` in parallel with `searchData` and return it from `getShellData()`. Updated [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) to accept `editorPreferences` prop and wrap content in `EditorPreferencesProvider`. Updated all 6 protected pages to pass `editorPreferences` to `DashboardShell`. Added 8 unit tests (4 for action, 4 for DB helper); 31/31 tests pass. Build passes.
+- 2026-06-13 — Editor preferences settings completed.
+
+- 2026-06-14 — Favorites page completed. Created [src/lib/db/favorites.ts](../src/lib/db/favorites.ts) with `getFavoritedItems(userId)` (items where `isFavorite = true`, ordered by `updatedAt` desc, full `DashboardItem` shape) and `getFavoritedCollections(userId)` (collections where `isFavorite = true`, ordered by `updatedAt` desc, with `accentColor` from most-used item type). Created [src/components/favorites/FavoriteRows.tsx](../src/components/favorites/FavoriteRows.tsx) with `FavoriteItemRow` (colored dot, type icon, title, type badge, date; clicks open `ItemDetailDrawer` via `useItemDrawer`) and `FavoriteCollectionRow` (colored dot, folder icon, name, item count badge, date; links to `/collections/[id]`); both use `font-mono`, tight `py-2` padding, and `hover:bg-muted/40` — no card chrome. Created [/favorites](../src/app/favorites/page.tsx) — server component using `getShellData()` + parallel `getFavoritedItems`/`getFavoritedCollections`; two sections (Items and Collections) each with a count label and a `rounded-md border` list container; rows separated by `border-b border-border/50`; empty state with a faded star icon. Added a `<Star>` icon `<Link>` to the TopBar in [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) (ghost hover styling, positioned between the search bar and the New Collection button). Added `/favorites` to the protected paths array and `matcher` in [proxy.ts](../src/proxy.ts). Build passes; 31/31 tests pass. Added `editorPreferences Json?` column to the User model with migration `20260613193706_add_editor_preferences`. Created [src/types/editor-preferences.ts](../src/types/editor-preferences.ts) with `EditorPreferences` interface, `DEFAULT_EDITOR_PREFERENCES`, and option arrays for font size (11–16), tab size (2/4/8), and theme (vs-dark/monokai/github-dark). Created [src/lib/db/editor-preferences.ts](../src/lib/db/editor-preferences.ts) with `EditorPreferencesSchema` (Zod) and `getEditorPreferences(userId)` — returns stored JSON parsed against schema, falling back to defaults on missing or invalid data. Created [src/actions/settings.ts](../src/actions/settings.ts) with `updateEditorPreferences` server action — auth-gated, Zod-validates input, updates User row. Created [src/contexts/editor-preferences-context.tsx](../src/contexts/editor-preferences-context.tsx) with `EditorPreferencesProvider` (optimistic update + rollback on error, success/error toasts) and `useEditorPreferences()` hook. Built [EditorPreferencesForm](../src/components/settings/EditorPreferencesForm.tsx) — client form with shadcn `Select` (font size, tab size, theme) and `Switch` (word wrap, minimap) controls; each change auto-saves via `updatePref`. Installed shadcn `select` and `switch` components. Updated [CodeEditor](../src/components/ui/code-editor.tsx) to read from context (`useEditorPreferences`) and apply all 5 preferences to Monaco; custom themes (monokai, github-dark) defined via `beforeMount`. Updated [src/lib/shell.ts](../src/lib/shell.ts) to fetch `editorPreferences` in parallel with `searchData` and return it from `getShellData()`. Updated [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) to accept `editorPreferences` prop and wrap content in `EditorPreferencesProvider`. Updated all 6 protected pages to pass `editorPreferences` to `DashboardShell`. Added 8 unit tests (4 for action, 4 for DB helper); 31/31 tests pass. Build passes.
