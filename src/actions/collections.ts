@@ -7,6 +7,7 @@ import {
   createCollection as dbCreateCollection,
   updateCollection as dbUpdateCollection,
   deleteCollection as dbDeleteCollection,
+  toggleCollectionFavorite as dbToggleCollectionFavorite,
   type CollectionSummary,
 } from "@/lib/db/collections";
 
@@ -79,6 +80,26 @@ export async function updateCollection(
   }
 
   return { success: true, data: collection };
+}
+
+type ToggleCollectionFavoriteResult =
+  | { success: true; isFavorite: boolean }
+  | { success: false; error: string };
+
+export async function toggleCollectionFavorite(
+  collectionId: string,
+): Promise<ToggleCollectionFavoriteResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const result = await dbToggleCollectionFavorite(session.user.id, collectionId);
+  if (!result) {
+    return { success: false, error: "Collection not found" };
+  }
+
+  return { success: true, isFavorite: result.isFavorite };
 }
 
 type DeleteCollectionResult =

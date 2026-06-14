@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Pencil, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { deleteCollection } from "@/actions/collections";
+import { deleteCollection, toggleCollectionFavorite } from "@/actions/collections";
 import { EditCollectionDialog } from "@/components/collections/EditCollectionDialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,9 +25,26 @@ interface CollectionActionsProps {
 
 export function CollectionActions({ collection }: CollectionActionsProps) {
   const router = useRouter();
+  const [isFavorite, setIsFavorite] = useState(collection.isFavorite);
+  const [toggling, setToggling] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  async function handleToggleFavorite() {
+    setToggling(true);
+    const result = await toggleCollectionFavorite(collection.id);
+    setToggling(false);
+
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+
+    setIsFavorite(result.isFavorite);
+    toast.success(result.isFavorite ? 'Added to favorites' : 'Removed from favorites');
+    router.refresh();
+  }
 
   async function handleDelete() {
     setDeleting(true);
@@ -81,12 +98,13 @@ export function CollectionActions({ collection }: CollectionActionsProps) {
           variant="ghost"
           size="icon"
           className="size-8"
-          aria-label="Favorite"
-          disabled
+          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          onClick={handleToggleFavorite}
+          disabled={toggling}
         >
           <Star
             className={
-              collection.isFavorite
+              isFavorite
                 ? "size-4 fill-yellow-400 text-yellow-400"
                 : "size-4"
             }

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { MoreHorizontal, Pencil, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { deleteCollection } from "@/actions/collections";
+import { deleteCollection, toggleCollectionFavorite } from "@/actions/collections";
 import { EditCollectionDialog } from "@/components/collections/EditCollectionDialog";
 import { Card } from "@/components/ui/card";
 import {
@@ -34,9 +34,26 @@ export function CollectionCard({
   collection: DashboardCollection;
 }) {
   const router = useRouter();
+  const [isFavorite, setIsFavorite] = useState(collection.isFavorite);
+  const [toggling, setToggling] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  async function handleToggleFavorite() {
+    setToggling(true);
+    const result = await toggleCollectionFavorite(collection.id);
+    setToggling(false);
+
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+
+    setIsFavorite(result.isFavorite);
+    toast.success(result.isFavorite ? 'Added to favorites' : 'Removed from favorites');
+    router.refresh();
+  }
 
   async function handleDelete() {
     setDeleting(true);
@@ -111,7 +128,7 @@ export function CollectionCard({
                 <h3 className="truncate text-sm font-medium">
                   {collection.name}
                 </h3>
-                {collection.isFavorite && (
+                {isFavorite && (
                   <Star
                     className="size-3.5 shrink-0 fill-yellow-400 text-yellow-400"
                     aria-label="Favorite"
@@ -140,9 +157,13 @@ export function CollectionCard({
                   <Pencil className="size-3.5" />
                   Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2 text-muted-foreground" disabled>
-                  <Star className="size-3.5" />
-                  Favorite
+                <DropdownMenuItem
+                  onClick={handleToggleFavorite}
+                  disabled={toggling}
+                  className="gap-2"
+                >
+                  <Star className={`size-3.5 ${isFavorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
+                  {isFavorite ? "Unfavorite" : "Favorite"}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { deleteItem, updateItem } from '@/actions/items';
+import { deleteItem, updateItem, toggleItemFavorite } from '@/actions/items';
 import { CollectionSelect } from '@/components/ui/collection-select';
 import {
   AlertDialog,
@@ -141,8 +141,10 @@ type DrawerActionBarProps =
   | {
       editing: false;
       isFavorite: boolean;
+      toggling: boolean;
       deleting: boolean;
       itemTitle: string;
+      onFavorite: () => void;
       onCopy: () => void;
       onEdit: () => void;
       onDelete: () => void;
@@ -170,6 +172,8 @@ function DrawerActionBar(props: DrawerActionBarProps) {
         variant='ghost'
         size='sm'
         className={props.isFavorite ? 'text-yellow-400 hover:text-yellow-400' : ''}
+        onClick={props.onFavorite}
+        disabled={props.toggling}
       >
         <Star className={`mr-1 size-3.5 ${props.isFavorite ? 'fill-yellow-400' : ''}`} />
         Favorite
@@ -471,6 +475,7 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [toggling, setToggling] = useState(false);
   const [editState, setEditState] = useState<EditState>(() => toEditState(item));
   const [availableCollections, setAvailableCollections] = useState<UserCollection[]>([]);
 
@@ -526,6 +531,21 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
     setEditing(false);
     router.refresh();
     toast.success('Item saved');
+  }
+
+  async function handleFavorite() {
+    setToggling(true);
+    const result = await toggleItemFavorite(item.id);
+    setToggling(false);
+
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+
+    onItemUpdate({ ...item, isFavorite: result.isFavorite });
+    toast.success(result.isFavorite ? 'Added to favorites' : 'Removed from favorites');
+    router.refresh();
   }
 
   async function handleDelete() {
@@ -603,8 +623,10 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
         <DrawerActionBar
           editing={false}
           isFavorite={item.isFavorite}
+          toggling={toggling}
           deleting={deleting}
           itemTitle={item.title}
+          onFavorite={handleFavorite}
           onCopy={handleCopy}
           onEdit={handleEdit}
           onDelete={handleDelete}

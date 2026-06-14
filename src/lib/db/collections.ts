@@ -314,6 +314,24 @@ export async function deleteCollection(
   return true;
 }
 
+export async function toggleCollectionFavorite(
+  userId: string,
+  collectionId: string,
+): Promise<{ isFavorite: boolean } | null> {
+  const existing = await prisma.collection.findFirst({
+    where: { id: collectionId, userId },
+    select: { id: true, isFavorite: true },
+  });
+  if (!existing) return null;
+
+  const updated = await prisma.collection.update({
+    where: { id: collectionId },
+    data: { isFavorite: !existing.isFavorite },
+    select: { isFavorite: true },
+  });
+  return { isFavorite: updated.isFavorite };
+}
+
 export async function getCollectionStats(): Promise<{
   total: number;
   favorites: number;

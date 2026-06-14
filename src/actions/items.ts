@@ -7,6 +7,7 @@ import {
   updateItem as dbUpdateItem,
   deleteItem as dbDeleteItem,
   createItem as dbCreateItem,
+  toggleItemFavorite as dbToggleItemFavorite,
 } from "@/lib/db/items";
 import type { ItemDetail } from "@/lib/db/items";
 import { deleteFromR2 } from "@/lib/r2";
@@ -139,6 +140,24 @@ export async function createItem(
   }
 
   return { success: true, data: created };
+}
+
+type ToggleItemFavoriteResult =
+  | { success: true; isFavorite: boolean }
+  | { success: false; error: string };
+
+export async function toggleItemFavorite(itemId: string): Promise<ToggleItemFavoriteResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const result = await dbToggleItemFavorite(session.user.id, itemId);
+  if (!result) {
+    return { success: false, error: "Item not found" };
+  }
+
+  return { success: true, isFavorite: result.isFavorite };
 }
 
 type DeleteItemResult = { success: true } | { success: false; error: string };
