@@ -358,6 +358,24 @@ export async function deleteItem(
   return { fileUrl: existing.fileUrl };
 }
 
+export async function toggleItemFavorite(
+  userId: string,
+  itemId: string,
+): Promise<{ isFavorite: boolean } | null> {
+  const existing = await prisma.item.findFirst({
+    where: { id: itemId, userId },
+    select: { id: true, isFavorite: true },
+  });
+  if (!existing) return null;
+
+  const updated = await prisma.item.update({
+    where: { id: itemId },
+    data: { isFavorite: !existing.isFavorite },
+    select: { isFavorite: true },
+  });
+  return { isFavorite: updated.isFavorite };
+}
+
 export async function getSidebarItemTypes(): Promise<SidebarItemType[]> {
   const types = await prisma.itemType.findMany({
     where: { isSystem: true },

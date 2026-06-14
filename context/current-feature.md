@@ -1,12 +1,24 @@
-# Current Feature
+# Current Feature: Favorite Toggle
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Add `toggleItemFavorite(itemId)` and `toggleCollectionFavorite(collectionId)` server actions
+- Wire the star button in `ItemDetailDrawer` to call the action and update UI optimistically (currently renders star state but does not persist)
+- Wire the Star button in `CollectionActions` (currently disabled) to toggle `isFavorite` on the collection
+- Wire the "Favorite" `DropdownMenuItem` in `CollectionCard` (currently disabled) to toggle `isFavorite` on the collection
+- Call `router.refresh()` after each toggle so sidebar counts, favorites page, and stats cards stay in sync
+
 ## Notes
+
+- Items: toggle `isFavorite` on the `Item` model; return the new boolean so the drawer can update in-place without a refetch
+- Collections: toggle `isFavorite` on the `Collection` model; same optimistic pattern
+- The `DrawerActionBar` already receives `isFavorite` and renders a yellow star — just needs the action wired in
+- `CollectionActions` star is rendered but disabled; `CollectionCard` Favorite menu item is rendered but disabled — both need the action
+- No new DB migration needed (`isFavorite` already exists on both models)
 
 ## History
 
