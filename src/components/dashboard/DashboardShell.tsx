@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { PanelLeft, Search } from "lucide-react";
+import { PanelLeft, Search, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,6 +89,13 @@ export function DashboardShell({
         </div>
 
         <div className="flex items-center justify-end gap-2">
+          <Link
+            href="/favorites"
+            aria-label="Favorites"
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            <Star className="size-4" />
+          </Link>
           <NewCollectionDialog />
           <NewItemDialog />
         </div>
