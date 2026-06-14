@@ -1,12 +1,28 @@
-# Current Feature
+# Current Feature: Favorites Page
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Add a star icon button to the TopBar linking to `/favorites`
+- Create a `/favorites` route (protected via proxy)
+- Fetch all favorited items and collections for the authenticated user
+- Render a compact, high-density list view (VS Code/terminal style — no cards)
+- Each row: type icon, title, type badge, relative date
+- Separate sections for Items (with count) and Collections (with count)
+- Clicking an item opens the `ItemDetailDrawer` in-place
+- Clicking a collection navigates to `/collections/[id]`
+- Empty state when no favorites exist
+- Sort by most recently updated (`updatedAt` desc)
+
 ## Notes
+
+- Style: monospace/semi-monospace font, minimal padding, subtle hover states, clean lines only — no heavy borders or card chrome
+- Reuse `ItemDrawerProvider` + `useItemDrawer` (already available in `DashboardShell`)
+- Use `getShellData()` from `src/lib/shell.ts` for auth + sidebar + search in one call
+- Add `/favorites` to the proxy matcher in `src/proxy.ts`
 
 ## History
 
