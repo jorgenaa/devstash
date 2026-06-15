@@ -1,36 +1,18 @@
-# Current Feature: Homepage
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Convert the prototype at `prototypes/homepage/` into a real Next.js page at `/` (`src/app/page.tsx`)
-- Create `Navbar` (client) — fixed top, scroll opacity, mobile hamburger, Sign In + Get Started buttons
-- Create `HeroSection` (server) — badge, gradient headline, sub-copy, dual CTA, `ChaosAnimation` + arrow + `DashboardMockup`
-- Create `ChaosAnimation` (client) — 8 floating Lucide icons, rAF drift + wall bounce, mouse repulsion
-- Create `DashboardMockup` (server) — static sidebar + 6 item cards with type colors
-- Create `FeaturesSection` (server) — 6 cards with type colors and top border accents, `id="features"`
-- Create `AiSection` (server) — Pro badge, 4-item checklist, code window mockup, two-column layout
-- Create `PricingSection` (client) — monthly/yearly toggle, Free and Pro cards, dynamic pricing, `id="pricing"`
-- Create `CtaSection` (server) — gradient headline, sub-copy, CTA button
-- Create `Footer` (server) — brand, 3 link columns, dynamic year
-- No auth checks, no DB queries — purely public marketing page
-
 ## Notes
-
-- Route: `src/app/page.tsx` — server component, no `force-dynamic` needed
-- File structure: `src/components/homepage/` with one file per section component
-- Gradient text: `linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)` via inline style + `bg-clip-text text-transparent`
-- Dark bg: `bg-[#080808]`; card bg: `bg-[#111111]`; max-width: `max-w-5xl mx-auto px-6`
-- Type colors from project-overview.md: Snippets `#3b82f6`, Prompts `#8b5cf6`, Commands `#f97316`, Notes `#fde047`, Links `#10b981`, Images `#ec4899`
-- Tailwind v4 only — no `tailwind.config.ts`
-- Avoid importing `prisma`, `auth`, or any server-only module in homepage components
 
 ## History
 
 <!-- Keep this updated. Earliest to latest -->
+
+- 2026-06-15 — Homepage completed. Converted the prototype at `prototypes/homepage/` into a real Next.js page at `/` (`src/app/page.tsx`). Created 9 components under `src/components/homepage/`: `Navbar` (client — fixed top, scroll blur/opacity, mobile hamburger, Sign In + Get Started links using `buttonVariants`), `HeroSection` (server — badge, gradient headline, sub-copy, dual CTA centered above the visual row), `ChaosAnimation` (client — 8 floating Lucide icons with rAF drift, wall bounce, mouse repulsion in a 340×280 container), `DashboardMockup` (server — static 340×280 sidebar + 6 item cards with project type colors), `FeaturesSection` (server — 6 cards with type-color icon boxes and top border accents, `id="features"`), `AiSection` (server — Pro badge, 4-item checklist, syntax-colored code window mockup with AI tags strip), `PricingSection` (client — monthly/yearly toggle switch, Free and Pro cards with dynamic price), `CtaSection` (server — gradient headline, CTA), `Footer` (server — brand, 3 link columns, server-rendered year). Page is static (no `force-dynamic`), no auth or DB imports. Used `buttonVariants` directly on `<Link>` / `<a>` elements since the Base UI `Button` does not support `asChild`. Replaced `Github` Lucide icon (absent in this version) with `GitBranch`. Build passes; 31/31 tests pass.
 
 - 2026-06-15 — Homepage blue color scheme completed. Changed `.gradient-text` in [prototypes/homepage/styles.css](../prototypes/homepage/styles.css) from `linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%)` (blue → purple → pink) to `linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)` (light blue → snippet blue). Applied to both instances of `.gradient-text` in the hero headline and CTA section. All other elements already used `--primary: #3b82f6`. One-line change, no other files modified.
 
