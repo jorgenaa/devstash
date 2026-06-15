@@ -1,12 +1,32 @@
-# Current Feature
+# Current Feature: Homepage
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Convert the prototype at `prototypes/homepage/` into a real Next.js page at `/` (`src/app/page.tsx`)
+- Create `Navbar` (client) — fixed top, scroll opacity, mobile hamburger, Sign In + Get Started buttons
+- Create `HeroSection` (server) — badge, gradient headline, sub-copy, dual CTA, `ChaosAnimation` + arrow + `DashboardMockup`
+- Create `ChaosAnimation` (client) — 8 floating Lucide icons, rAF drift + wall bounce, mouse repulsion
+- Create `DashboardMockup` (server) — static sidebar + 6 item cards with type colors
+- Create `FeaturesSection` (server) — 6 cards with type colors and top border accents, `id="features"`
+- Create `AiSection` (server) — Pro badge, 4-item checklist, code window mockup, two-column layout
+- Create `PricingSection` (client) — monthly/yearly toggle, Free and Pro cards, dynamic pricing, `id="pricing"`
+- Create `CtaSection` (server) — gradient headline, sub-copy, CTA button
+- Create `Footer` (server) — brand, 3 link columns, dynamic year
+- No auth checks, no DB queries — purely public marketing page
+
 ## Notes
+
+- Route: `src/app/page.tsx` — server component, no `force-dynamic` needed
+- File structure: `src/components/homepage/` with one file per section component
+- Gradient text: `linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)` via inline style + `bg-clip-text text-transparent`
+- Dark bg: `bg-[#080808]`; card bg: `bg-[#111111]`; max-width: `max-w-5xl mx-auto px-6`
+- Type colors from project-overview.md: Snippets `#3b82f6`, Prompts `#8b5cf6`, Commands `#f97316`, Notes `#fde047`, Links `#10b981`, Images `#ec4899`
+- Tailwind v4 only — no `tailwind.config.ts`
+- Avoid importing `prisma`, `auth`, or any server-only module in homepage components
 
 ## History
 
