@@ -14,11 +14,12 @@ export default function CtaSection() {
             border: "1px solid rgba(255,255,255,0.07)",
           }}
         >
-          <h2 className="text-3xl font-bold text-white mb-4 leading-tight">
+          <h2 className="text-3xl font-bold text-white mb-4 leading-tight text-balance">
             Ready to organize your
             <br />
             <span
               style={{
+                display: "inline-block",
                 backgroundImage: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",

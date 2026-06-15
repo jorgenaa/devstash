@@ -205,6 +205,7 @@ function DrawerActionBar(props: DrawerActionBarProps) {
             <Button
               variant='ghost'
               size='sm'
+              aria-label='Delete item'
               className='ml-auto text-destructive hover:text-destructive'
             />
           }

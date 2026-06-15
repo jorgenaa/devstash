@@ -31,12 +31,11 @@ export function ItemCard({ item }: { item: DashboardItem }) {
   }
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
+    <button
+      type="button"
+      aria-label={item.title}
       onClick={() => openDrawer(item.id)}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") openDrawer(item.id); }}
-      className="group block w-full cursor-pointer text-left focus:outline-none"
+      className="group block w-full cursor-pointer text-left focus-visible:outline-none"
     >
       <Card className="relative h-full px-4 pl-5 transition-colors hover:bg-muted/40 group-focus-visible:ring-2 group-focus-visible:ring-ring">
         <span
@@ -92,7 +91,7 @@ export function ItemCard({ item }: { item: DashboardItem }) {
               <button
                 type="button"
                 onClick={handleCopy}
-                className="rounded p-0.5 opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-muted-foreground"
+                className="rounded p-0.5 opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-muted-foreground [@media(hover:none)]:opacity-100"
                 aria-label="Copy"
               >
                 {copied ? (
@@ -107,6 +106,6 @@ export function ItemCard({ item }: { item: DashboardItem }) {
           </div>
         </div>
       </Card>
-    </div>
+    </button>
   );
 }

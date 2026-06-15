@@ -21,11 +21,12 @@ export default function HeroSection() {
             ✦ The developer knowledge hub
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-bold leading-tight text-white mb-4">
+          <h1 className="text-4xl sm:text-5xl font-bold leading-tight text-white mb-4 text-balance">
             Stop Losing Your
             <br />
             <span
               style={{
+                display: "inline-block",
                 backgroundImage: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",

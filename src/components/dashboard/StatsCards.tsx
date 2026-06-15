@@ -1,4 +1,4 @@
-import { FolderOpen, Package, Star } from "lucide-react";
+import { FolderHeart, FolderOpen, Package, Star } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -36,7 +36,7 @@ export async function StatsCards() {
     {
       label: "Favorite collections",
       value: collectionStats.favorites,
-      icon: Star,
+      icon: FolderHeart,
     },
   ];
 

@@ -44,6 +44,7 @@ export default function PricingSection() {
             <button
               role="switch"
               aria-checked={yearly}
+              aria-label="Billing period"
               onClick={() => setYearly((v) => !v)}
               className="relative w-10 h-5 rounded-full transition-colors cursor-pointer"
               style={{ background: yearly ? "#3b82f6" : "rgba(255,255,255,0.15)" }}
@@ -92,7 +93,7 @@ export default function PricingSection() {
               href="/register"
               className={cn(
                 buttonVariants({ variant: "outline" }),
-                "w-full justify-center border-white/15 text-white/70 hover:text-white hover:bg-white/5"
+                "w-full justify-center border-white/25 text-white/90 hover:text-white hover:bg-white/5"
               )}
             >
               Get Started Free
@@ -136,7 +137,7 @@ export default function PricingSection() {
               className={cn(buttonVariants(), "w-full justify-center text-white")}
               style={{ background: "#3b82f6" }}
             >
-              Start Pro Trial
+              Get Pro
             </Link>
           </div>
         </div>

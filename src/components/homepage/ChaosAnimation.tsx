@@ -149,9 +149,8 @@ export default function ChaosAnimation() {
     <div className="flex flex-col gap-2">
       <p className="text-xs text-white/40 text-center font-mono">Your knowledge today...</p>
       <div
-        className="relative rounded-xl overflow-hidden"
+        className="relative w-full max-w-85 rounded-xl overflow-hidden"
         style={{
-          width: 340,
           height: 280,
           background: "rgba(255,255,255,0.03)",
           border: "1px solid rgba(255,255,255,0.08)",

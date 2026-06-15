@@ -48,7 +48,7 @@ export default function FeaturesSection() {
             Everything developers need
           </h2>
           <p className="text-white/50 text-base">
-            Seven item types built for how you actually work
+            Six item types built for how you actually work
           </p>
         </div>
 

@@ -103,7 +103,7 @@ export function CollectionCard({
       </AlertDialog>
 
       <div
-        className="group relative cursor-pointer focus:outline-none"
+        className="group relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
         role="button"
         tabIndex={0}
         onClick={() => router.push(`/collections/${collection.id}`)}
@@ -143,7 +143,7 @@ export function CollectionCard({
 
             <DropdownMenu>
               <DropdownMenuTrigger
-                className="inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-md opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring [@media(hover:none)]:opacity-100"
                 aria-label="Collection options"
                 onClick={(e) => e.stopPropagation()}
               >

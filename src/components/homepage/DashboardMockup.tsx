@@ -21,9 +21,8 @@ export default function DashboardMockup() {
     <div className="flex flex-col gap-2">
       <p className="text-xs text-white/40 text-center font-mono">...with DevStash</p>
       <div
-        className="rounded-xl overflow-hidden flex"
+        className="w-full max-w-85 rounded-xl overflow-hidden flex"
         style={{
-          width: 340,
           height: 280,
           border: "1px solid rgba(255,255,255,0.08)",
           background: "#0f0f0f",
