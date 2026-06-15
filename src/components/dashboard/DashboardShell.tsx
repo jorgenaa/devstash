@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PanelLeft, Search, Star } from "lucide-react";
+import { Logo } from "@/components/ui/logo";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,14 +49,7 @@ export function DashboardShell({
     <EditorPreferencesProvider initial={editorPreferences}>
     <div className="flex h-screen flex-col">
       <header className="flex h-14 items-center gap-3 border-b border-border bg-background px-4">
-        <div className="flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
-            DS
-          </div>
-          <span className="hidden text-sm font-semibold sm:inline">
-            DevStash
-          </span>
-        </div>
+        <Logo />
 
         <Button
           variant="ghost"

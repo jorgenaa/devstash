@@ -1,12 +1,22 @@
-# Current Feature
+# Current Feature: Unified Logo & Auth Page Navbar
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Add the homepage `Navbar` component to the sign-in, register, forgot-password, and reset-password pages (the `(auth)` route group)
+- Replace the current "DS" text-box logo in `DashboardShell` with a `FolderOpen` (or similar folder) Lucide icon paired with "DevStash" text — no box
+- Extract the logo markup into a shared `<Logo>` component so the homepage `Navbar` and `DashboardShell` both render the exact same logo
+
 ## Notes
+
+- The homepage already has a `Navbar` component at `src/components/homepage/Navbar.tsx`; reuse it on the auth pages rather than building a new nav
+- Auth pages live in `src/app/(auth)/` — add the `Navbar` to a layout file there so it applies to all auth routes at once
+- The dashboard logo is currently in `DashboardShell.tsx` as a hardcoded "DS / DevStash" text box; remove the box and switch to a `FolderOpen` icon + "DevStash" text
+- The shared `<Logo>` component should be a simple server component (no state needed), exported from `src/components/ui/logo.tsx` or `src/components/homepage/Logo.tsx`
+- Keep the navbar non-fixed on auth pages if that looks better (the homepage nav is fixed/sticky — may not be appropriate on short auth forms)
 
 ## History
 

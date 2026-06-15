@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 import { X, Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,14 +29,8 @@ export default function Navbar() {
       }}
     >
       <div className="max-w-5xl mx-auto px-6 flex items-center justify-between h-14">
-        <Link href="/" className="flex items-center gap-2">
-          <span
-            className="text-sm font-bold px-1.5 py-0.5 rounded text-white"
-            style={{ background: "#3b82f6" }}
-          >
-            DS
-          </span>
-          <span className="font-semibold text-white text-sm">DevStash</span>
+        <Link href="/" className="text-white">
+          <Logo />
         </Link>
 
         <div className="hidden md:flex items-center gap-6 text-sm">
