@@ -1,26 +1,18 @@
-# Current Feature: Unified Logo & Auth Page Navbar
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add the homepage `Navbar` component to the sign-in, register, forgot-password, and reset-password pages (the `(auth)` route group)
-- Replace the current "DS" text-box logo in `DashboardShell` with a `FolderOpen` (or similar folder) Lucide icon paired with "DevStash" text — no box
-- Extract the logo markup into a shared `<Logo>` component so the homepage `Navbar` and `DashboardShell` both render the exact same logo
-
 ## Notes
-
-- The homepage already has a `Navbar` component at `src/components/homepage/Navbar.tsx`; reuse it on the auth pages rather than building a new nav
-- Auth pages live in `src/app/(auth)/` — add the `Navbar` to a layout file there so it applies to all auth routes at once
-- The dashboard logo is currently in `DashboardShell.tsx` as a hardcoded "DS / DevStash" text box; remove the box and switch to a `FolderOpen` icon + "DevStash" text
-- The shared `<Logo>` component should be a simple server component (no state needed), exported from `src/components/ui/logo.tsx` or `src/components/homepage/Logo.tsx`
-- Keep the navbar non-fixed on auth pages if that looks better (the homepage nav is fixed/sticky — may not be appropriate on short auth forms)
 
 ## History
 
 <!-- Keep this updated. Earliest to latest -->
+
+- 2026-06-15 — Unified logo and auth page navbar completed. Created [src/components/ui/logo.tsx](../src/components/ui/logo.tsx) — shared `Logo` component (`FolderOpen` Lucide icon in blue `#3b82f6` + "DevStash" text, no DS box). Updated [Navbar.tsx](../src/components/homepage/Navbar.tsx) to use `<Logo>` inside a white `<Link href="/">`. Updated [DashboardShell.tsx](../src/components/dashboard/DashboardShell.tsx) to replace the old rounded-square DS box with `<Logo>`. Updated [src/app/(auth)/layout.tsx](../src/app/%28auth%29/layout.tsx) to render `<Navbar>` above the centered form and added `pt-14` to account for the fixed navbar height — all auth pages (sign-in, register, forgot-password, reset-password) now display the homepage top nav. Build passes; 31/31 tests pass.
 
 - 2026-06-15 — Homepage completed. Converted the prototype at `prototypes/homepage/` into a real Next.js page at `/` (`src/app/page.tsx`). Created 9 components under `src/components/homepage/`: `Navbar` (client — fixed top, scroll blur/opacity, mobile hamburger, Sign In + Get Started links using `buttonVariants`), `HeroSection` (server — badge, gradient headline, sub-copy, dual CTA centered above the visual row), `ChaosAnimation` (client — 8 floating Lucide icons with rAF drift, wall bounce, mouse repulsion in a 340×280 container), `DashboardMockup` (server — static 340×280 sidebar + 6 item cards with project type colors), `FeaturesSection` (server — 6 cards with type-color icon boxes and top border accents, `id="features"`), `AiSection` (server — Pro badge, 4-item checklist, syntax-colored code window mockup with AI tags strip), `PricingSection` (client — monthly/yearly toggle switch, Free and Pro cards with dynamic price), `CtaSection` (server — gradient headline, CTA), `Footer` (server — brand, 3 link columns, server-rendered year). Page is static (no `force-dynamic`), no auth or DB imports. Used `buttonVariants` directly on `<Link>` / `<a>` elements since the Base UI `Button` does not support `asChild`. Replaced `Github` Lucide icon (absent in this version) with `GitBranch`. Build passes; 31/31 tests pass.
 
