@@ -10,6 +10,8 @@ import {
   toggleCollectionFavorite as dbToggleCollectionFavorite,
   type CollectionSummary,
 } from "@/lib/db/collections";
+import { prisma } from "@/lib/prisma";
+import { isAtCollectionLimit } from "@/lib/usage-limits";
 
 const CreateCollectionSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
@@ -26,6 +28,13 @@ export async function createCollection(
   const session = await auth();
   if (!session?.user?.id) {
     return { success: false, error: "Unauthorized" };
+  }
+
+  if (!session.user.isPro) {
+    const count = await prisma.collection.count({ where: { userId: session.user.id } });
+    if (isAtCollectionLimit(count)) {
+      return { success: false, error: "Free plan limit reached. Upgrade to Pro for unlimited collections." };
+    }
   }
 
   const parsed = CreateCollectionSchema.safeParse(formData);

@@ -37,6 +37,7 @@ export async function createCheckoutSession(interval: BillingInterval) {
     line_items: [{ price: STRIPE_PRICE_IDS[interval], quantity: 1 }],
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?checkout=success`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?checkout=cancelled`,
+    metadata: { userId: session.user.id },
     subscription_data: {
       metadata: { userId: session.user.id },
     },
