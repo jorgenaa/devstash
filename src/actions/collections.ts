@@ -30,6 +30,7 @@ export async function createCollection(
     return { success: false, error: "Unauthorized" };
   }
 
+
   if (!session.user.isPro) {
     const count = await prisma.collection.count({ where: { userId: session.user.id } });
     if (isAtCollectionLimit(count)) {

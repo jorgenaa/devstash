@@ -115,6 +115,7 @@ export async function createItem(
     return { success: false, error: "Unauthorized" };
   }
 
+
   if (!session.user.isPro) {
     const count = await prisma.item.count({ where: { userId: session.user.id } });
     if (isAtItemLimit(count)) {

@@ -258,65 +258,6 @@ Return the refactored code, then a short bullet list of what you changed and why
     ],
   );
 
-  // ─── DevOps ──────────────────────────────────────────────────────────
-  await createCollection(
-    "DevOps",
-    "Infrastructure and deployment resources",
-    [
-      {
-        title: "Multi-stage Node Dockerfile",
-        type: "snippet",
-        contentType: "text",
-        language: "dockerfile",
-        description: "Slim production image using a multi-stage build.",
-        lastUsedAt: daysAgo(5),
-        content: `# syntax=docker/dockerfile:1
-FROM node:22-alpine AS deps
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-
-FROM node:22-alpine AS build
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN npm run build
-
-FROM node:22-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=build /app/.next ./.next
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/package.json ./package.json
-EXPOSE 3000
-CMD ["npm", "start"]`,
-      },
-      {
-        title: "Build & push Docker image",
-        type: "command",
-        contentType: "text",
-        description: "Tag with the short commit SHA and push to the registry.",
-        lastUsedAt: daysAgo(7),
-        content: `docker build -t registry.example.com/devstash:$(git rev-parse --short HEAD) . \\
-  && docker push registry.example.com/devstash:$(git rev-parse --short HEAD)`,
-      },
-      {
-        title: "Docker documentation",
-        type: "link",
-        contentType: "url",
-        url: "https://docs.docker.com",
-        description: "Official Docker reference and guides.",
-      },
-      {
-        title: "GitHub Actions documentation",
-        type: "link",
-        contentType: "url",
-        url: "https://docs.github.com/actions",
-        description: "Workflow syntax and CI/CD reference.",
-      },
-    ],
-  );
-
   // ─── Terminal Commands ───────────────────────────────────────────────
   await createCollection(
     "Terminal Commands",
@@ -355,46 +296,6 @@ CMD ["npm", "start"]`,
         content: `npm outdated -g --depth=0`,
       },
     ],
-  );
-
-  // ─── Design Resources ────────────────────────────────────────────────
-  await createCollection(
-    "Design Resources",
-    "UI/UX resources and references",
-    [
-      {
-        title: "Tailwind CSS",
-        type: "link",
-        contentType: "url",
-        url: "https://tailwindcss.com",
-        description: "Utility-first CSS framework documentation.",
-        isFavorite: true,
-        lastUsedAt: daysAgo(1),
-      },
-      {
-        title: "shadcn/ui",
-        type: "link",
-        contentType: "url",
-        url: "https://ui.shadcn.com",
-        description: "Accessible, copy-paste React component library.",
-        lastUsedAt: daysAgo(2),
-      },
-      {
-        title: "Material Design 3",
-        type: "link",
-        contentType: "url",
-        url: "https://m3.material.io",
-        description: "Google's design system guidelines.",
-      },
-      {
-        title: "Lucide Icons",
-        type: "link",
-        contentType: "url",
-        url: "https://lucide.dev",
-        description: "Open-source icon set used across the app.",
-      },
-    ],
-    { isFavorite: true },
   );
 
   const [items, collections] = await Promise.all([
