@@ -35,10 +35,20 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.email = user.email;
         token.picture = user.image;
       }
+
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { isPro: true },
+        });
+        token.isPro = dbUser?.isPro ?? false;
+      }
+
       return token;
     },
     session: async ({ session, token }) => {
       session.user.id = token.id as string;
+      session.user.isPro = (token.isPro as boolean) ?? false;
       session.user.name = token.name ?? null;
       session.user.email = token.email ?? "";
       session.user.image = (token.picture as string | null) ?? null;

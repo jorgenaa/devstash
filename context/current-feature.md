@@ -1,12 +1,29 @@
-# Current Feature
+# Current Feature: Stripe Integration — Phase 1: Core Infrastructure
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Install `stripe` and `@stripe/stripe-js` packages
+- Create `src/lib/stripe.ts` singleton with `STRIPE_PRICE_IDS` and `BillingInterval` type
+- Extend `src/types/next-auth.d.ts` to carry `isPro: boolean` on the session user
+- Update JWT + session callbacks in `src/auth.ts` to sync `isPro` from DB on every token validation
+- Create `src/actions/billing.ts` with `createCheckoutSession` and `createBillingPortalSession` server actions
+- Create `src/lib/usage-limits.ts` with `FREE_LIMITS`, `PRO_ONLY_TYPES`, and pure helper functions (`isAtItemLimit`, `isAtCollectionLimit`, `isProOnlyType`)
+- Write 10 unit tests in `src/lib/usage-limits.test.ts` covering all helpers and constants
+- Update `src/lib/db/profile.ts` to include `isPro` in the select, type, and returned object
+- Add `NEXT_PUBLIC_APP_URL` to `.env.example`
+
 ## Notes
+
+- Phase 1 is infrastructure only — no feature gating yet (that's Phase 2)
+- `src/lib/usage-limits.ts` must have zero Prisma/auth imports to stay pure and trivially testable
+- The JWT `isPro` sync costs one extra DB read per request but guarantees the session reflects webhook changes after a page reload — acceptable trade-off
+- Stripe Dashboard one-time setup required before coding: create "DevStash Pro" product with Monthly ($8/mo) and Yearly ($72/yr) prices, copy keys to `.env`
+- No Stripe CLI or live checkout needed for Phase 1 — test-mode keys only
+- `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_MONTHLY`, `STRIPE_PRICE_ID_YEARLY`, and `NEXT_PUBLIC_APP_URL` all go in `.env`
 
 ## History
 
