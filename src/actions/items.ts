@@ -12,6 +12,8 @@ import {
 } from "@/lib/db/items";
 import type { ItemDetail } from "@/lib/db/items";
 import { deleteFromR2 } from "@/lib/r2";
+import { prisma } from "@/lib/prisma";
+import { isAtItemLimit, isProOnlyType } from "@/lib/usage-limits";
 
 const HTTP_URL = z
   .string()
@@ -113,6 +115,13 @@ export async function createItem(
     return { success: false, error: "Unauthorized" };
   }
 
+  if (!session.user.isPro) {
+    const count = await prisma.item.count({ where: { userId: session.user.id } });
+    if (isAtItemLimit(count)) {
+      return { success: false, error: "Free plan limit reached. Upgrade to Pro for unlimited items." };
+    }
+  }
+
   const parsed = CreateItemSchema.safeParse(formData);
   if (!parsed.success) {
     const message = parsed.error.issues[0]?.message ?? "Invalid input";
@@ -121,6 +130,10 @@ export async function createItem(
 
   const { typeName, title, description, content, url, fileUrl, fileName, fileSize, language, tags, collectionIds } =
     parsed.data;
+
+  if (isProOnlyType(typeName) && !session.user.isPro) {
+    return { success: false, error: "File and image uploads require Pro." };
+  }
 
   const created = await dbCreateItem(session.user.id, {
     typeName,

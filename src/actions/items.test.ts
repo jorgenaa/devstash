@@ -8,14 +8,21 @@ vi.mock("@/lib/db/items", () => ({
   deleteItem: vi.fn(),
   createItem: vi.fn(),
 }));
+vi.mock("@/lib/prisma", () => ({
+  prisma: {
+    item: { count: vi.fn() },
+  },
+}));
 
 import { auth } from "@/auth";
 import { deleteItem as dbDeleteItem, createItem as dbCreateItem } from "@/lib/db/items";
+import { prisma } from "@/lib/prisma";
 import { deleteItem, createItem } from "./items";
 
 const mockAuth = vi.mocked(auth);
 const mockDbDelete = vi.mocked(dbDeleteItem);
 const mockDbCreate = vi.mocked(dbCreateItem);
+const mockItemCount = vi.mocked(prisma.item.count);
 
 describe("deleteItem action", () => {
   beforeEach(() => {
@@ -32,7 +39,7 @@ describe("deleteItem action", () => {
   });
 
   it("returns not found when item does not exist or is not owned by user", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } } as Awaited<ReturnType<typeof auth>>);
+    mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: true } } as Awaited<ReturnType<typeof auth>>);
     mockDbDelete.mockResolvedValue(null);
 
     const result = await deleteItem("item-999");
@@ -42,7 +49,7 @@ describe("deleteItem action", () => {
   });
 
   it("returns success when item is deleted", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } } as Awaited<ReturnType<typeof auth>>);
+    mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: true } } as Awaited<ReturnType<typeof auth>>);
     mockDbDelete.mockResolvedValue({ fileUrl: null });
 
     const result = await deleteItem("item-1");
@@ -96,7 +103,7 @@ describe("createItem action", () => {
   });
 
   it("returns validation error when title is empty", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } } as Awaited<ReturnType<typeof auth>>);
+    mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: true } } as Awaited<ReturnType<typeof auth>>);
 
     const result = await createItem({ ...validSnippet, title: "   " });
 
@@ -105,7 +112,7 @@ describe("createItem action", () => {
   });
 
   it("returns validation error when link type has no URL", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } } as Awaited<ReturnType<typeof auth>>);
+    mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: true } } as Awaited<ReturnType<typeof auth>>);
 
     const result = await createItem({
       typeName: "link",
@@ -122,7 +129,7 @@ describe("createItem action", () => {
   });
 
   it("returns error when item type is not found in DB", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } } as Awaited<ReturnType<typeof auth>>);
+    mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: true } } as Awaited<ReturnType<typeof auth>>);
     mockDbCreate.mockResolvedValue(null);
 
     const result = await createItem(validSnippet);
@@ -131,7 +138,7 @@ describe("createItem action", () => {
   });
 
   it("returns success with created item data", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } } as Awaited<ReturnType<typeof auth>>);
+    mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: true } } as Awaited<ReturnType<typeof auth>>);
     mockDbCreate.mockResolvedValue(mockItemDetail);
 
     const result = await createItem(validSnippet);
@@ -153,7 +160,7 @@ describe("createItem action", () => {
   });
 
   it("accepts a valid link with URL", async () => {
-    mockAuth.mockResolvedValue({ user: { id: "user-1" } } as Awaited<ReturnType<typeof auth>>);
+    mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: true } } as Awaited<ReturnType<typeof auth>>);
     mockDbCreate.mockResolvedValue({ ...mockItemDetail, type: { name: "link", icon: "Link", color: "#10b981" } });
 
     const result = await createItem({
@@ -167,5 +174,82 @@ describe("createItem action", () => {
     });
 
     expect(result.success).toBe(true);
+  });
+
+  it("blocks creation when free user hits 50-item limit", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: false } } as Awaited<ReturnType<typeof auth>>);
+    mockItemCount.mockResolvedValue(50);
+
+    const result = await createItem(validSnippet);
+
+    expect(result).toEqual({
+      success: false,
+      error: "Free plan limit reached. Upgrade to Pro for unlimited items.",
+    });
+    expect(mockDbCreate).not.toHaveBeenCalled();
+  });
+
+  it("allows creation when free user is under 50-item limit", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: false } } as Awaited<ReturnType<typeof auth>>);
+    mockItemCount.mockResolvedValue(49);
+    mockDbCreate.mockResolvedValue(mockItemDetail);
+
+    const result = await createItem(validSnippet);
+
+    expect(result.success).toBe(true);
+  });
+
+  it("skips item count check for Pro users", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: true } } as Awaited<ReturnType<typeof auth>>);
+    mockDbCreate.mockResolvedValue(mockItemDetail);
+
+    await createItem(validSnippet);
+
+    expect(mockItemCount).not.toHaveBeenCalled();
+  });
+
+  it("blocks file type for free users", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: false } } as Awaited<ReturnType<typeof auth>>);
+    mockItemCount.mockResolvedValue(0);
+
+    const result = await createItem({
+      typeName: "file",
+      title: "My File",
+      description: null,
+      content: null,
+      url: null,
+      language: null,
+      tags: [],
+      fileUrl: "some/key.pdf",
+      fileName: "doc.pdf",
+      fileSize: 1234,
+    });
+
+    expect(result).toEqual({ success: false, error: "File and image uploads require Pro." });
+    expect(mockDbCreate).not.toHaveBeenCalled();
+  });
+
+  it("allows file type for Pro users", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: true } } as Awaited<ReturnType<typeof auth>>);
+    mockDbCreate.mockResolvedValue({
+      ...mockItemDetail,
+      type: { name: "file", icon: "File", color: "#6b7280" },
+    });
+
+    const result = await createItem({
+      typeName: "file",
+      title: "My File",
+      description: null,
+      content: null,
+      url: null,
+      language: null,
+      tags: [],
+      fileUrl: "some/key.pdf",
+      fileName: "doc.pdf",
+      fileSize: 1234,
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockItemCount).not.toHaveBeenCalled();
   });
 });

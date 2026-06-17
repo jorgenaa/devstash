@@ -1,0 +1,77 @@
+"use client";
+
+import { useState } from "react";
+import { Crown, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { createCheckoutSession, createBillingPortalSession } from "@/actions/billing";
+
+type Props = { isPro: boolean };
+
+export function BillingSection({ isPro }: Props) {
+  const [interval, setInterval] = useState<"monthly" | "yearly">("yearly");
+  const [loading, setLoading] = useState(false);
+
+  async function handleCheckout() {
+    setLoading(true);
+    await createCheckoutSession(interval);
+    setLoading(false);
+  }
+
+  async function handlePortal() {
+    setLoading(true);
+    await createBillingPortalSession();
+    setLoading(false);
+  }
+
+  if (isPro) {
+    return (
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Crown className="size-4 text-yellow-500" />
+          <span className="text-sm font-medium">DevStash Pro</span>
+          <Badge variant="outline" className="text-[10px] text-yellow-500 border-yellow-500/30">
+            Active
+          </Badge>
+        </div>
+        <Button variant="outline" size="sm" onClick={handlePortal} disabled={loading}>
+          Manage Billing
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex gap-2">
+        <Button
+          variant={interval === "monthly" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setInterval("monthly")}
+        >
+          Monthly — $8
+        </Button>
+        <Button
+          variant={interval === "yearly" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setInterval("yearly")}
+        >
+          Yearly — $72 <span className="ml-1 text-xs opacity-70">Save 25%</span>
+        </Button>
+      </div>
+
+      <ul className="space-y-1 text-sm text-muted-foreground">
+        {["Unlimited items", "Unlimited collections", "File & image uploads", "All AI features", "Data export"].map((f) => (
+          <li key={f} className="flex items-center gap-2">
+            <CheckCircle className="size-3.5 text-emerald-500 shrink-0" />
+            {f}
+          </li>
+        ))}
+      </ul>
+
+      <Button onClick={handleCheckout} disabled={loading} className="w-fit">
+        {loading ? "Redirecting…" : "Upgrade to Pro"}
+      </Button>
+    </div>
+  );
+}

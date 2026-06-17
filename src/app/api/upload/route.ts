@@ -34,6 +34,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  if (!session.user.isPro) {
+    return NextResponse.json(
+      { error: "File and image uploads require a Pro subscription." },
+      { status: 403 }
+    );
+  }
+
   const rl = await rateLimit(`upload:${session.user.id}`, 20, "1 h");
   if (!rl.success) return tooManyRequestsResponse(rl.reset);
 

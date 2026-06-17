@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { getProfileData } from "@/lib/db/profile";
 import { getShellData } from "@/lib/shell";
@@ -7,6 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import { ChangePasswordForm } from "@/components/profile/ChangePasswordForm";
 import { DeleteAccountDialog } from "@/components/profile/DeleteAccountDialog";
 import { EditorPreferencesForm } from "@/components/settings/EditorPreferencesForm";
+import { BillingSection } from "@/components/billing/BillingSection";
+import { CheckoutToast } from "@/components/billing/CheckoutToast";
 
 export const dynamic = "force-dynamic";
 
@@ -27,12 +30,31 @@ export default async function SettingsPage() {
       editorPreferences={editorPreferences}
     >
       <div className="mx-auto flex max-w-2xl flex-col gap-8">
+        <Suspense>
+          <CheckoutToast />
+        </Suspense>
+
         <header className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
           <p className="text-sm text-muted-foreground">
             Manage your account settings
           </p>
         </header>
+
+        {/* Plan & Billing */}
+        <Card id="billing">
+          <CardHeader>
+            <CardTitle className="text-base">Plan & Billing</CardTitle>
+            <CardDescription>
+              {profile.isPro
+                ? "You are on the Pro plan."
+                : "Upgrade to unlock unlimited items, file uploads, and AI features."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <BillingSection isPro={profile.isPro} />
+          </CardContent>
+        </Card>
 
         {/* Editor preferences */}
         <Card>
