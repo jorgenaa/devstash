@@ -7,7 +7,7 @@ import { getShellData } from "@/lib/shell";
 import { getFavoritedItems, getFavoritedCollections } from "@/lib/db/favorites";
 
 export default async function FavoritesPage() {
-  const { userId, session, sidebarData, searchData, editorPreferences } =
+  const { userId, session, isPro, sidebarData, searchData, editorPreferences } =
     await getShellData();
 
   const [items, collections] = await Promise.all([
@@ -21,6 +21,7 @@ export default async function FavoritesPage() {
       user={session.user}
       searchData={searchData}
       editorPreferences={editorPreferences}
+      isPro={isPro}
     >
       <ItemDrawerProvider>
         <div className="flex flex-col gap-6">

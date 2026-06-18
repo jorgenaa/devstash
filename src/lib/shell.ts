@@ -24,6 +24,7 @@ export async function getShellData() {
   return {
     session,
     userId: session.user.id,
+    isPro: session.user.isPro,
     sidebarData: { itemTypes, favorites, recent },
     searchData,
     editorPreferences,

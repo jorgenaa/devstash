@@ -5,6 +5,7 @@ import { Crown, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createCheckoutSession, createBillingPortalSession } from "@/actions/billing";
+import { toast } from "sonner";
 
 type Props = { isPro: boolean };
 
@@ -14,14 +15,22 @@ export function BillingSection({ isPro }: Props) {
 
   async function handleCheckout() {
     setLoading(true);
-    await createCheckoutSession(interval);
-    setLoading(false);
+    try {
+      await createCheckoutSession(interval);
+    } catch {
+      toast.error("Failed to start checkout. Please try again.");
+      setLoading(false);
+    }
   }
 
   async function handlePortal() {
     setLoading(true);
-    await createBillingPortalSession();
-    setLoading(false);
+    try {
+      await createBillingPortalSession();
+    } catch {
+      toast.error("Failed to open billing portal. Please try again.");
+      setLoading(false);
+    }
   }
 
   if (isPro) {

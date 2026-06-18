@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
-  const { session, userId, sidebarData, searchData, editorPreferences } = await getShellData();
+  const { session, userId, isPro, sidebarData, searchData, editorPreferences } = await getShellData();
 
   const profile = await getProfileData(userId);
 
@@ -29,6 +29,7 @@ export default async function ProfilePage() {
       user={session.user}
       searchData={searchData}
       editorPreferences={editorPreferences}
+      isPro={isPro}
     >
       <div className="mx-auto flex max-w-2xl flex-col gap-8">
         <header className="flex flex-col gap-1">

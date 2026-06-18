@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { PanelLeft, Search, Star } from "lucide-react";
+import { Crown, PanelLeft, Search, Star } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 
 import { Button } from "@/components/ui/button";
@@ -23,12 +23,14 @@ export function DashboardShell({
   user,
   searchData,
   editorPreferences = DEFAULT_EDITOR_PREFERENCES,
+  isPro = false,
 }: {
   children: React.ReactNode;
   sidebarData: SidebarData;
   user: SidebarUser | null;
   searchData: SearchData;
   editorPreferences?: EditorPreferences;
+  isPro?: boolean;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -83,6 +85,15 @@ export function DashboardShell({
         </div>
 
         <div className="flex items-center justify-end gap-2">
+          {!isPro && (
+            <Link
+              href="/upgrade"
+              className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              <Crown className="size-3.5 text-yellow-500" />
+              Upgrade
+            </Link>
+          )}
           <Link
             href="/favorites"
             aria-label="Favorites"

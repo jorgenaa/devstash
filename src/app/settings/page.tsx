@@ -14,7 +14,7 @@ import { CheckoutToast } from "@/components/billing/CheckoutToast";
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
-  const { session, userId, sidebarData, searchData, editorPreferences } = await getShellData();
+  const { session, userId, isPro, sidebarData, searchData, editorPreferences } = await getShellData();
 
   const profile = await getProfileData(userId);
 
@@ -28,6 +28,7 @@ export default async function SettingsPage() {
       user={session.user}
       searchData={searchData}
       editorPreferences={editorPreferences}
+      isPro={isPro}
     >
       <div className="mx-auto flex max-w-2xl flex-col gap-8">
         <Suspense>

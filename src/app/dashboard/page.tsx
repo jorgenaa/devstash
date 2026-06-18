@@ -32,6 +32,7 @@ export default async function DashboardPage() {
       user={session?.user ?? null}
       searchData={searchData}
       editorPreferences={editorPreferences}
+      isPro={session?.user?.isPro ?? false}
     >
       <div className="mx-auto flex max-w-5xl flex-col gap-8">
         <header className="flex flex-col gap-1">

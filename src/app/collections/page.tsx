@@ -43,6 +43,7 @@ export default async function CollectionsPage({
       user={session.user}
       searchData={searchData}
       editorPreferences={editorPreferences}
+      isPro={session.user.isPro}
     >
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between gap-3">
