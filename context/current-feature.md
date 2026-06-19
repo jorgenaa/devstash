@@ -2,15 +2,22 @@
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
-<!-- Add goals here -->
+- Language selector dropdown in the CodeEditor header bar (replaces plain text input)
+- Selecting a language immediately applies Monaco syntax highlighting
+- Works in both the New Item dialog and the drawer edit mode
+- View mode continues to show a static language label (no dropdown)
 
 ## Notes
 
-<!-- Add notes here -->
+- Branch: `feature/language-select-dropdown`
+- Language options defined in `SUPPORTED_LANGUAGES` in [src/lib/item-type-constants.ts](../src/lib/item-type-constants.ts)
+- `CodeEditor` now accepts `onLanguageChange` prop — when provided, renders a `<select>` in the mac-dots header instead of a static label; when absent (read-only), the static label behaviour is unchanged
+- Removed the separate "Language" `FormField` from `NewItemDialog` and `DrawerEditBody` — it's now embedded in the editor header
+- Default value is `plaintext` when no language is set
 
 ## History
 

@@ -21,8 +21,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ItemTypeIcon } from "@/lib/item-type-icons";
-import { TEXT_CONTENT_TYPES, LANGUAGE_TYPES, FILE_TYPES } from "@/lib/item-type-constants";
+import { TEXT_CONTENT_TYPES, LANGUAGE_TYPES, FILE_TYPES, SUPPORTED_LANGUAGES } from "@/lib/item-type-constants";
 import { FormField } from "@/components/ui/form-field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ITEM_TYPES = [
   { name: "snippet", icon: "Code", label: "Snippet" },
@@ -205,6 +212,26 @@ export function NewItemDialog({ defaultType }: Props = {}) {
             </FormField>
           )}
 
+          {showLanguage && (
+            <FormField label="Language">
+              <Select
+                value={form.language || "plaintext"}
+                onValueChange={(v) => field("language", !v || v === "plaintext" ? "" : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPORTED_LANGUAGES.map((l) => (
+                    <SelectItem key={l.value} value={l.value}>
+                      {l.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+          )}
+
           {showContent && (
             <FormField label="Content">
               {showLanguage ? (
@@ -229,16 +256,6 @@ export function NewItemDialog({ defaultType }: Props = {}) {
                 onChange={(e) => field("url", e.target.value)}
                 placeholder="https://..."
                 type="url"
-              />
-            </FormField>
-          )}
-
-          {showLanguage && (
-            <FormField label="Language">
-              <Input
-                value={form.language}
-                onChange={(e) => field("language", e.target.value)}
-                placeholder="e.g. typescript"
               />
             </FormField>
           )}

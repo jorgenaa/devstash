@@ -5,6 +5,7 @@ import Editor, { type Monaco } from '@monaco-editor/react';
 import { Clipboard } from 'lucide-react';
 import { toast } from 'sonner';
 import { useEditorPreferences } from '@/contexts/editor-preferences-context';
+import { SUPPORTED_LANGUAGES } from '@/lib/item-type-constants';
 
 const MAC_DOTS = ['#ff5f57', '#febc2e', '#28c840'] as const;
 
@@ -69,6 +70,7 @@ export function CodeEditor({ value, onChange, language, readOnly = false }: Prop
   const [height, setHeight] = useState(120);
   const { prefs } = useEditorPreferences();
   const lang = language?.toLowerCase() || 'plaintext';
+  const langLabel = SUPPORTED_LANGUAGES.find((l) => l.value === lang)?.label;
 
   async function handleCopy() {
     if (!value) {
@@ -92,8 +94,8 @@ export function CodeEditor({ value, onChange, language, readOnly = false }: Prop
           ))}
         </div>
         <div className='flex items-center gap-2'>
-          {language && (
-            <span className='text-[11px] text-zinc-500'>{language}</span>
+          {langLabel && langLabel !== 'Plain Text' && (
+            <span className='text-[11px] text-zinc-500'>{langLabel}</span>
           )}
           <button
             type='button'
