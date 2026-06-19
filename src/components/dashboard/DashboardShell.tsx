@@ -102,11 +102,11 @@ export function DashboardShell({
             <Star className="size-4" />
           </Link>
           <NewCollectionDialog />
-          <NewItemDialog />
+          <NewItemDialog isPro={isPro} />
         </div>
       </header>
 
-      <ItemDrawerProvider>
+      <ItemDrawerProvider isPro={isPro}>
         <CommandPalette
           open={paletteOpen}
           onOpenChange={setPaletteOpen}

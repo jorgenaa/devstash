@@ -6,19 +6,18 @@ import { getSearchData } from "@/lib/db/search";
 import { getEditorPreferences } from "@/lib/db/editor-preferences";
 
 export async function getShellData() {
-  const [session, itemTypes, { favorites, recent }] = await Promise.all([
-    auth(),
-    getSidebarItemTypes(),
-    getSidebarCollections(),
-  ]);
+  const session = await auth();
 
   if (!session?.user?.id) {
     redirect("/sign-in");
   }
 
-  const [searchData, editorPreferences] = await Promise.all([
-    getSearchData(session.user.id),
-    getEditorPreferences(session.user.id),
+  const userId = session.user.id;
+  const [itemTypes, { favorites, recent }, searchData, editorPreferences] = await Promise.all([
+    getSidebarItemTypes(userId),
+    getSidebarCollections(userId),
+    getSearchData(userId),
+    getEditorPreferences(userId),
   ]);
 
   return {

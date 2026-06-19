@@ -18,14 +18,14 @@ export default async function CollectionsPage({
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
-  const [{ page: pageParam }, session, itemTypes, { favorites, recent }] = await Promise.all([
-    searchParams,
-    auth(),
-    getSidebarItemTypes(),
-    getSidebarCollections(),
-  ]);
+  const [{ page: pageParam }, session] = await Promise.all([searchParams, auth()]);
 
   if (!session?.user?.id) redirect("/sign-in");
+
+  const [itemTypes, { favorites, recent }] = await Promise.all([
+    getSidebarItemTypes(session.user.id),
+    getSidebarCollections(session.user.id),
+  ]);
 
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
 

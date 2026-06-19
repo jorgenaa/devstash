@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
   Calendar,
+  Check,
   Clipboard,
   Download,
   ExternalLink,
@@ -12,6 +13,7 @@ import {
   Pencil,
   Pin,
   Save,
+  Sparkles,
   Star,
   Trash2,
   X,
@@ -19,6 +21,7 @@ import {
 import { toast } from 'sonner';
 
 import { deleteItem, updateItem, toggleItemFavorite, toggleItemPin } from '@/actions/items';
+import { generateAutoTags } from '@/actions/ai';
 import { CollectionSelect } from '@/components/ui/collection-select';
 import {
   AlertDialog,
@@ -398,11 +401,21 @@ type DrawerEditBodyProps = {
   showLanguage: boolean;
   showUrl: boolean;
   collections: UserCollection[];
+  isPro: boolean;
+  suggestedTags: string[];
+  suggesting: boolean;
   field: (key: keyof EditState, value: string) => void;
   setCollectionIds: (ids: string[]) => void;
+  onSuggestTags: () => void;
+  onAcceptTag: (tag: string) => void;
+  onRejectTag: (tag: string) => void;
 };
 
-function DrawerEditBody({ editState, typeName, showContent, showLanguage, showUrl, collections, field, setCollectionIds }: DrawerEditBodyProps) {
+function DrawerEditBody({
+  editState, typeName, showContent, showLanguage, showUrl, collections,
+  isPro, suggestedTags, suggesting,
+  field, setCollectionIds, onSuggestTags, onAcceptTag, onRejectTag,
+}: DrawerEditBodyProps) {
   return (
     <>
       <FormField label='Description'>
@@ -463,13 +476,58 @@ function DrawerEditBody({ editState, typeName, showContent, showLanguage, showUr
         </FormField>
       )}
 
-      <FormField label='Tags' hint='Comma-separated'>
+      <div className='flex flex-col gap-1.5'>
+        <div className='flex items-center justify-between'>
+          <label className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+            Tags
+          </label>
+          {isPro && (
+            <button
+              type='button'
+              onClick={onSuggestTags}
+              disabled={suggesting}
+              className='flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-50'
+            >
+              <Sparkles className='size-3' />
+              {suggesting ? 'Suggesting…' : 'Suggest Tags'}
+            </button>
+          )}
+        </div>
         <Input
           value={editState.tags}
           onChange={(e) => field('tags', e.target.value)}
           placeholder='react, hooks, typescript'
         />
-      </FormField>
+        <p className='text-[11px] text-muted-foreground'>Comma-separated</p>
+        {suggestedTags.length > 0 && (
+          <div className='flex flex-wrap gap-1.5'>
+            {suggestedTags.map((tag) => (
+              <span
+                key={tag}
+                className='flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px]'
+              >
+                {tag}
+                <button
+                  type='button'
+                  onClick={() => onAcceptTag(tag)}
+                  aria-label={`Accept tag ${tag}`}
+                  className='text-emerald-500 hover:text-emerald-400'
+                >
+                  <Check className='size-3' />
+                </button>
+                <button
+                  type='button'
+                  onClick={() => onRejectTag(tag)}
+                  aria-label={`Reject tag ${tag}`}
+                  className='text-muted-foreground hover:text-foreground'
+                >
+                  <X className='size-3' />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
       <FormField label='Collections'>
         <CollectionSelect
@@ -494,9 +552,10 @@ type DrawerContentProps = {
   item: ItemDetailResponse;
   onItemUpdate: (updated: ItemDetailResponse) => void;
   onDelete: () => void;
+  isPro: boolean;
 };
 
-function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
+function DrawerContent({ item, onItemUpdate, onDelete, isPro }: DrawerContentProps) {
   const router = useRouter();
   const { type } = item;
   const [editing, setEditing] = useState(false);
@@ -506,6 +565,8 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
   const [pinning, setPinning] = useState(false);
   const [editState, setEditState] = useState<EditState>(() => toEditState(item));
   const [availableCollections, setAvailableCollections] = useState<UserCollection[]>([]);
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+  const [suggesting, setSuggesting] = useState(false);
 
   function field(key: keyof EditState, value: string) {
     setEditState((prev) => ({ ...prev, [key]: value }));
@@ -518,12 +579,44 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
   function handleEdit() {
     setEditState(toEditState(item));
     setEditing(true);
+    setSuggestedTags([]);
     if (availableCollections.length === 0) {
       fetch('/api/collections')
         .then((res) => res.ok ? res.json() as Promise<UserCollection[]> : [])
         .then(setAvailableCollections)
         .catch(() => {});
     }
+  }
+
+  async function handleSuggestTags() {
+    if (!editState.title.trim()) {
+      toast.error('Add a title before suggesting tags');
+      return;
+    }
+    setSuggesting(true);
+    const result = await generateAutoTags({
+      typeName: type.name,
+      title: editState.title,
+      content: editState.content || undefined,
+    });
+    setSuggesting(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    setSuggestedTags(result.tags);
+  }
+
+  function acceptTag(tag: string) {
+    const existing = editState.tags.split(',').map((t) => t.trim()).filter(Boolean);
+    if (!existing.includes(tag)) {
+      field('tags', [...existing, tag].join(', '));
+    }
+    setSuggestedTags((prev) => prev.filter((t) => t !== tag));
+  }
+
+  function rejectTag(tag: string) {
+    setSuggestedTags((prev) => prev.filter((t) => t !== tag));
   }
 
   function handleCancel() {
@@ -690,8 +783,14 @@ function DrawerContent({ item, onItemUpdate, onDelete }: DrawerContentProps) {
             showLanguage={showLanguage}
             showUrl={showUrl}
             collections={availableCollections}
+            isPro={isPro}
+            suggestedTags={suggestedTags}
+            suggesting={suggesting}
             field={field}
             setCollectionIds={setCollectionIds}
+            onSuggestTags={handleSuggestTags}
+            onAcceptTag={acceptTag}
+            onRejectTag={rejectTag}
           />
         ) : (
           <DrawerViewBody
@@ -711,9 +810,10 @@ type Props = {
   itemId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isPro?: boolean;
 };
 
-export function ItemDetailDrawer({ itemId, open, onOpenChange }: Props) {
+export function ItemDetailDrawer({ itemId, open, onOpenChange, isPro = false }: Props) {
   const [item, setItem] = useState<ItemDetailResponse | null>(null);
   const loading = open && !!itemId && item?.id !== itemId;
 
@@ -750,6 +850,7 @@ export function ItemDetailDrawer({ itemId, open, onOpenChange }: Props) {
             item={item}
             onItemUpdate={setItem}
             onDelete={() => onOpenChange(false)}
+            isPro={isPro}
           />
         )}
       </SheetContent>

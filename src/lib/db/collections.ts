@@ -72,12 +72,12 @@ export type SidebarCollection = {
   accentColor: string | null;
 };
 
-export async function getSidebarCollections(): Promise<{
+export async function getSidebarCollections(userId: string): Promise<{
   favorites: SidebarCollection[];
   recent: SidebarCollection[];
 }> {
   const collections = await prisma.collection.findMany({
-    where: { user: { email: DEMO_EMAIL } },
+    where: { userId },
     orderBy: { updatedAt: "desc" },
     take: 20,
     include: {
