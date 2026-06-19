@@ -36,16 +36,18 @@ export default async function ItemTypePage({
   params: Promise<{ type: string }>;
   searchParams: Promise<{ page?: string }>;
 }) {
-  const [{ type: slug }, { page: pageParam }, session, itemTypes, { favorites, recent }] =
-    await Promise.all([
-      params,
-      searchParams,
-      auth(),
-      getSidebarItemTypes(),
-      getSidebarCollections(),
-    ]);
+  const [{ type: slug }, { page: pageParam }, session] = await Promise.all([
+    params,
+    searchParams,
+    auth(),
+  ]);
 
   if (!session?.user?.id) redirect("/sign-in");
+
+  const [itemTypes, { favorites, recent }] = await Promise.all([
+    getSidebarItemTypes(session.user.id),
+    getSidebarCollections(session.user.id),
+  ]);
 
   const typeName = TYPE_SLUG_MAP[slug];
   if (!typeName) notFound();
@@ -97,7 +99,7 @@ export default async function ItemTypePage({
             </div>
           </div>
           {CREATABLE_TYPES.has(typeName) && (
-            <NewItemDialog defaultType={typeName as TypeName} />
+            <NewItemDialog defaultType={typeName as TypeName} isPro={session.user.isPro} />
           )}
         </div>
 

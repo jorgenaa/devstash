@@ -6,11 +6,7 @@ Not Started
 
 ## Goals
 
-<!-- Add goals here -->
-
 ## Notes
-
-<!-- Add notes here -->
 
 ## History
 
@@ -121,3 +117,5 @@ Not Started
 - 2026-06-18 — Upgrade page and header button completed. Created [src/app/upgrade/page.tsx](../src/app/upgrade/page.tsx) — a protected dashboard-shell page showing Free vs Pro pricing cards with a monthly/yearly toggle; Pro users are redirected to `/settings#billing`. Created [src/components/billing/UpgradePricingCards.tsx](../src/components/billing/UpgradePricingCards.tsx) — client component with the pricing UI and `createCheckoutSession` wired to the Upgrade button. Added a ghost "Upgrade" link (Crown icon, subtle muted style) to the `DashboardShell` header that renders only for free users. Added `isPro` prop to `DashboardShell` and `isPro` to `getShellData()` return; updated all 7 pages to pass the prop. Added `/upgrade` to proxy protected paths and matcher. Replaced the inline pro-gate render in `items/[type]/page.tsx` with `redirect("/upgrade")` for file/image types. Removed orphaned `UpgradePrompt` component. Build passes; 49/49 tests pass.
 
 - 2026-06-19 — Language selector for code editor completed. Added `SUPPORTED_LANGUAGES` array (24 languages) to [src/lib/item-type-constants.ts](../src/lib/item-type-constants.ts). Replaced the plain text language `Input` in [NewItemDialog](../src/components/items/NewItemDialog.tsx) and [DrawerEditBody](../src/components/items/ItemDetailDrawer.tsx) with a shadcn `Select` dropdown placed above the `Content` field — selecting a language immediately updates Monaco syntax highlighting as you type. Updated [CodeEditor](../src/components/ui/code-editor.tsx) to look up the human-readable label from `SUPPORTED_LANGUAGES` and display it (e.g. "TypeScript" not "typescript") in the mac-dots header next to the copy button; "Plain Text" is suppressed since it is the default/empty state. Build passes; 49/49 tests pass.
+
+- 2026-06-19 — AI auto-tagging completed. Installed `openai`. Created [src/lib/openai.ts](../src/lib/openai.ts) — OpenAI client singleton with `AI_MODEL = "gpt-5-nano"`. Created [src/actions/ai.ts](../src/actions/ai.ts) with `generateAutoTags` server action — auth-gated, Pro-only, Zod validation (typeName + title required, content optional), rate-limited (20 req/hr per userId via existing `rateLimit` helper), calls the Responses API (`client.responses.create` with `text.format: { type: 'json_object' }`) and parses both `{"tags":[...]}` and `[...]` response shapes; normalizes to lowercase, slices to 5 tags. Updated [NewItemDialog](../src/components/items/NewItemDialog.tsx) and [ItemDetailDrawer](../src/components/items/ItemDetailDrawer.tsx) (`DrawerEditBody`): added "Suggest Tags" inline button (Sparkles icon, Pro-only, hidden for free users); suggestions rendered as pill badges with per-tag Accept (Check, green) and Reject (X) controls; accepted tags appended to the tags input, rejected tags removed from suggestions. Threaded `isPro` prop from server pages through `DashboardShell` → `NewItemDialog` and `ItemDrawerProvider` → `ItemDetailDrawer` → `DrawerContent` → `DrawerEditBody`. Also fixed `getSidebarItemTypes(userId)` and `getSidebarCollections(userId)` — previously hardcoded to `DEMO_EMAIL`, now accept `userId: string`; all callers restructured to `await auth()` first then pass the real userId. Added [src/actions/ai.test.ts](../src/actions/ai.test.ts) with 6 unit tests (unauthorized, free user, rate limited, AI error, success with object format, success with array format). Build passes; 55/55 tests pass.

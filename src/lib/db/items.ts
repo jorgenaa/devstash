@@ -394,12 +394,12 @@ export async function toggleItemPin(
   return { isPinned: updated.isPinned };
 }
 
-export async function getSidebarItemTypes(): Promise<SidebarItemType[]> {
+export async function getSidebarItemTypes(userId: string): Promise<SidebarItemType[]> {
   const types = await prisma.itemType.findMany({
     where: { isSystem: true },
     include: {
       _count: {
-        select: { items: { where: { user: { email: DEMO_EMAIL } } } },
+        select: { items: { where: { userId } } },
       },
     },
   });

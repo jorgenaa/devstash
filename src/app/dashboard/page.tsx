@@ -14,14 +14,12 @@ import type { SearchData } from "@/lib/db/search";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [session, itemTypes, { favorites, recent }] = await Promise.all([
-    auth(),
-    getSidebarItemTypes(),
-    getSidebarCollections(),
-  ]);
-
+  const session = await auth();
   const userId = session?.user?.id;
-  const [searchData, editorPreferences] = await Promise.all([
+
+  const [itemTypes, { favorites, recent }, searchData, editorPreferences] = await Promise.all([
+    userId ? getSidebarItemTypes(userId) : Promise.resolve([]),
+    userId ? getSidebarCollections(userId) : Promise.resolve({ favorites: [], recent: [] }),
     userId ? getSearchData(userId) : Promise.resolve<SearchData>({ items: [], collections: [] }),
     userId ? getEditorPreferences(userId) : Promise.resolve(DEFAULT_EDITOR_PREFERENCES),
   ]);

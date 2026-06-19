@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Check, Plus, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { createItem } from "@/actions/items";
+import { generateAutoTags } from "@/actions/ai";
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "@/components/ui/code-editor";
 import { CollectionSelect } from "@/components/ui/collection-select";
@@ -69,9 +70,10 @@ function defaultForm(): FormState {
 
 type Props = {
   defaultType?: TypeName;
+  isPro?: boolean;
 };
 
-export function NewItemDialog({ defaultType }: Props = {}) {
+export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<TypeName>(defaultType ?? "snippet");
@@ -79,6 +81,8 @@ export function NewItemDialog({ defaultType }: Props = {}) {
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [saving, setSaving] = useState(false);
   const [collections, setCollections] = useState<UserCollection[]>([]);
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+  const [suggesting, setSuggesting] = useState(false);
 
   function field(key: keyof FormState, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -95,7 +99,43 @@ export function NewItemDialog({ defaultType }: Props = {}) {
       setForm(defaultForm());
       setSelectedType(defaultType ?? "snippet");
       setUploadResult(null);
+      setSuggestedTags([]);
     }
+  }
+
+  async function handleSuggestTags() {
+    if (!form.title.trim()) {
+      toast.error("Add a title before suggesting tags");
+      return;
+    }
+    setSuggesting(true);
+    const result = await generateAutoTags({
+      typeName: selectedType,
+      title: form.title,
+      content: form.content || undefined,
+    });
+    setSuggesting(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    setSuggestedTags(result.tags);
+  }
+
+  function acceptTag(tag: string) {
+    const existing = form.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (!existing.includes(tag)) {
+      const next = [...existing, tag].join(", ");
+      setForm((prev) => ({ ...prev, tags: next }));
+    }
+    setSuggestedTags((prev) => prev.filter((t) => t !== tag));
+  }
+
+  function rejectTag(tag: string) {
+    setSuggestedTags((prev) => prev.filter((t) => t !== tag));
   }
 
   function handleTypeChange(type: TypeName) {
@@ -260,13 +300,58 @@ export function NewItemDialog({ defaultType }: Props = {}) {
             </FormField>
           )}
 
-          <FormField label="Tags" hint="Comma-separated">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Tags
+              </label>
+              {isPro && (
+                <button
+                  type="button"
+                  onClick={handleSuggestTags}
+                  disabled={suggesting}
+                  className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
+                >
+                  <Sparkles className="size-3" />
+                  {suggesting ? "Suggesting…" : "Suggest Tags"}
+                </button>
+              )}
+            </div>
             <Input
               value={form.tags}
               onChange={(e) => field("tags", e.target.value)}
               placeholder="react, hooks, typescript"
             />
-          </FormField>
+            <p className="text-[11px] text-muted-foreground">Comma-separated</p>
+            {suggestedTags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {suggestedTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-[11px]"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => acceptTag(tag)}
+                      aria-label={`Accept tag ${tag}`}
+                      className="text-emerald-500 hover:text-emerald-400"
+                    >
+                      <Check className="size-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => rejectTag(tag)}
+                      aria-label={`Reject tag ${tag}`}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
 
           <FormField label="Collections">
             <CollectionSelect

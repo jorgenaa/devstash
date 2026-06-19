@@ -16,7 +16,13 @@ export function useItemDrawer() {
   return ctx;
 }
 
-export function ItemDrawerProvider({ children }: { children: ReactNode }) {
+export function ItemDrawerProvider({
+  children,
+  isPro = false,
+}: {
+  children: ReactNode;
+  isPro?: boolean;
+}) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -32,6 +38,7 @@ export function ItemDrawerProvider({ children }: { children: ReactNode }) {
         itemId={selectedId}
         open={open}
         onOpenChange={setOpen}
+        isPro={isPro}
       />
     </ItemDrawerContext.Provider>
   );
