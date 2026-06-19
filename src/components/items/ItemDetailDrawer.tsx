@@ -47,8 +47,15 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import type { ItemDetail } from '@/lib/db/items';
 import { ItemTypeIcon } from '@/lib/item-type-icons';
-import { TEXT_CONTENT_TYPES, LANGUAGE_TYPES, FILE_TYPES } from '@/lib/item-type-constants';
+import { TEXT_CONTENT_TYPES, LANGUAGE_TYPES, FILE_TYPES, SUPPORTED_LANGUAGES } from '@/lib/item-type-constants';
 import { FormField } from '@/components/ui/form-field';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type ItemDetailResponse = Omit<ItemDetail, 'createdAt' | 'updatedAt'> & {
   createdAt: string;
@@ -408,6 +415,26 @@ function DrawerEditBody({ editState, typeName, showContent, showLanguage, showUr
         />
       </FormField>
 
+      {showLanguage && (
+        <FormField label='Language'>
+          <Select
+            value={editState.language || 'plaintext'}
+            onValueChange={(v) => field('language', !v || v === 'plaintext' ? '' : v)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder='Select language' />
+            </SelectTrigger>
+            <SelectContent>
+              {SUPPORTED_LANGUAGES.map((l) => (
+                <SelectItem key={l.value} value={l.value}>
+                  {l.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+      )}
+
       {showContent && (
         <FormField label='Content'>
           {showLanguage ? (
@@ -432,16 +459,6 @@ function DrawerEditBody({ editState, typeName, showContent, showLanguage, showUr
             onChange={(e) => field('url', e.target.value)}
             placeholder='https://...'
             type='url'
-          />
-        </FormField>
-      )}
-
-      {showLanguage && (
-        <FormField label='Language'>
-          <Input
-            value={editState.language}
-            onChange={(e) => field('language', e.target.value)}
-            placeholder='e.g. typescript'
           />
         </FormField>
       )}
