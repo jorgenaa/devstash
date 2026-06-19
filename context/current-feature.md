@@ -2,22 +2,15 @@
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Language selector dropdown in the CodeEditor header bar (replaces plain text input)
-- Selecting a language immediately applies Monaco syntax highlighting
-- Works in both the New Item dialog and the drawer edit mode
-- View mode continues to show a static language label (no dropdown)
+<!-- Add goals here -->
 
 ## Notes
 
-- Branch: `feature/language-select-dropdown`
-- Language options defined in `SUPPORTED_LANGUAGES` in [src/lib/item-type-constants.ts](../src/lib/item-type-constants.ts)
-- `CodeEditor` now accepts `onLanguageChange` prop — when provided, renders a `<select>` in the mac-dots header instead of a static label; when absent (read-only), the static label behaviour is unchanged
-- Removed the separate "Language" `FormField` from `NewItemDialog` and `DrawerEditBody` — it's now embedded in the editor header
-- Default value is `plaintext` when no language is set
+<!-- Add notes here -->
 
 ## History
 
@@ -126,3 +119,5 @@ In Progress
 - 2026-06-17 — Pro gate for files/images and demo seed fix completed. Free users visiting `/items/files` or `/items/images` now see a full upgrade gate (Crown icon, description, "Upgrade to Pro" button) inside the dashboard shell instead of the item list. Updated [src/app/items/[type]/page.tsx](../src/app/items/%5Btype%5D/page.tsx) to check `isProOnlyType(typeName) && !session.user.isPro` after type resolution and render the gate early, skipping the items fetch entirely. Also trimmed [prisma/seed.ts](../prisma/seed.ts) from 5 collections (18 items) down to 3 collections (React Patterns, AI Workflows, Terminal Commands — 10 items) to match the free-tier limit; removed DevOps and Design Resources collections. Collection (3) and item (50) free-tier limits in [src/actions/collections.ts](../src/actions/collections.ts) and [src/actions/items.ts](../src/actions/items.ts) remain enforced for free users; file/image Pro-only gate in the actions and upload route unchanged. Build passes; 49/49 tests pass.
 
 - 2026-06-18 — Upgrade page and header button completed. Created [src/app/upgrade/page.tsx](../src/app/upgrade/page.tsx) — a protected dashboard-shell page showing Free vs Pro pricing cards with a monthly/yearly toggle; Pro users are redirected to `/settings#billing`. Created [src/components/billing/UpgradePricingCards.tsx](../src/components/billing/UpgradePricingCards.tsx) — client component with the pricing UI and `createCheckoutSession` wired to the Upgrade button. Added a ghost "Upgrade" link (Crown icon, subtle muted style) to the `DashboardShell` header that renders only for free users. Added `isPro` prop to `DashboardShell` and `isPro` to `getShellData()` return; updated all 7 pages to pass the prop. Added `/upgrade` to proxy protected paths and matcher. Replaced the inline pro-gate render in `items/[type]/page.tsx` with `redirect("/upgrade")` for file/image types. Removed orphaned `UpgradePrompt` component. Build passes; 49/49 tests pass.
+
+- 2026-06-19 — Language selector for code editor completed. Added `SUPPORTED_LANGUAGES` array (24 languages) to [src/lib/item-type-constants.ts](../src/lib/item-type-constants.ts). Replaced the plain text language `Input` in [NewItemDialog](../src/components/items/NewItemDialog.tsx) and [DrawerEditBody](../src/components/items/ItemDetailDrawer.tsx) with a shadcn `Select` dropdown placed above the `Content` field — selecting a language immediately updates Monaco syntax highlighting as you type. Updated [CodeEditor](../src/components/ui/code-editor.tsx) to look up the human-readable label from `SUPPORTED_LANGUAGES` and display it (e.g. "TypeScript" not "typescript") in the mac-dots header next to the copy button; "Plain Text" is suppressed since it is the default/empty state. Build passes; 49/49 tests pass.
