@@ -1,27 +1,12 @@
-# Current Feature: AI Description Generator
+# Current Feature
 
 ## Status
 
-In Progress
+Not Started
 
 ## Goals
 
-- Add a Sparkles icon button next to the description field in both `NewItemDialog` and `DrawerEditBody` (edit mode)
-- Clicking it calls an AI server action that reads the current title, type, and content (whatever is filled in so far — no save required) and returns a 1–2 sentence description
-- The generated description is inserted directly into the description textarea
-- Works for all 7 content types (snippet, prompt, command, note, link, file, image) using whatever context is available
-- Pro-only (consistent with other AI features); hidden for free users
-- Rate-limited (20 req/hr per userId, matching `generateAutoTags`)
-- Button shows a loading spinner while generating; toasts on error
-
 ## Notes
-
-- Mirror the pattern from `generateAutoTags` in `src/actions/ai.ts`: auth-gated, Pro check, rate limit, Zod validation, OpenAI Responses API
-- New action: `generateDescription(input: { typeName, title, content?, url?, fileName? })` → `{ description: string }`
-- Prompt should instruct the model to write 1–2 sentences summarising what the item is, keeping it developer-friendly and concise
-- For file/image types, only `title` and `fileName` will be available — the action should handle missing content gracefully
-- No new unit tests required for this action (mirrors existing AI action pattern); follow the same structure as `ai.test.ts` if time allows
-- `isPro` prop is already threaded to both `NewItemDialog` and `DrawerEditBody` — no additional prop-drilling needed
 
 ## History
 
@@ -133,4 +118,6 @@ In Progress
 
 - 2026-06-19 — Language selector for code editor completed. Added `SUPPORTED_LANGUAGES` array (24 languages) to [src/lib/item-type-constants.ts](../src/lib/item-type-constants.ts). Replaced the plain text language `Input` in [NewItemDialog](../src/components/items/NewItemDialog.tsx) and [DrawerEditBody](../src/components/items/ItemDetailDrawer.tsx) with a shadcn `Select` dropdown placed above the `Content` field — selecting a language immediately updates Monaco syntax highlighting as you type. Updated [CodeEditor](../src/components/ui/code-editor.tsx) to look up the human-readable label from `SUPPORTED_LANGUAGES` and display it (e.g. "TypeScript" not "typescript") in the mac-dots header next to the copy button; "Plain Text" is suppressed since it is the default/empty state. Build passes; 49/49 tests pass.
 
-- 2026-06-19 — AI auto-tagging completed. Installed `openai`. Created [src/lib/openai.ts](../src/lib/openai.ts) — OpenAI client singleton with `AI_MODEL = "gpt-5-nano"`. Created [src/actions/ai.ts](../src/actions/ai.ts) with `generateAutoTags` server action — auth-gated, Pro-only, Zod validation (typeName + title required, content optional), rate-limited (20 req/hr per userId via existing `rateLimit` helper), calls the Responses API (`client.responses.create` with `text.format: { type: 'json_object' }`) and parses both `{"tags":[...]}` and `[...]` response shapes; normalizes to lowercase, slices to 5 tags. Updated [NewItemDialog](../src/components/items/NewItemDialog.tsx) and [ItemDetailDrawer](../src/components/items/ItemDetailDrawer.tsx) (`DrawerEditBody`): added "Suggest Tags" inline button (Sparkles icon, Pro-only, hidden for free users); suggestions rendered as pill badges with per-tag Accept (Check, green) and Reject (X) controls; accepted tags appended to the tags input, rejected tags removed from suggestions. Threaded `isPro` prop from server pages through `DashboardShell` → `NewItemDialog` and `ItemDrawerProvider` → `ItemDetailDrawer` → `DrawerContent` → `DrawerEditBody`. Also fixed `getSidebarItemTypes(userId)` and `getSidebarCollections(userId)` — previously hardcoded to `DEMO_EMAIL`, now accept `userId: string`; all callers restructured to `await auth()` first then pass the real userId. Added [src/actions/ai.test.ts](../src/actions/ai.test.ts) with 6 unit tests (unauthorized, free user, rate limited, AI error, success with object format, success with array format). Build passes; 55/55 tests pass.
+- 2026-06-19 — AI auto-tagging completed.
+
+- 2026-06-20 — AI description generator completed. Added `generateDescription` server action to [src/actions/ai.ts](../src/actions/ai.ts) — auth-gated, Pro-only, rate-limited (20 req/hr per userId, shared key with `generateAutoTags`), Zod-validated (`typeName`, `title` required; `content`, `url`, `fileName` optional), calls OpenAI Responses API with `json_object` format and extracts `{ description }` string. Handles all 7 item types gracefully — file/image types only receive title + fileName. Added a Sparkles "Generate" button next to the Description label in both [NewItemDialog](../src/components/items/NewItemDialog.tsx) and [DrawerEditBody](../src/components/items/ItemDetailDrawer.tsx); button is Pro-only (hidden for free users), shows "Generating…" while loading, and inserts the result directly into the description textarea. Pattern mirrors the existing "Suggest Tags" button. Build passes; 55/55 tests pass. Installed `openai`. Created [src/lib/openai.ts](../src/lib/openai.ts) — OpenAI client singleton with `AI_MODEL = "gpt-5-nano"`. Created [src/actions/ai.ts](../src/actions/ai.ts) with `generateAutoTags` server action — auth-gated, Pro-only, Zod validation (typeName + title required, content optional), rate-limited (20 req/hr per userId via existing `rateLimit` helper), calls the Responses API (`client.responses.create` with `text.format: { type: 'json_object' }`) and parses both `{"tags":[...]}` and `[...]` response shapes; normalizes to lowercase, slices to 5 tags. Updated [NewItemDialog](../src/components/items/NewItemDialog.tsx) and [ItemDetailDrawer](../src/components/items/ItemDetailDrawer.tsx) (`DrawerEditBody`): added "Suggest Tags" inline button (Sparkles icon, Pro-only, hidden for free users); suggestions rendered as pill badges with per-tag Accept (Check, green) and Reject (X) controls; accepted tags appended to the tags input, rejected tags removed from suggestions. Threaded `isPro` prop from server pages through `DashboardShell` → `NewItemDialog` and `ItemDrawerProvider` → `ItemDetailDrawer` → `DrawerContent` → `DrawerEditBody`. Also fixed `getSidebarItemTypes(userId)` and `getSidebarCollections(userId)` — previously hardcoded to `DEMO_EMAIL`, now accept `userId: string`; all callers restructured to `await auth()` first then pass the real userId. Added [src/actions/ai.test.ts](../src/actions/ai.test.ts) with 6 unit tests (unauthorized, free user, rate limited, AI error, success with object format, success with array format). Build passes; 55/55 tests pass.
