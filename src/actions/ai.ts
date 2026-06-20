@@ -6,6 +6,85 @@ import { auth } from "@/auth";
 import { getOpenAIClient, AI_MODEL } from "@/lib/openai";
 import { rateLimit } from "@/lib/rate-limit";
 
+const ExplainCodeSchema = z.object({
+  typeName: z.enum(["snippet", "command"]),
+  title: z.string().trim().min(1, "Title is required"),
+  content: z.string().trim().min(1, "Content is required"),
+});
+
+type ExplainCodeResult =
+  | { success: true; explanation: string }
+  | { success: false; error: string };
+
+export async function explainCode(
+  input: z.input<typeof ExplainCodeSchema>
+): Promise<ExplainCodeResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  if (!session.user.isPro) {
+    return { success: false, error: "Pro subscription required" };
+  }
+
+  const parsed = ExplainCodeSchema.safeParse(input);
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? "Invalid input";
+    return { success: false, error: message };
+  }
+
+  const limit = await rateLimit(`ai:${session.user.id}`, 20, "1 h");
+  if (!limit.success) {
+    return { success: false, error: "Too many AI requests. Please try again in an hour." };
+  }
+
+  const { typeName, title, content } = parsed.data;
+  const truncatedContent = content.slice(0, 3000);
+
+  const userInput = [
+    `Type: ${typeName}`,
+    `Title: ${title}`,
+    `Content:\n${truncatedContent}`,
+    "Return a JSON object.",
+  ].join("\n");
+
+  try {
+    const client = getOpenAIClient();
+    const response = await client.responses.create({
+      model: AI_MODEL,
+      instructions:
+        'You are a senior developer explaining code to a fellow developer. Given a code snippet or terminal command, write a clear explanation in 200-300 words covering what it does, how it works, and any key concepts. Use markdown for formatting (bold, inline code, bullet points where helpful). Return ONLY a JSON object with a single key "explanation" containing the markdown string.',
+      input: userInput,
+      text: {
+        format: { type: "json_object" },
+      },
+    });
+
+    const raw = response.output_text;
+    let parsedJson: unknown;
+    try {
+      parsedJson = JSON.parse(raw);
+    } catch {
+      return { success: false, error: "AI returned an unexpected response" };
+    }
+
+    if (
+      parsedJson &&
+      typeof parsedJson === "object" &&
+      "explanation" in parsedJson &&
+      typeof (parsedJson as Record<string, unknown>).explanation === "string"
+    ) {
+      return { success: true, explanation: (parsedJson as { explanation: string }).explanation };
+    }
+
+    return { success: false, error: "AI returned an unexpected response" };
+  } catch (err) {
+    console.error("[explainCode] error:", err);
+    return { success: false, error: "AI service error. Please try again." };
+  }
+}
+
 const GenerateDescriptionSchema = z.object({
   typeName: z.string().trim().min(1),
   title: z.string().trim().min(1, "Title is required"),
@@ -45,7 +124,7 @@ export async function generateDescription(
   const truncatedContent = content ? content.slice(0, 2000) : "";
 
   const userInput = [
-    `Write a description for this developer item:`,
+    `Write a description for this developer item (return a JSON object):`,
     `Type: ${typeName}`,
     `Title: ${title}`,
     truncatedContent ? `Content:\n${truncatedContent}` : "",

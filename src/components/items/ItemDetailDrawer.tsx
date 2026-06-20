@@ -21,7 +21,7 @@ import {
 import { toast } from 'sonner';
 
 import { deleteItem, updateItem, toggleItemFavorite, toggleItemPin } from '@/actions/items';
-import { generateAutoTags, generateDescription } from '@/actions/ai';
+import { generateAutoTags, generateDescription, explainCode } from '@/actions/ai';
 import { CollectionSelect } from '@/components/ui/collection-select';
 import {
   AlertDialog,
@@ -36,7 +36,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CodeEditor } from '@/components/ui/code-editor';
+import { CodeEditor, type ExplainState } from '@/components/ui/code-editor';
 import { MarkdownEditor } from '@/components/ui/markdown-editor';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -253,9 +253,10 @@ type DrawerViewBodyProps = {
   showFile: boolean;
   isImage: boolean;
   downloadUrl: string | null;
+  explainState?: ExplainState;
 };
 
-function DrawerViewBody({ item, showLanguage, showFile, isImage, downloadUrl }: DrawerViewBodyProps) {
+function DrawerViewBody({ item, showLanguage, showFile, isImage, downloadUrl, explainState }: DrawerViewBodyProps) {
   return (
     <>
       {item.description && (
@@ -313,7 +314,7 @@ function DrawerViewBody({ item, showLanguage, showFile, isImage, downloadUrl }: 
             Content
           </h3>
           {showLanguage ? (
-            <CodeEditor value={item.content} language={item.language} readOnly />
+            <CodeEditor value={item.content} language={item.language} readOnly explain={explainState} />
           ) : (
             <MarkdownEditor value={item.content} readOnly />
           )}
@@ -586,6 +587,12 @@ function DrawerContent({ item, onItemUpdate, onDelete, isPro }: DrawerContentPro
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
   const [suggesting, setSuggesting] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [explaining, setExplaining] = useState(false);
+
+  useEffect(() => {
+    setExplanation(null);
+  }, [item.id]);
 
   function field(key: keyof EditState, value: string) {
     setEditState((prev) => ({ ...prev, [key]: value }));
@@ -660,6 +667,22 @@ function DrawerContent({ item, onItemUpdate, onDelete, isPro }: DrawerContentPro
 
   function handleCancel() {
     setEditing(false);
+  }
+
+  async function handleExplain() {
+    if (!item.content) return;
+    setExplaining(true);
+    const result = await explainCode({
+      typeName: type.name as 'snippet' | 'command',
+      title: item.title,
+      content: item.content,
+    });
+    setExplaining(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    setExplanation(result.explanation);
   }
 
   async function handleSave() {
@@ -840,6 +863,12 @@ function DrawerContent({ item, onItemUpdate, onDelete, isPro }: DrawerContentPro
             showFile={showFile}
             isImage={isImage}
             downloadUrl={downloadUrl}
+            explainState={showLanguage ? {
+              isPro,
+              onExplain: handleExplain,
+              explaining,
+              explanation,
+            } : undefined}
           />
         )}
       </div>

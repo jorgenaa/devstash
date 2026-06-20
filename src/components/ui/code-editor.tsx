@@ -1,11 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Editor, { type Monaco } from '@monaco-editor/react';
-import { Clipboard } from 'lucide-react';
+import { Clipboard, Crown, Loader2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useEditorPreferences } from '@/contexts/editor-preferences-context';
 import { SUPPORTED_LANGUAGES } from '@/lib/item-type-constants';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const MAC_DOTS = ['#ff5f57', '#febc2e', '#28c840'] as const;
 
@@ -59,18 +66,35 @@ function defineCustomThemes(monaco: Monaco) {
   });
 }
 
+export type ExplainState = {
+  isPro: boolean;
+  onExplain: () => void;
+  explaining: boolean;
+  explanation: string | null;
+};
+
 type Props = {
   value: string;
   onChange?: (value: string) => void;
   language?: string | null;
   readOnly?: boolean;
+  explain?: ExplainState;
 };
 
-export function CodeEditor({ value, onChange, language, readOnly = false }: Props) {
+export function CodeEditor({ value, onChange, language, readOnly = false, explain }: Props) {
   const [height, setHeight] = useState(120);
+  const [activeTab, setActiveTab] = useState<'code' | 'explain'>('code');
   const { prefs } = useEditorPreferences();
   const lang = language?.toLowerCase() || 'plaintext';
   const langLabel = SUPPORTED_LANGUAGES.find((l) => l.value === lang)?.label;
+
+  useEffect(() => {
+    if (explain?.explanation) {
+      setActiveTab('explain');
+    } else {
+      setActiveTab('code');
+    }
+  }, [explain?.explanation]);
 
   async function handleCopy() {
     if (!value) {
@@ -80,6 +104,8 @@ export function CodeEditor({ value, onChange, language, readOnly = false }: Prop
     await navigator.clipboard.writeText(value);
     toast.success('Copied to clipboard');
   }
+
+  const showTabs = !!explain?.explanation;
 
   return (
     <div className='overflow-hidden rounded-md border border-border'>
@@ -97,6 +123,64 @@ export function CodeEditor({ value, onChange, language, readOnly = false }: Prop
           {langLabel && langLabel !== 'Plain Text' && (
             <span className='text-[11px] text-zinc-500'>{langLabel}</span>
           )}
+          {showTabs ? (
+            <div className='flex items-center rounded border border-white/10'>
+              <button
+                type='button'
+                onClick={() => setActiveTab('code')}
+                className={`rounded-l px-2 py-0.5 text-[11px] transition-colors ${
+                  activeTab === 'code'
+                    ? 'bg-white/15 text-zinc-200'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                Code
+              </button>
+              <button
+                type='button'
+                onClick={() => setActiveTab('explain')}
+                className={`rounded-r px-2 py-0.5 text-[11px] transition-colors ${
+                  activeTab === 'explain'
+                    ? 'bg-white/15 text-zinc-200'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                Explain
+              </button>
+            </div>
+          ) : explain ? (
+            explain.isPro ? (
+              <button
+                type='button'
+                onClick={explain.onExplain}
+                disabled={explain.explaining}
+                className='flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200 disabled:opacity-50'
+              >
+                {explain.explaining ? (
+                  <Loader2 className='size-3 animate-spin' />
+                ) : (
+                  <Sparkles className='size-3' />
+                )}
+                {explain.explaining ? 'Explaining…' : 'Explain'}
+              </button>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <button
+                      type='button'
+                      disabled
+                      className='flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-zinc-600 opacity-60'
+                    >
+                      <Crown className='size-3' />
+                      Explain
+                    </button>
+                  }
+                />
+                <TooltipContent>AI features require Pro subscription</TooltipContent>
+              </Tooltip>
+            )
+          ) : null}
           <button
             type='button'
             onClick={handleCopy}
@@ -107,47 +191,53 @@ export function CodeEditor({ value, onChange, language, readOnly = false }: Prop
           </button>
         </div>
       </div>
-      <Editor
-        value={value}
-        language={lang}
-        theme={prefs.theme}
-        height={Math.min(height, 400)}
-        options={{
-          readOnly,
-          fontSize: prefs.fontSize,
-          tabSize: prefs.tabSize,
-          lineHeight: Math.round(prefs.fontSize * 1.6),
-          minimap: { enabled: prefs.minimap },
-          scrollBeyondLastLine: false,
-          wordWrap: prefs.wordWrap ? 'on' : 'off',
-          automaticLayout: true,
-          padding: { top: 8, bottom: 8 },
-          scrollbar: {
-            vertical: 'auto',
-            horizontal: 'hidden',
-            verticalScrollbarSize: 6,
-            useShadows: false,
-          },
-          overviewRulerLanes: 0,
-          renderLineHighlight: readOnly ? 'none' : 'line',
-          folding: false,
-          contextmenu: false,
-        }}
-        loading={
-          <div className='flex h-30 items-center justify-center bg-[#1e1e1e] text-xs text-zinc-500'>
-            Loading editor…
-          </div>
-        }
-        beforeMount={defineCustomThemes}
-        onMount={(editor) => {
-          const update = () => {
-            setHeight(Math.max(120, editor.getContentHeight()));
-          };
-          update();
-          editor.onDidContentSizeChange(update);
-        }}
-        onChange={(val) => onChange?.(val ?? '')}
-      />
+      {activeTab === 'explain' && explain?.explanation ? (
+        <div className='markdown-preview overflow-y-auto bg-[#1e1e1e] px-4 py-3 text-sm text-zinc-200'>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{explain.explanation}</ReactMarkdown>
+        </div>
+      ) : (
+        <Editor
+          value={value}
+          language={lang}
+          theme={prefs.theme}
+          height={Math.min(height, 400)}
+          options={{
+            readOnly,
+            fontSize: prefs.fontSize,
+            tabSize: prefs.tabSize,
+            lineHeight: Math.round(prefs.fontSize * 1.6),
+            minimap: { enabled: prefs.minimap },
+            scrollBeyondLastLine: false,
+            wordWrap: prefs.wordWrap ? 'on' : 'off',
+            automaticLayout: true,
+            padding: { top: 8, bottom: 8 },
+            scrollbar: {
+              vertical: 'auto',
+              horizontal: 'hidden',
+              verticalScrollbarSize: 6,
+              useShadows: false,
+            },
+            overviewRulerLanes: 0,
+            renderLineHighlight: readOnly ? 'none' : 'line',
+            folding: false,
+            contextmenu: false,
+          }}
+          loading={
+            <div className='flex h-30 items-center justify-center bg-[#1e1e1e] text-xs text-zinc-500'>
+              Loading editor…
+            </div>
+          }
+          beforeMount={defineCustomThemes}
+          onMount={(editor) => {
+            const update = () => {
+              setHeight(Math.max(120, editor.getContentHeight()));
+            };
+            update();
+            editor.onDidContentSizeChange(update);
+          }}
+          onChange={(val) => onChange?.(val ?? '')}
+        />
+      )}
     </div>
   );
 }

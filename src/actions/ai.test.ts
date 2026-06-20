@@ -9,7 +9,7 @@ vi.mock("@/lib/rate-limit", () => ({ rateLimit: vi.fn() }));
 import { auth } from "@/auth";
 import { getOpenAIClient } from "@/lib/openai";
 import { rateLimit } from "@/lib/rate-limit";
-import { generateAutoTags } from "./ai";
+import { generateAutoTags, explainCode } from "./ai";
 
 const mockAuth = vi.mocked(auth);
 const mockGetClient = vi.mocked(getOpenAIClient);
@@ -27,6 +27,70 @@ function makeClient(outputText: string) {
     },
   };
 }
+
+describe("explainCode action", () => {
+  const validInput = { typeName: "snippet" as const, title: "useDebounce hook", content: "function useDebounce(value, delay) { ... }" };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns unauthorized when no session", async () => {
+    mockAuth.mockResolvedValue(null);
+
+    const result = await explainCode(validInput);
+
+    expect(result).toEqual({ success: false, error: "Unauthorized" });
+  });
+
+  it("returns error for free user", async () => {
+    mockAuth.mockResolvedValue(FREE_SESSION);
+
+    const result = await explainCode(validInput);
+
+    expect(result).toEqual({ success: false, error: "Pro subscription required" });
+  });
+
+  it("returns error when rate limited", async () => {
+    mockAuth.mockResolvedValue(PRO_SESSION);
+    mockRateLimit.mockResolvedValue(RATE_LIMIT_HIT);
+
+    const result = await explainCode(validInput);
+
+    expect(result).toEqual({ success: false, error: "Too many AI requests. Please try again in an hour." });
+  });
+
+  it("returns error when AI call throws", async () => {
+    mockAuth.mockResolvedValue(PRO_SESSION);
+    mockRateLimit.mockResolvedValue(RATE_LIMIT_OK);
+    mockGetClient.mockReturnValue({
+      responses: { create: vi.fn().mockRejectedValue(new Error("network error")) },
+    } as never);
+
+    const result = await explainCode(validInput);
+
+    expect(result).toEqual({ success: false, error: "AI service error. Please try again." });
+  });
+
+  it("returns explanation from valid JSON response", async () => {
+    mockAuth.mockResolvedValue(PRO_SESSION);
+    mockRateLimit.mockResolvedValue(RATE_LIMIT_OK);
+    mockGetClient.mockReturnValue(makeClient(JSON.stringify({ explanation: "This hook delays a value update." })) as never);
+
+    const result = await explainCode(validInput);
+
+    expect(result).toEqual({ success: true, explanation: "This hook delays a value update." });
+  });
+
+  it("returns error for invalid typeName (not snippet or command)", async () => {
+    mockAuth.mockResolvedValue(PRO_SESSION);
+    mockRateLimit.mockResolvedValue(RATE_LIMIT_OK);
+
+    const result = await explainCode({ typeName: "note" as never, title: "My note", content: "some text" });
+
+    expect(result).toMatchObject({ success: false });
+  });
+});
 
 describe("generateAutoTags action", () => {
   const validInput = { typeName: "snippet", title: "useDebounce hook", content: "function useDebounce..." };

@@ -222,7 +222,7 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
         <Plus className="size-4" />
         {triggerLabel}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>New Item</DialogTitle>
         </DialogHeader>
@@ -399,7 +399,7 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
             />
           </FormField>
 
-          <div className="flex justify-end gap-2">
+          <div className="sticky bottom-0 -mx-4 -mb-4 flex justify-end gap-2 border-t border-border bg-popover px-4 py-4">
             <Button
               type="button"
               variant="ghost"

@@ -31,10 +31,12 @@ export function ItemCard({ item }: { item: DashboardItem }) {
   }
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       aria-label={item.title}
       onClick={() => openDrawer(item.id)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openDrawer(item.id); }}
       className="group block w-full cursor-pointer text-left focus-visible:outline-none"
     >
       <Card className="relative h-full px-4 pl-5 transition-colors hover:bg-muted/40 group-focus-visible:ring-2 group-focus-visible:ring-ring">
@@ -106,6 +108,6 @@ export function ItemCard({ item }: { item: DashboardItem }) {
           </div>
         </div>
       </Card>
-    </button>
+    </div>
   );
 }
