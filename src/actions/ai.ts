@@ -6,6 +6,91 @@ import { auth } from "@/auth";
 import { getOpenAIClient, AI_MODEL } from "@/lib/openai";
 import { rateLimit } from "@/lib/rate-limit";
 
+const GenerateDescriptionSchema = z.object({
+  typeName: z.string().trim().min(1),
+  title: z.string().trim().min(1, "Title is required"),
+  content: z.string().optional(),
+  url: z.string().optional(),
+  fileName: z.string().optional(),
+});
+
+type GenerateDescriptionResult =
+  | { success: true; description: string }
+  | { success: false; error: string };
+
+export async function generateDescription(
+  input: z.input<typeof GenerateDescriptionSchema>
+): Promise<GenerateDescriptionResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  if (!session.user.isPro) {
+    return { success: false, error: "Pro subscription required" };
+  }
+
+  const parsed = GenerateDescriptionSchema.safeParse(input);
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? "Invalid input";
+    return { success: false, error: message };
+  }
+
+  const limit = await rateLimit(`ai:${session.user.id}`, 20, "1 h");
+  if (!limit.success) {
+    return { success: false, error: "Too many AI requests. Please try again in an hour." };
+  }
+
+  const { typeName, title, content, url, fileName } = parsed.data;
+  const truncatedContent = content ? content.slice(0, 2000) : "";
+
+  const userInput = [
+    `Write a description for this developer item:`,
+    `Type: ${typeName}`,
+    `Title: ${title}`,
+    truncatedContent ? `Content:\n${truncatedContent}` : "",
+    url ? `URL: ${url}` : "",
+    fileName ? `File name: ${fileName}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  try {
+    const client = getOpenAIClient();
+    const response = await client.responses.create({
+      model: AI_MODEL,
+      instructions:
+        'You are a developer tool assistant. Write a concise 1-2 sentence description for the given developer item. Return ONLY a JSON object with a single key "description" containing the description string. Keep it developer-friendly and factual.',
+      input: userInput,
+      text: {
+        format: { type: "json_object" },
+      },
+    });
+
+    const raw = response.output_text;
+    let parsedJson: unknown;
+    try {
+      parsedJson = JSON.parse(raw);
+    } catch {
+      return { success: false, error: "AI returned an unexpected response" };
+    }
+
+    if (
+      parsedJson &&
+      typeof parsedJson === "object" &&
+      "description" in parsedJson &&
+      typeof (parsedJson as Record<string, unknown>).description === "string"
+    ) {
+      return { success: true, description: (parsedJson as { description: string }).description };
+    }
+
+    return { success: false, error: "AI returned an unexpected response" };
+  } catch (err) {
+    console.error("[generateDescription] error:", err);
+    return { success: false, error: "AI service error. Please try again." };
+  }
+}
+
 const GenerateAutoTagsSchema = z.object({
   typeName: z.string().trim().min(1),
   title: z.string().trim().min(1, "Title is required"),

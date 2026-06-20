@@ -6,7 +6,7 @@ import { Check, Plus, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { createItem } from "@/actions/items";
-import { generateAutoTags } from "@/actions/ai";
+import { generateAutoTags, generateDescription } from "@/actions/ai";
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "@/components/ui/code-editor";
 import { CollectionSelect } from "@/components/ui/collection-select";
@@ -83,6 +83,7 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
   const [collections, setCollections] = useState<UserCollection[]>([]);
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
   const [suggesting, setSuggesting] = useState(false);
+  const [generatingDescription, setGeneratingDescription] = useState(false);
 
   function field(key: keyof FormState, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -101,6 +102,27 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
       setUploadResult(null);
       setSuggestedTags([]);
     }
+  }
+
+  async function handleGenerateDescription() {
+    if (!form.title.trim()) {
+      toast.error("Add a title before generating a description");
+      return;
+    }
+    setGeneratingDescription(true);
+    const result = await generateDescription({
+      typeName: selectedType,
+      title: form.title,
+      content: form.content || undefined,
+      url: form.url || undefined,
+      fileName: uploadResult?.fileName || undefined,
+    });
+    setGeneratingDescription(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    field("description", result.description);
   }
 
   async function handleSuggestTags() {
@@ -232,7 +254,23 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
             />
           </FormField>
 
-          <FormField label="Description">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Description
+              </label>
+              {isPro && (
+                <button
+                  type="button"
+                  onClick={handleGenerateDescription}
+                  disabled={generatingDescription}
+                  className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
+                >
+                  <Sparkles className="size-3" />
+                  {generatingDescription ? "Generating…" : "Generate"}
+                </button>
+              )}
+            </div>
             <Textarea
               value={form.description}
               onChange={(e) => field("description", e.target.value)}
@@ -240,7 +278,7 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
               rows={2}
               className="resize-none"
             />
-          </FormField>
+          </div>
 
           {showFileUpload && (
             <FormField label={selectedType === "image" ? "Image" : "File"} required>

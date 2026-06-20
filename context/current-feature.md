@@ -1,12 +1,27 @@
-# Current Feature
+# Current Feature: AI Description Generator
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
 
+- Add a Sparkles icon button next to the description field in both `NewItemDialog` and `DrawerEditBody` (edit mode)
+- Clicking it calls an AI server action that reads the current title, type, and content (whatever is filled in so far — no save required) and returns a 1–2 sentence description
+- The generated description is inserted directly into the description textarea
+- Works for all 7 content types (snippet, prompt, command, note, link, file, image) using whatever context is available
+- Pro-only (consistent with other AI features); hidden for free users
+- Rate-limited (20 req/hr per userId, matching `generateAutoTags`)
+- Button shows a loading spinner while generating; toasts on error
+
 ## Notes
+
+- Mirror the pattern from `generateAutoTags` in `src/actions/ai.ts`: auth-gated, Pro check, rate limit, Zod validation, OpenAI Responses API
+- New action: `generateDescription(input: { typeName, title, content?, url?, fileName? })` → `{ description: string }`
+- Prompt should instruct the model to write 1–2 sentences summarising what the item is, keeping it developer-friendly and concise
+- For file/image types, only `title` and `fileName` will be available — the action should handle missing content gracefully
+- No new unit tests required for this action (mirrors existing AI action pattern); follow the same structure as `ai.test.ts` if time allows
+- `isPro` prop is already threaded to both `NewItemDialog` and `DrawerEditBody` — no additional prop-drilling needed
 
 ## History
 

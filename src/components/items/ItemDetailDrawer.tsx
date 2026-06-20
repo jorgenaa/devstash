@@ -21,7 +21,7 @@ import {
 import { toast } from 'sonner';
 
 import { deleteItem, updateItem, toggleItemFavorite, toggleItemPin } from '@/actions/items';
-import { generateAutoTags } from '@/actions/ai';
+import { generateAutoTags, generateDescription } from '@/actions/ai';
 import { CollectionSelect } from '@/components/ui/collection-select';
 import {
   AlertDialog,
@@ -404,21 +404,39 @@ type DrawerEditBodyProps = {
   isPro: boolean;
   suggestedTags: string[];
   suggesting: boolean;
+  generatingDescription: boolean;
   field: (key: keyof EditState, value: string) => void;
   setCollectionIds: (ids: string[]) => void;
   onSuggestTags: () => void;
   onAcceptTag: (tag: string) => void;
   onRejectTag: (tag: string) => void;
+  onGenerateDescription: () => void;
 };
 
 function DrawerEditBody({
   editState, typeName, showContent, showLanguage, showUrl, collections,
-  isPro, suggestedTags, suggesting,
-  field, setCollectionIds, onSuggestTags, onAcceptTag, onRejectTag,
+  isPro, suggestedTags, suggesting, generatingDescription,
+  field, setCollectionIds, onSuggestTags, onAcceptTag, onRejectTag, onGenerateDescription,
 }: DrawerEditBodyProps) {
   return (
     <>
-      <FormField label='Description'>
+      <div className='flex flex-col gap-1.5'>
+        <div className='flex items-center justify-between'>
+          <label className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+            Description
+          </label>
+          {isPro && (
+            <button
+              type='button'
+              onClick={onGenerateDescription}
+              disabled={generatingDescription}
+              className='flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-50'
+            >
+              <Sparkles className='size-3' />
+              {generatingDescription ? 'Generating…' : 'Generate'}
+            </button>
+          )}
+        </div>
         <Textarea
           value={editState.description}
           onChange={(e) => field('description', e.target.value)}
@@ -426,7 +444,7 @@ function DrawerEditBody({
           placeholder='Optional description'
           className='resize-none'
         />
-      </FormField>
+      </div>
 
       {showLanguage && (
         <FormField label='Language'>
@@ -567,6 +585,7 @@ function DrawerContent({ item, onItemUpdate, onDelete, isPro }: DrawerContentPro
   const [availableCollections, setAvailableCollections] = useState<UserCollection[]>([]);
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
   const [suggesting, setSuggesting] = useState(false);
+  const [generatingDescription, setGeneratingDescription] = useState(false);
 
   function field(key: keyof EditState, value: string) {
     setEditState((prev) => ({ ...prev, [key]: value }));
@@ -586,6 +605,26 @@ function DrawerContent({ item, onItemUpdate, onDelete, isPro }: DrawerContentPro
         .then(setAvailableCollections)
         .catch(() => {});
     }
+  }
+
+  async function handleGenerateDescription() {
+    if (!editState.title.trim()) {
+      toast.error('Add a title before generating a description');
+      return;
+    }
+    setGeneratingDescription(true);
+    const result = await generateDescription({
+      typeName: type.name,
+      title: editState.title,
+      content: editState.content || undefined,
+      url: editState.url || undefined,
+    });
+    setGeneratingDescription(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    field('description', result.description);
   }
 
   async function handleSuggestTags() {
@@ -786,11 +825,13 @@ function DrawerContent({ item, onItemUpdate, onDelete, isPro }: DrawerContentPro
             isPro={isPro}
             suggestedTags={suggestedTags}
             suggesting={suggesting}
+            generatingDescription={generatingDescription}
             field={field}
             setCollectionIds={setCollectionIds}
             onSuggestTags={handleSuggestTags}
             onAcceptTag={acceptTag}
             onRejectTag={rejectTag}
+            onGenerateDescription={handleGenerateDescription}
           />
         ) : (
           <DrawerViewBody
