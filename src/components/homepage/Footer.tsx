@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/ui/logo";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -10,13 +11,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="flex-1">
             <Link href="/" className="inline-flex items-center gap-2 mb-3">
-              <span
-                className="text-sm font-bold px-1.5 py-0.5 rounded text-white"
-                style={{ background: "#3b82f6" }}
-              >
-                DS
-              </span>
-              <span className="font-semibold text-white text-sm">DevStash</span>
+              <Logo className="text-white" />
             </Link>
             <p className="text-white/40 text-sm">Your developer knowledge hub.</p>
           </div>

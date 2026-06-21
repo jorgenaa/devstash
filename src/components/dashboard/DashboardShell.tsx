@@ -50,6 +50,12 @@ export function DashboardShell({
   return (
     <EditorPreferencesProvider initial={editorPreferences}>
     <div className="flex h-screen flex-col">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:left-4 focus:top-4 focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:ring-2 focus:ring-ring"
+      >
+        Skip to content
+      </a>
       <header className="flex h-14 items-center gap-3 border-b border-border bg-background px-4">
         <Logo />
 

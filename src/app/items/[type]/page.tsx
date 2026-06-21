@@ -92,7 +92,7 @@ export default async function ItemTypePage({
               />
             </div>
             <div>
-              <h2 className="text-lg font-semibold">{pageTitle}</h2>
+              <h2 className="text-xl font-semibold">{pageTitle}</h2>
               <p className="text-xs text-muted-foreground">
                 {totalCount} {totalCount === 1 ? "item" : "items"}
               </p>

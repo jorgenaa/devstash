@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { buttonVariants } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { X, Menu } from "lucide-react";
@@ -10,6 +11,8 @@ import { cn } from "@/lib/utils";
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const isSignedIn = status === "authenticated" && !!session;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -43,22 +46,34 @@ export default function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center gap-2">
-          <Link
-            href="/sign-in"
-            className={cn(
-              buttonVariants({ variant: "ghost", size: "sm" }),
-              "text-white/70 hover:text-white hover:bg-white/10"
-            )}
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/register"
-            className={cn(buttonVariants({ size: "sm" }), "text-white hover:opacity-90")}
-            style={{ background: "#3b82f6" }}
-          >
-            Get Started
-          </Link>
+          {isSignedIn ? (
+            <Link
+              href="/dashboard"
+              className={cn(buttonVariants({ size: "sm" }), "text-white hover:opacity-90")}
+              style={{ background: "#3b82f6" }}
+            >
+              Go to Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/sign-in"
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "sm" }),
+                  "text-white/70 hover:text-white hover:bg-white/10"
+                )}
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/register"
+                className={cn(buttonVariants({ size: "sm" }), "text-white hover:opacity-90")}
+                style={{ background: "#3b82f6" }}
+              >
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -94,24 +109,39 @@ export default function Navbar() {
           >
             Pricing
           </a>
-          <Link
-            href="/sign-in"
-            onClick={() => setMobileOpen(false)}
-            className="px-6 py-3 text-white/70 hover:text-white text-sm border-b"
-            style={{ borderColor: "rgba(255,255,255,0.06)" }}
-          >
-            Sign In
-          </Link>
-          <div className="px-6 py-4">
-            <Link
-              href="/register"
-              onClick={() => setMobileOpen(false)}
-              className={cn(buttonVariants(), "w-full text-white justify-center")}
-              style={{ background: "#3b82f6" }}
-            >
-              Get Started
-            </Link>
-          </div>
+          {isSignedIn ? (
+            <div className="px-6 py-4">
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileOpen(false)}
+                className={cn(buttonVariants(), "w-full text-white justify-center")}
+                style={{ background: "#3b82f6" }}
+              >
+                Go to Dashboard
+              </Link>
+            </div>
+          ) : (
+            <>
+              <Link
+                href="/sign-in"
+                onClick={() => setMobileOpen(false)}
+                className="px-6 py-3 text-white/70 hover:text-white text-sm border-b"
+                style={{ borderColor: "rgba(255,255,255,0.06)" }}
+              >
+                Sign In
+              </Link>
+              <div className="px-6 py-4">
+                <Link
+                  href="/register"
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(buttonVariants(), "w-full text-white justify-center")}
+                  style={{ background: "#3b82f6" }}
+                >
+                  Get Started
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       )}
     </nav>

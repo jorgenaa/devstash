@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { ChevronDown, ChevronUp, LogOut, Settings, Star, User } from "lucide-react";
 
@@ -47,6 +47,7 @@ export function Sidebar({
   onNavigate,
 }: SidebarProps) {
   const [collectionsOpen, setCollectionsOpen] = useState(true);
+  const pathname = usePathname();
 
   return (
     <div
@@ -67,6 +68,7 @@ export function Sidebar({
               <SidebarLink
                 key={type.id}
                 href={href}
+                active={pathname === href}
                 collapsed={collapsed}
                 onNavigate={onNavigate}
                 tooltip={capitalize(label)}
@@ -125,6 +127,7 @@ export function Sidebar({
                   <SidebarLink
                     key={collection.id}
                     href={`/collections/${collection.id}`}
+                    active={pathname === `/collections/${collection.id}`}
                     collapsed={collapsed}
                     onNavigate={onNavigate}
                     tooltip={collection.name}
@@ -142,6 +145,7 @@ export function Sidebar({
                   <SidebarLink
                     key={collection.id}
                     href={`/collections/${collection.id}`}
+                    active={pathname === `/collections/${collection.id}`}
                     collapsed={collapsed}
                     onNavigate={onNavigate}
                     tooltip={collection.name}
@@ -225,6 +229,7 @@ function SidebarSubsection({
 
 function SidebarLink({
   href,
+  active,
   collapsed,
   tooltip,
   leading,
@@ -233,6 +238,7 @@ function SidebarLink({
   onNavigate,
 }: {
   href: string;
+  active?: boolean;
   collapsed: boolean;
   tooltip: string;
   leading: React.ReactNode;
@@ -244,9 +250,11 @@ function SidebarLink({
     <Link
       href={href}
       onClick={onNavigate}
+      aria-current={active ? "page" : undefined}
       className={cn(
         "group flex h-8 items-center gap-2 rounded-md px-2 text-sm text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-        collapsed && "justify-center px-0"
+        collapsed && "justify-center px-0",
+        active && "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
       )}
     >
       {leading}

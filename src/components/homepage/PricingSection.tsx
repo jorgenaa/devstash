@@ -137,7 +137,7 @@ export default function PricingSection() {
               className={cn(buttonVariants(), "w-full justify-center text-white")}
               style={{ background: "#3b82f6" }}
             >
-              Get Pro
+              Upgrade to Pro
             </Link>
           </div>
         </div>

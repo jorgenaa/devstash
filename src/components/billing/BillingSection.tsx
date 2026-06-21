@@ -10,13 +10,13 @@ import { toast } from "sonner";
 type Props = { isPro: boolean };
 
 export function BillingSection({ isPro }: Props) {
-  const [interval, setInterval] = useState<"monthly" | "yearly">("yearly");
+  const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("yearly");
   const [loading, setLoading] = useState(false);
 
   async function handleCheckout() {
     setLoading(true);
     try {
-      await createCheckoutSession(interval);
+      await createCheckoutSession(billingInterval);
     } catch {
       toast.error("Failed to start checkout. Please try again.");
       setLoading(false);
@@ -52,21 +52,29 @@ export function BillingSection({ isPro }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-2">
-        <Button
-          variant={interval === "monthly" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setInterval("monthly")}
-        >
+      <div className="flex items-center gap-3">
+        <span className={`text-sm transition-colors ${billingInterval ==="monthly" ? "text-foreground" : "text-muted-foreground"}`}>
           Monthly — $8
-        </Button>
-        <Button
-          variant={interval === "yearly" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setInterval("yearly")}
+        </span>
+        <button
+          role="switch"
+          aria-checked={billingInterval ==="yearly"}
+          aria-label="Billing period"
+          onClick={() => setBillingInterval((v) => v === "yearly" ? "monthly" : "yearly")}
+          className="relative h-5 w-10 cursor-pointer rounded-full transition-colors"
+          style={{ background: billingInterval ==="yearly" ? "#3b82f6" : "rgba(255,255,255,0.15)" }}
         >
-          Yearly — $72 <span className="ml-1 text-xs opacity-70">Save 25%</span>
-        </Button>
+          <span
+            className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+            style={{ transform: billingInterval ==="yearly" ? "translateX(20px)" : "translateX(0)" }}
+          />
+        </button>
+        <span className={`flex items-center gap-1.5 text-sm transition-colors ${billingInterval ==="yearly" ? "text-foreground" : "text-muted-foreground"}`}>
+          Yearly — $72
+          <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-xs font-medium text-blue-400">
+            Save 25%
+          </span>
+        </span>
       </div>
 
       <ul className="space-y-1 text-sm text-muted-foreground">

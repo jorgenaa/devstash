@@ -92,7 +92,7 @@ export function FavoritesList({ items, collections }: FavoritesListProps) {
               Items — {items.length}
             </p>
             <Select value={itemSort} onValueChange={(v) => setItemSort(v as ItemSortKey)}>
-              <SelectTrigger className="h-6 w-[130px] border-none bg-transparent px-2 text-[11px] text-muted-foreground shadow-none focus:ring-0">
+              <SelectTrigger className="h-6 w-[130px] border-none bg-transparent px-2 text-[11px] text-muted-foreground shadow-none">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent align="end">
@@ -119,7 +119,7 @@ export function FavoritesList({ items, collections }: FavoritesListProps) {
               Collections — {collections.length}
             </p>
             <Select value={collectionSort} onValueChange={(v) => setCollectionSort(v as CollectionSortKey)}>
-              <SelectTrigger className="h-6 w-[130px] border-none bg-transparent px-2 text-[11px] text-muted-foreground shadow-none focus:ring-0">
+              <SelectTrigger className="h-6 w-[130px] border-none bg-transparent px-2 text-[11px] text-muted-foreground shadow-none">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent align="end">

@@ -11,6 +11,7 @@ import { signInWithGitHub } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Logo } from "@/components/ui/logo";
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -117,8 +118,8 @@ export function SignInForm({
   return (
     <div className="w-full max-w-sm rounded-xl border border-border bg-card p-8 shadow-sm">
       <div className="mb-8 text-center">
-        <div className="mx-auto mb-4 flex size-10 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
-          DS
+        <div className="mx-auto mb-4 flex justify-center">
+          <Logo />
         </div>
         <h1 className="text-xl font-semibold tracking-tight">
           Sign in to DevStash

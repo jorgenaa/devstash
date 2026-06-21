@@ -146,7 +146,7 @@ export default function ChaosAnimation() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2" aria-hidden="true">
       <p className="text-xs text-white/40 text-center font-mono">Your knowledge today...</p>
       <div
         className="relative w-full max-w-85 rounded-xl overflow-hidden"

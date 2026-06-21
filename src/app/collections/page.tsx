@@ -48,7 +48,7 @@ export default async function CollectionsPage({
       <div className="flex flex-col gap-6">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-lg font-semibold">Collections</h1>
+            <h1 className="text-xl font-semibold">Collections</h1>
             <p className="text-xs text-muted-foreground">
               {totalCount}{" "}
               {totalCount === 1 ? "collection" : "collections"}

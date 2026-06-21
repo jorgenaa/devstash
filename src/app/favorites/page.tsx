@@ -26,7 +26,7 @@ export default async function FavoritesPage() {
       <ItemDrawerProvider>
         <div className="flex flex-col gap-6">
           <div>
-            <h1 className="text-lg font-semibold">Favorites</h1>
+            <h1 className="text-xl font-semibold">Favorites</h1>
             <p className="text-xs text-muted-foreground">
               {items.length + collections.length} starred
             </p>

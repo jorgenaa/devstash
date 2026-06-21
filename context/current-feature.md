@@ -2,9 +2,24 @@
 
 ## Status
 
-Not Started
+In Progress
 
 ## Goals
+
+UI polish pass based on review findings.
+
+## Items
+
+1. **Sidebar active state highlighting** — `SidebarLink` has no `usePathname()` check; no active background or `aria-current="page"`. Fix: compare current path against `href`, apply `bg-sidebar-accent`.
+2. **GitHub OAuth button on register page** — `/register` is missing the GitHub button + divider that `/sign-in` has. Add the `signInWithGitHub` server action form.
+3. **Logo inconsistency** — Sign-in card, register card, and footer still use the old `DS` box instead of the shared `<Logo>` component.
+4. **Heading size inconsistency** — `/dashboard` uses `text-2xl`; `/favorites`, `/collections`, `/items/[type]` use `text-lg`. Standardize.
+5. **Sort control removes focus ring** — `focus:ring-0` on `SelectTrigger` in `FavoritesList.tsx` eliminates keyboard focus visibility.
+6. **Inconsistent billing interval UI** — Homepage uses a toggle switch; settings page uses two pill buttons. Use one pattern.
+7. **CTA label mismatch** — Homepage Pro card says "Get Pro"; in-app upgrade page says "Start Pro Trial". Align copy.
+8. **`ChaosAnimation` not `aria-hidden`** — Floating icons are visible to screen readers. Add `aria-hidden="true"` to the container.
+9. **No skip-to-content link** — `<main id="main-content">` exists but no skip link is implemented for keyboard users.
+10. **`role="button"` on divs** — `CollectionCard` and `ItemCard` use `<div role="button">` instead of native `<button>` elements.
 
 ## Notes
 
