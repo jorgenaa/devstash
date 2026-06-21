@@ -9,7 +9,7 @@ vi.mock("@/lib/rate-limit", () => ({ rateLimit: vi.fn() }));
 import { auth } from "@/auth";
 import { getOpenAIClient } from "@/lib/openai";
 import { rateLimit } from "@/lib/rate-limit";
-import { generateAutoTags, explainCode } from "./ai";
+import { generateAutoTags, explainCode, optimizePrompt } from "./ai";
 
 const mockAuth = vi.mocked(auth);
 const mockGetClient = vi.mocked(getOpenAIClient);
@@ -87,6 +87,69 @@ describe("explainCode action", () => {
     mockRateLimit.mockResolvedValue(RATE_LIMIT_OK);
 
     const result = await explainCode({ typeName: "note" as never, title: "My note", content: "some text" });
+
+    expect(result).toMatchObject({ success: false });
+  });
+});
+
+describe("optimizePrompt action", () => {
+  const validInput = { title: "Write Python code", content: "Write a python script that does something." };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns unauthorized when no session", async () => {
+    mockAuth.mockResolvedValue(null);
+
+    const result = await optimizePrompt(validInput);
+
+    expect(result).toEqual({ success: false, error: "Unauthorized" });
+  });
+
+  it("returns error for free user", async () => {
+    mockAuth.mockResolvedValue(FREE_SESSION);
+
+    const result = await optimizePrompt(validInput);
+
+    expect(result).toEqual({ success: false, error: "Pro subscription required" });
+  });
+
+  it("returns error when rate limited", async () => {
+    mockAuth.mockResolvedValue(PRO_SESSION);
+    mockRateLimit.mockResolvedValue(RATE_LIMIT_HIT);
+
+    const result = await optimizePrompt(validInput);
+
+    expect(result).toEqual({ success: false, error: "Too many AI requests. Please try again in an hour." });
+  });
+
+  it("returns error when AI call throws", async () => {
+    mockAuth.mockResolvedValue(PRO_SESSION);
+    mockRateLimit.mockResolvedValue(RATE_LIMIT_OK);
+    mockGetClient.mockReturnValue({
+      responses: { create: vi.fn().mockRejectedValue(new Error("network error")) },
+    } as never);
+
+    const result = await optimizePrompt(validInput);
+
+    expect(result).toEqual({ success: false, error: "AI service error. Please try again." });
+  });
+
+  it("returns optimized prompt from valid JSON response", async () => {
+    mockAuth.mockResolvedValue(PRO_SESSION);
+    mockRateLimit.mockResolvedValue(RATE_LIMIT_OK);
+    mockGetClient.mockReturnValue(makeClient(JSON.stringify({ optimizedPrompt: "Write a Python 3.10+ script that..." })) as never);
+
+    const result = await optimizePrompt(validInput);
+
+    expect(result).toEqual({ success: true, optimizedPrompt: "Write a Python 3.10+ script that..." });
+  });
+
+  it("returns error for empty content", async () => {
+    mockAuth.mockResolvedValue(PRO_SESSION);
+
+    const result = await optimizePrompt({ content: "   " });
 
     expect(result).toMatchObject({ success: false });
   });

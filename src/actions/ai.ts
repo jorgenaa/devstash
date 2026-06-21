@@ -170,6 +170,88 @@ export async function generateDescription(
   }
 }
 
+const OptimizePromptSchema = z.object({
+  title: z.string().trim().optional(),
+  content: z.string().trim().min(1, "Content is required"),
+});
+
+type OptimizePromptResult =
+  | { success: true; optimizedPrompt: string }
+  | { success: false; error: string };
+
+export async function optimizePrompt(
+  input: z.input<typeof OptimizePromptSchema>
+): Promise<OptimizePromptResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  if (!session.user.isPro) {
+    return { success: false, error: "Pro subscription required" };
+  }
+
+  const parsed = OptimizePromptSchema.safeParse(input);
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? "Invalid input";
+    return { success: false, error: message };
+  }
+
+  const limit = await rateLimit(`ai:${session.user.id}`, 20, "1 h");
+  if (!limit.success) {
+    return { success: false, error: "Too many AI requests. Please try again in an hour." };
+  }
+
+  const { title, content } = parsed.data;
+  const truncatedContent = content.slice(0, 3000);
+
+  const userInput = [
+    "Optimize this AI prompt (return a JSON object):",
+    title ? `Title: ${title}` : "",
+    `Prompt:\n${truncatedContent}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  try {
+    const client = getOpenAIClient();
+    const response = await client.responses.create({
+      model: AI_MODEL,
+      instructions:
+        'You are a prompt engineering expert. Improve the given AI prompt to make it clearer, more specific, and more effective. Fix any ambiguity, add structure where helpful, and ensure the goal is crystal clear. Preserve the original intent. Return ONLY a JSON object with a single key "optimizedPrompt" containing the improved prompt string.',
+      input: userInput,
+      text: {
+        format: { type: "json_object" },
+      },
+    });
+
+    const raw = response.output_text;
+    let parsedJson: unknown;
+    try {
+      parsedJson = JSON.parse(raw);
+    } catch {
+      return { success: false, error: "AI returned an unexpected response" };
+    }
+
+    if (
+      parsedJson &&
+      typeof parsedJson === "object" &&
+      "optimizedPrompt" in parsedJson &&
+      typeof (parsedJson as Record<string, unknown>).optimizedPrompt === "string"
+    ) {
+      return {
+        success: true,
+        optimizedPrompt: (parsedJson as { optimizedPrompt: string }).optimizedPrompt,
+      };
+    }
+
+    return { success: false, error: "AI returned an unexpected response" };
+  } catch (err) {
+    console.error("[optimizePrompt] error:", err);
+    return { success: false, error: "AI service error. Please try again." };
+  }
+}
+
 const GenerateAutoTagsSchema = z.object({
   typeName: z.string().trim().min(1),
   title: z.string().trim().min(1, "Title is required"),
