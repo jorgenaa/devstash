@@ -21,7 +21,7 @@ import {
 import { toast } from 'sonner';
 
 import { deleteItem, updateItem, toggleItemFavorite, toggleItemPin } from '@/actions/items';
-import { generateAutoTags, generateDescription, explainCode } from '@/actions/ai';
+import { generateAutoTags, generateDescription, explainCode, optimizePrompt } from '@/actions/ai';
 import { CollectionSelect } from '@/components/ui/collection-select';
 import {
   AlertDialog,
@@ -37,7 +37,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CodeEditor, type ExplainState } from '@/components/ui/code-editor';
-import { MarkdownEditor } from '@/components/ui/markdown-editor';
+import { MarkdownEditor, type OptimizeState } from '@/components/ui/markdown-editor';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
@@ -406,6 +406,7 @@ type DrawerEditBodyProps = {
   suggestedTags: string[];
   suggesting: boolean;
   generatingDescription: boolean;
+  optimizeState?: OptimizeState;
   field: (key: keyof EditState, value: string) => void;
   setCollectionIds: (ids: string[]) => void;
   onSuggestTags: () => void;
@@ -416,7 +417,7 @@ type DrawerEditBodyProps = {
 
 function DrawerEditBody({
   editState, typeName, showContent, showLanguage, showUrl, collections,
-  isPro, suggestedTags, suggesting, generatingDescription,
+  isPro, suggestedTags, suggesting, generatingDescription, optimizeState,
   field, setCollectionIds, onSuggestTags, onAcceptTag, onRejectTag, onGenerateDescription,
 }: DrawerEditBodyProps) {
   return (
@@ -479,6 +480,7 @@ function DrawerEditBody({
             <MarkdownEditor
               value={editState.content}
               onChange={(v) => field('content', v)}
+              optimize={optimizeState}
             />
           )}
         </FormField>
@@ -589,9 +591,12 @@ function DrawerContent({ item, onItemUpdate, onDelete, isPro }: DrawerContentPro
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [explaining, setExplaining] = useState(false);
+  const [optimizedPrompt, setOptimizedPrompt] = useState<string | null>(null);
+  const [optimizing, setOptimizing] = useState(false);
 
   useEffect(() => {
     setExplanation(null);
+    setOptimizedPrompt(null);
   }, [item.id]);
 
   function field(key: keyof EditState, value: string) {
@@ -665,8 +670,37 @@ function DrawerContent({ item, onItemUpdate, onDelete, isPro }: DrawerContentPro
     setSuggestedTags((prev) => prev.filter((t) => t !== tag));
   }
 
+  async function handleOptimize() {
+    if (!editState.content.trim()) {
+      toast.error('Add content before optimizing');
+      return;
+    }
+    setOptimizing(true);
+    const result = await optimizePrompt({
+      title: editState.title || undefined,
+      content: editState.content,
+    });
+    setOptimizing(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    setOptimizedPrompt(result.optimizedPrompt);
+  }
+
+  function handleAcceptOptimized() {
+    if (!optimizedPrompt) return;
+    field('content', optimizedPrompt);
+    setOptimizedPrompt(null);
+  }
+
+  function handleRejectOptimized() {
+    setOptimizedPrompt(null);
+  }
+
   function handleCancel() {
     setEditing(false);
+    setOptimizedPrompt(null);
   }
 
   async function handleExplain() {
@@ -778,6 +812,18 @@ function DrawerContent({ item, onItemUpdate, onDelete, isPro }: DrawerContentPro
   const isImage = type.name === 'image';
   const downloadUrl = item.fileUrl ? `/api/download/${item.fileUrl}` : null;
 
+  const optimizeState: OptimizeState | undefined =
+    type.name === 'prompt'
+      ? {
+          isPro,
+          onOptimize: handleOptimize,
+          optimizing,
+          optimizedPrompt,
+          onAccept: handleAcceptOptimized,
+          onReject: handleRejectOptimized,
+        }
+      : undefined;
+
   return (
     <>
       <SheetHeader className='gap-2 pr-10'>
@@ -849,6 +895,7 @@ function DrawerContent({ item, onItemUpdate, onDelete, isPro }: DrawerContentPro
             suggestedTags={suggestedTags}
             suggesting={suggesting}
             generatingDescription={generatingDescription}
+            optimizeState={optimizeState}
             field={field}
             setCollectionIds={setCollectionIds}
             onSuggestTags={handleSuggestTags}

@@ -6,7 +6,7 @@ import { Check, Plus, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { createItem } from "@/actions/items";
-import { generateAutoTags, generateDescription } from "@/actions/ai";
+import { generateAutoTags, generateDescription, optimizePrompt } from "@/actions/ai";
 import { Button } from "@/components/ui/button";
 import { CodeEditor } from "@/components/ui/code-editor";
 import { CollectionSelect } from "@/components/ui/collection-select";
@@ -84,6 +84,8 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
   const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
   const [suggesting, setSuggesting] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [optimizedPrompt, setOptimizedPrompt] = useState<string | null>(null);
+  const [optimizing, setOptimizing] = useState(false);
 
   function field(key: keyof FormState, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -101,6 +103,7 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
       setSelectedType(defaultType ?? "snippet");
       setUploadResult(null);
       setSuggestedTags([]);
+      setOptimizedPrompt(null);
     }
   }
 
@@ -123,6 +126,34 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
       return;
     }
     field("description", result.description);
+  }
+
+  async function handleOptimize() {
+    if (!form.content.trim()) {
+      toast.error("Add content before optimizing");
+      return;
+    }
+    setOptimizing(true);
+    const result = await optimizePrompt({
+      title: form.title || undefined,
+      content: form.content,
+    });
+    setOptimizing(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    setOptimizedPrompt(result.optimizedPrompt);
+  }
+
+  function handleAcceptOptimized() {
+    if (!optimizedPrompt) return;
+    field("content", optimizedPrompt);
+    setOptimizedPrompt(null);
+  }
+
+  function handleRejectOptimized() {
+    setOptimizedPrompt(null);
   }
 
   async function handleSuggestTags() {
@@ -163,6 +194,7 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
   function handleTypeChange(type: TypeName) {
     setSelectedType(type);
     setUploadResult(null);
+    setOptimizedPrompt(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -322,6 +354,14 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
                 <MarkdownEditor
                   value={form.content}
                   onChange={(v) => field("content", v)}
+                  optimize={selectedType === "prompt" ? {
+                    isPro,
+                    onOptimize: handleOptimize,
+                    optimizing,
+                    optimizedPrompt,
+                    onAccept: handleAcceptOptimized,
+                    onReject: handleRejectOptimized,
+                  } : undefined}
                 />
               )}
             </FormField>
