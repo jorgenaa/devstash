@@ -14,9 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { FormField } from "@/components/ui/form-field";
+import { CollectionForm } from "@/components/collections/CollectionForm";
 
 function defaultForm() {
   return { name: "", description: "" };
@@ -64,48 +62,15 @@ export function NewCollectionDialog() {
           <DialogTitle>New Collection</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-2">
-          <FormField label="Name" required>
-            <Input
-              placeholder="e.g. React Patterns"
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && form.name.trim()) handleCreate();
-              }}
-              autoFocus
-            />
-          </FormField>
-
-          <FormField label="Description">
-            <Textarea
-              placeholder="What's this collection for? (optional)"
-              rows={3}
-              value={form.description}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description: e.target.value }))
-              }
-            />
-          </FormField>
-        </div>
-
-        <div className="flex justify-end gap-2 pt-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleOpenChange(false)}
-            disabled={saving}
-          >
-            Cancel
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleCreate}
-            disabled={!form.name.trim() || saving}
-          >
-            {saving ? "Creating…" : "Create"}
-          </Button>
-        </div>
+        <CollectionForm
+          form={form}
+          onChange={setForm}
+          onSubmit={handleCreate}
+          onCancel={() => handleOpenChange(false)}
+          saving={saving}
+          submitLabel="Create"
+          savingLabel="Creating…"
+        />
       </DialogContent>
     </Dialog>
   );

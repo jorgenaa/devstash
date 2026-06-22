@@ -2,19 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Editor, { type Monaco } from '@monaco-editor/react';
-import { Clipboard, Crown, Loader2, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useEditorPreferences } from '@/contexts/editor-preferences-context';
 import { SUPPORTED_LANGUAGES } from '@/lib/item-type-constants';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-
-const MAC_DOTS = ['#ff5f57', '#febc2e', '#28c840'] as const;
+import { EditorMacDots, EditorCopyButton, AiEditorButton } from '@/components/ui/editor-header';
 
 function defineCustomThemes(monaco: Monaco) {
   monaco.editor.defineTheme('monokai', {
@@ -96,29 +88,12 @@ export function CodeEditor({ value, onChange, language, readOnly = false, explai
     }
   }, [explain?.explanation]);
 
-  async function handleCopy() {
-    if (!value) {
-      toast.error('Nothing to copy');
-      return;
-    }
-    await navigator.clipboard.writeText(value);
-    toast.success('Copied to clipboard');
-  }
-
   const showTabs = !!explain?.explanation;
 
   return (
     <div className='overflow-hidden rounded-md border border-border'>
       <div className='flex items-center justify-between bg-[#1e1e1e] px-3 py-2'>
-        <div className='flex items-center gap-1.5'>
-          {MAC_DOTS.map((color) => (
-            <span
-              key={color}
-              className='block size-2.5 rounded-full'
-              style={{ backgroundColor: color }}
-            />
-          ))}
-        </div>
+        <EditorMacDots />
         <div className='flex items-center gap-2'>
           {langLabel && langLabel !== 'Plain Text' && (
             <span className='text-[11px] text-zinc-500'>{langLabel}</span>
@@ -149,46 +124,15 @@ export function CodeEditor({ value, onChange, language, readOnly = false, explai
               </button>
             </div>
           ) : explain ? (
-            explain.isPro ? (
-              <button
-                type='button'
-                onClick={explain.onExplain}
-                disabled={explain.explaining}
-                className='flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200 disabled:opacity-50'
-              >
-                {explain.explaining ? (
-                  <Loader2 className='size-3 animate-spin' />
-                ) : (
-                  <Sparkles className='size-3' />
-                )}
-                {explain.explaining ? 'Explaining…' : 'Explain'}
-              </button>
-            ) : (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <button
-                      type='button'
-                      disabled
-                      className='flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-zinc-600 opacity-60'
-                    >
-                      <Crown className='size-3' />
-                      Explain
-                    </button>
-                  }
-                />
-                <TooltipContent>AI features require Pro subscription</TooltipContent>
-              </Tooltip>
-            )
+            <AiEditorButton
+              isPro={explain.isPro}
+              loading={explain.explaining}
+              loadingLabel='Explaining…'
+              idleLabel='Explain'
+              onAction={explain.onExplain}
+            />
           ) : null}
-          <button
-            type='button'
-            onClick={handleCopy}
-            className='flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200'
-          >
-            <Clipboard className='size-3' />
-            Copy
-          </button>
+          <EditorCopyButton value={value} />
         </div>
       </div>
       {activeTab === 'explain' && explain?.explanation ? (

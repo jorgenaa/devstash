@@ -5,29 +5,12 @@ import Link from "next/link";
 import { Check, X } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-const FREE_FEATURES: { text: string; included: boolean }[] = [
-  { text: "50 items total", included: true },
-  { text: "3 collections", included: true },
-  { text: "All text item types", included: true },
-  { text: "Basic search", included: true },
-  { text: "File & image uploads", included: false },
-  { text: "AI features", included: false },
-  { text: "Data export", included: false },
-];
-
-const PRO_FEATURES = [
-  "Unlimited items",
-  "Unlimited collections",
-  "File & image uploads",
-  "All AI features",
-  "Data export (JSON / ZIP)",
-  "Priority support",
-  "Custom types (coming soon)",
-];
+import { FREE_FEATURES, PRO_FEATURES } from "@/lib/pricing-features";
+import { BillingIntervalToggle } from "@/components/ui/billing-interval-toggle";
 
 export default function PricingSection() {
-  const [yearly, setYearly] = useState(false);
+  const [interval, setInterval] = useState<"monthly" | "yearly">("monthly");
+  const yearly = interval === "yearly";
 
   return (
     <section id="pricing" className="py-24 px-6">
@@ -41,19 +24,7 @@ export default function PricingSection() {
             <span className={`text-sm transition-colors ${!yearly ? "text-white" : "text-white/40"}`}>
               Monthly
             </span>
-            <button
-              role="switch"
-              aria-checked={yearly}
-              aria-label="Billing period"
-              onClick={() => setYearly((v) => !v)}
-              className="relative w-10 h-5 rounded-full transition-colors cursor-pointer"
-              style={{ background: yearly ? "#3b82f6" : "rgba(255,255,255,0.15)" }}
-            >
-              <span
-                className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform"
-                style={{ transform: yearly ? "translateX(20px)" : "translateX(0)" }}
-              />
-            </button>
+            <BillingIntervalToggle value={interval} onChange={setInterval} />
             <span className={`text-sm flex items-center gap-1.5 transition-colors ${yearly ? "text-white" : "text-white/40"}`}>
               Yearly
               <span

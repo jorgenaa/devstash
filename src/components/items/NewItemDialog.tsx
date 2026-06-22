@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Plus, Sparkles, X } from "lucide-react";
+import { Check, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { createItem } from "@/actions/items";
@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ItemTypeIcon } from "@/lib/item-type-icons";
 import { TEXT_CONTENT_TYPES, LANGUAGE_TYPES, FILE_TYPES, SUPPORTED_LANGUAGES } from "@/lib/item-type-constants";
 import { FormField } from "@/components/ui/form-field";
+import { AiFieldHeader } from "@/components/ui/ai-action-button";
 import {
   Select,
   SelectContent,
@@ -286,23 +287,14 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
             />
           </FormField>
 
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Description
-              </label>
-              {isPro && (
-                <button
-                  type="button"
-                  onClick={handleGenerateDescription}
-                  disabled={generatingDescription}
-                  className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
-                >
-                  <Sparkles className="size-3" />
-                  {generatingDescription ? "Generating…" : "Generate"}
-                </button>
-              )}
-            </div>
+          <AiFieldHeader
+            label="Description"
+            isPro={isPro}
+            loading={generatingDescription}
+            loadingLabel="Generating…"
+            idleLabel="Generate"
+            onAction={handleGenerateDescription}
+          >
             <Textarea
               value={form.description}
               onChange={(e) => field("description", e.target.value)}
@@ -310,7 +302,7 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
               rows={2}
               className="resize-none"
             />
-          </div>
+          </AiFieldHeader>
 
           {showFileUpload && (
             <FormField label={selectedType === "image" ? "Image" : "File"} required>
@@ -378,23 +370,14 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
             </FormField>
           )}
 
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Tags
-              </label>
-              {isPro && (
-                <button
-                  type="button"
-                  onClick={handleSuggestTags}
-                  disabled={suggesting}
-                  className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
-                >
-                  <Sparkles className="size-3" />
-                  {suggesting ? "Suggesting…" : "Suggest Tags"}
-                </button>
-              )}
-            </div>
+          <AiFieldHeader
+            label="Tags"
+            isPro={isPro}
+            loading={suggesting}
+            loadingLabel="Suggesting…"
+            idleLabel="Suggest Tags"
+            onAction={handleSuggestTags}
+          >
             <Input
               value={form.tags}
               onChange={(e) => field("tags", e.target.value)}
@@ -429,7 +412,7 @@ export function NewItemDialog({ defaultType, isPro = false }: Props = {}) {
                 ))}
               </div>
             )}
-          </div>
+          </AiFieldHeader>
 
           <FormField label="Collections">
             <CollectionSelect

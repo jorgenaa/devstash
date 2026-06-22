@@ -1,18 +1,16 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { stripe, STRIPE_PRICE_IDS, type BillingInterval } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "./_utils";
 
 export async function createCheckoutSession(interval: BillingInterval) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" } as const;
-  }
+  const authResult = await requireAuth();
+  if (!authResult.ok) return authResult.error;
 
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: authResult.userId },
     select: { email: true, stripeCustomerId: true },
   });
 
@@ -25,7 +23,7 @@ export async function createCheckoutSession(interval: BillingInterval) {
     const customer = await stripe.customers.create({ email: user.email! });
     customerId = customer.id;
     await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: authResult.userId },
       data: { stripeCustomerId: customerId },
     });
   }
@@ -37,9 +35,9 @@ export async function createCheckoutSession(interval: BillingInterval) {
     line_items: [{ price: STRIPE_PRICE_IDS[interval], quantity: 1 }],
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?checkout=success`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/settings?checkout=cancelled`,
-    metadata: { userId: session.user.id },
+    metadata: { userId: authResult.userId },
     subscription_data: {
-      metadata: { userId: session.user.id },
+      metadata: { userId: authResult.userId },
     },
   });
 
@@ -51,13 +49,11 @@ export async function createCheckoutSession(interval: BillingInterval) {
 }
 
 export async function createBillingPortalSession() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" } as const;
-  }
+  const authResult = await requireAuth();
+  if (!authResult.ok) return authResult.error;
 
   const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: { id: authResult.userId },
     select: { stripeCustomerId: true },
   });
 

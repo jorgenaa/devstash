@@ -2,7 +2,6 @@
 
 import { z } from "zod";
 
-import { auth } from "@/auth";
 import {
   createCollection as dbCreateCollection,
   updateCollection as dbUpdateCollection,
@@ -12,8 +11,9 @@ import {
 } from "@/lib/db/collections";
 import { prisma } from "@/lib/prisma";
 import { isAtCollectionLimit } from "@/lib/usage-limits";
+import { requireAuth, parseOrError } from "./_utils";
 
-const CreateCollectionSchema = z.object({
+const CollectionSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   description: z.string().trim().nullable().optional(),
 });
@@ -23,30 +23,24 @@ type CreateCollectionResult =
   | { success: false; error: string };
 
 export async function createCollection(
-  formData: z.input<typeof CreateCollectionSchema>,
+  formData: z.input<typeof CollectionSchema>,
 ): Promise<CreateCollectionResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
-  }
+  const authResult = await requireAuth();
+  if (!authResult.ok) return authResult.error;
 
-
-  if (!session.user.isPro) {
-    const count = await prisma.collection.count({ where: { userId: session.user.id } });
+  if (!authResult.session.user.isPro) {
+    const count = await prisma.collection.count({ where: { userId: authResult.userId } });
     if (isAtCollectionLimit(count)) {
       return { success: false, error: "Free plan limit reached. Upgrade to Pro for unlimited collections." };
     }
   }
 
-  const parsed = CreateCollectionSchema.safeParse(formData);
-  if (!parsed.success) {
-    const message = parsed.error.issues[0]?.message ?? "Invalid input";
-    return { success: false, error: message };
-  }
+  const parsed = parseOrError(CollectionSchema, formData);
+  if (!parsed.ok) return parsed.error;
 
   const { name, description } = parsed.data;
 
-  const collection = await dbCreateCollection(session.user.id, {
+  const collection = await dbCreateCollection(authResult.userId, {
     name,
     description: description ?? null,
   });
@@ -54,33 +48,23 @@ export async function createCollection(
   return { success: true, data: collection };
 }
 
-const UpdateCollectionSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-  description: z.string().trim().nullable().optional(),
-});
-
 type UpdateCollectionResult =
   | { success: true; data: CollectionSummary }
   | { success: false; error: string };
 
 export async function updateCollection(
   collectionId: string,
-  formData: z.input<typeof UpdateCollectionSchema>,
+  formData: z.input<typeof CollectionSchema>,
 ): Promise<UpdateCollectionResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
-  }
+  const authResult = await requireAuth();
+  if (!authResult.ok) return authResult.error;
 
-  const parsed = UpdateCollectionSchema.safeParse(formData);
-  if (!parsed.success) {
-    const message = parsed.error.issues[0]?.message ?? "Invalid input";
-    return { success: false, error: message };
-  }
+  const parsed = parseOrError(CollectionSchema, formData);
+  if (!parsed.ok) return parsed.error;
 
   const { name, description } = parsed.data;
 
-  const collection = await dbUpdateCollection(session.user.id, collectionId, {
+  const collection = await dbUpdateCollection(authResult.userId, collectionId, {
     name,
     description: description ?? null,
   });
@@ -99,12 +83,10 @@ type ToggleCollectionFavoriteResult =
 export async function toggleCollectionFavorite(
   collectionId: string,
 ): Promise<ToggleCollectionFavoriteResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
-  }
+  const authResult = await requireAuth();
+  if (!authResult.ok) return authResult.error;
 
-  const result = await dbToggleCollectionFavorite(session.user.id, collectionId);
+  const result = await dbToggleCollectionFavorite(authResult.userId, collectionId);
   if (!result) {
     return { success: false, error: "Collection not found" };
   }
@@ -119,12 +101,10 @@ type DeleteCollectionResult =
 export async function deleteCollection(
   collectionId: string,
 ): Promise<DeleteCollectionResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
-  }
+  const authResult = await requireAuth();
+  if (!authResult.ok) return authResult.error;
 
-  const deleted = await dbDeleteCollection(session.user.id, collectionId);
+  const deleted = await dbDeleteCollection(authResult.userId, collectionId);
   if (!deleted) {
     return { success: false, error: "Collection not found" };
   }

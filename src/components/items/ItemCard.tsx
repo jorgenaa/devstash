@@ -8,11 +8,7 @@ import { Card } from "@/components/ui/card";
 import type { DashboardItem } from "@/lib/db/items";
 import { ItemTypeIcon } from "@/lib/item-type-icons";
 import { useItemDrawer } from "@/components/items/ItemDrawerContext";
-
-const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-});
+import { SHORT_DATE_FORMATTER } from "@/lib/formatters";
 
 export function ItemCard({ item }: { item: DashboardItem }) {
   const { type } = item;
@@ -87,7 +83,7 @@ export function ItemCard({ item }: { item: DashboardItem }) {
               dateTime={item.createdAt.toISOString()}
               className="text-xs text-muted-foreground"
             >
-              {DATE_FORMATTER.format(item.createdAt)}
+              {SHORT_DATE_FORMATTER.format(item.createdAt)}
             </time>
             {copyText ? (
               <button

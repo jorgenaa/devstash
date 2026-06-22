@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Crown, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { BillingIntervalToggle, SaveBadge } from "@/components/ui/billing-interval-toggle";
 import { createCheckoutSession, createBillingPortalSession } from "@/actions/billing";
 import { toast } from "sonner";
 
@@ -53,27 +54,13 @@ export function BillingSection({ isPro }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <span className={`text-sm transition-colors ${billingInterval ==="monthly" ? "text-foreground" : "text-muted-foreground"}`}>
+        <span className={`text-sm transition-colors ${billingInterval === "monthly" ? "text-foreground" : "text-muted-foreground"}`}>
           Monthly — $8
         </span>
-        <button
-          role="switch"
-          aria-checked={billingInterval ==="yearly"}
-          aria-label="Billing period"
-          onClick={() => setBillingInterval((v) => v === "yearly" ? "monthly" : "yearly")}
-          className="relative h-5 w-10 cursor-pointer rounded-full transition-colors"
-          style={{ background: billingInterval ==="yearly" ? "#3b82f6" : "rgba(255,255,255,0.15)" }}
-        >
-          <span
-            className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white transition-transform"
-            style={{ transform: billingInterval ==="yearly" ? "translateX(20px)" : "translateX(0)" }}
-          />
-        </button>
-        <span className={`flex items-center gap-1.5 text-sm transition-colors ${billingInterval ==="yearly" ? "text-foreground" : "text-muted-foreground"}`}>
+        <BillingIntervalToggle value={billingInterval} onChange={setBillingInterval} />
+        <span className={`flex items-center gap-1.5 text-sm transition-colors ${billingInterval === "yearly" ? "text-foreground" : "text-muted-foreground"}`}>
           Yearly — $72
-          <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-xs font-medium text-blue-400">
-            Save 25%
-          </span>
+          <SaveBadge />
         </span>
       </div>
 

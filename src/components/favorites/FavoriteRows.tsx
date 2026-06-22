@@ -9,11 +9,7 @@ import { ItemTypeIcon } from "@/lib/item-type-icons";
 import { useItemDrawer } from "@/components/items/ItemDrawerContext";
 import type { DashboardItem } from "@/lib/db/items";
 import type { FavoriteCollection } from "@/lib/db/favorites";
-
-const DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-});
+import { SHORT_DATE_FORMATTER } from "@/lib/formatters";
 
 export function FavoriteItemRow({ item }: { item: DashboardItem }) {
   const { openDrawer } = useItemDrawer();
@@ -53,7 +49,7 @@ export function FavoriteItemRow({ item }: { item: DashboardItem }) {
         dateTime={item.updatedAt.toISOString()}
         className="w-12 shrink-0 text-right text-xs text-muted-foreground"
       >
-        {DATE_FORMATTER.format(item.updatedAt)}
+        {SHORT_DATE_FORMATTER.format(item.updatedAt)}
       </time>
     </button>
   );
@@ -95,7 +91,7 @@ export function FavoriteCollectionRow({
         dateTime={collection.updatedAt.toISOString()}
         className="w-12 shrink-0 text-right text-xs text-muted-foreground"
       >
-        {DATE_FORMATTER.format(collection.updatedAt)}
+        {SHORT_DATE_FORMATTER.format(collection.updatedAt)}
       </time>
     </Link>
   );

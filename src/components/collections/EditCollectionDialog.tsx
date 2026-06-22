@@ -4,16 +4,13 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { updateCollection } from "@/actions/collections";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { FormField } from "@/components/ui/form-field";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { CollectionForm } from "@/components/collections/CollectionForm";
 
 interface EditCollectionDialogProps {
   collection: { id: string; name: string; description: string | null };
@@ -65,48 +62,15 @@ export function EditCollectionDialog({
           <DialogTitle>Edit Collection</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 py-2">
-          <FormField label="Name" required>
-            <Input
-              placeholder="e.g. React Patterns"
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && form.name.trim()) handleSave();
-              }}
-              autoFocus
-            />
-          </FormField>
-
-          <FormField label="Description">
-            <Textarea
-              placeholder="What's this collection for? (optional)"
-              rows={3}
-              value={form.description}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description: e.target.value }))
-              }
-            />
-          </FormField>
-        </div>
-
-        <div className="flex justify-end gap-2 pt-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onOpenChange(false)}
-            disabled={saving}
-          >
-            Cancel
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleSave}
-            disabled={!form.name.trim() || saving}
-          >
-            {saving ? "Saving…" : "Save"}
-          </Button>
-        </div>
+        <CollectionForm
+          form={form}
+          onChange={setForm}
+          onSubmit={handleSave}
+          onCancel={() => onOpenChange(false)}
+          saving={saving}
+          submitLabel="Save"
+          savingLabel="Saving…"
+        />
       </DialogContent>
     </Dialog>
   );

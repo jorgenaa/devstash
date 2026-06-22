@@ -14,6 +14,7 @@ import {
 
 import type { DashboardItem } from "@/lib/db/items";
 import { useItemDrawer } from "@/components/items/ItemDrawerContext";
+import { formatBytes } from "@/lib/formatters";
 
 type IconComponent = React.ComponentType<{ className?: string }>;
 
@@ -27,13 +28,6 @@ function getFileIcon(fileName: string | null): IconComponent {
   if (["js", "ts", "tsx", "jsx", "py", "rb", "go", "rs", "java", "php"].includes(ext)) return FileCode;
   if (["txt", "md", "pdf", "doc", "docx"].includes(ext)) return FileText;
   return File;
-}
-
-function formatFileSize(bytes: number | null): string {
-  if (bytes === null) return "";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function FileListRow({ item }: { item: DashboardItem }) {
@@ -68,7 +62,7 @@ export function FileListRow({ item }: { item: DashboardItem }) {
             <span className="truncate">{item.title}</span>
           )}
           {item.fileSize !== null && (
-            <span className="shrink-0">{formatFileSize(item.fileSize)}</span>
+            <span className="shrink-0">{formatBytes(item.fileSize)}</span>
           )}
           <span className="shrink-0">
             {item.updatedAt.toLocaleDateString(undefined, {

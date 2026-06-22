@@ -2,9 +2,67 @@
 
 import { z } from "zod";
 
-import { auth } from "@/auth";
 import { getOpenAIClient, AI_MODEL } from "@/lib/openai";
 import { rateLimit } from "@/lib/rate-limit";
+import { requireAuth, parseOrError } from "./_utils";
+
+// --- Local AI helpers ---
+
+async function requireAIAccess() {
+  const authResult = await requireAuth();
+  if (!authResult.ok) return authResult;
+
+  if (!authResult.session.user.isPro) {
+    return { ok: false as const, error: { success: false as const, error: "Pro subscription required" } };
+  }
+
+  const limit = await rateLimit(`ai:${authResult.userId}`, 20, "1 h");
+  if (!limit.success) {
+    return { ok: false as const, error: { success: false as const, error: "Too many AI requests. Please try again in an hour." } };
+  }
+
+  return authResult;
+}
+
+async function callOpenAIRaw(instructions: string, userInput: string, logTag: string) {
+  try {
+    const client = getOpenAIClient();
+    const response = await client.responses.create({
+      model: AI_MODEL,
+      instructions,
+      input: userInput,
+      text: { format: { type: "json_object" } },
+    });
+
+    try {
+      return { ok: true as const, parsed: JSON.parse(response.output_text) as unknown };
+    } catch {
+      return { ok: false as const, error: "AI returned an unexpected response" };
+    }
+  } catch (err) {
+    console.error(`[${logTag}]`, err);
+    return { ok: false as const, error: "AI service error. Please try again." };
+  }
+}
+
+async function callOpenAIString(instructions: string, userInput: string, key: string, logTag: string) {
+  const result = await callOpenAIRaw(instructions, userInput, logTag);
+  if (!result.ok) return { ok: false as const, error: { success: false as const, error: result.error } };
+
+  const { parsed } = result;
+  if (
+    parsed &&
+    typeof parsed === "object" &&
+    key in parsed &&
+    typeof (parsed as Record<string, unknown>)[key] === "string"
+  ) {
+    return { ok: true as const, value: (parsed as Record<string, string>)[key] };
+  }
+
+  return { ok: false as const, error: { success: false as const, error: "AI returned an unexpected response" } };
+}
+
+// --- Exported server actions ---
 
 const ExplainCodeSchema = z.object({
   typeName: z.enum(["snippet", "command"]),
@@ -19,25 +77,11 @@ type ExplainCodeResult =
 export async function explainCode(
   input: z.input<typeof ExplainCodeSchema>
 ): Promise<ExplainCodeResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
-  }
+  const access = await requireAIAccess();
+  if (!access.ok) return access.error;
 
-  if (!session.user.isPro) {
-    return { success: false, error: "Pro subscription required" };
-  }
-
-  const parsed = ExplainCodeSchema.safeParse(input);
-  if (!parsed.success) {
-    const message = parsed.error.issues[0]?.message ?? "Invalid input";
-    return { success: false, error: message };
-  }
-
-  const limit = await rateLimit(`ai:${session.user.id}`, 20, "1 h");
-  if (!limit.success) {
-    return { success: false, error: "Too many AI requests. Please try again in an hour." };
-  }
+  const parsed = parseOrError(ExplainCodeSchema, input);
+  if (!parsed.ok) return parsed.error;
 
   const { typeName, title, content } = parsed.data;
   const truncatedContent = content.slice(0, 3000);
@@ -49,40 +93,14 @@ export async function explainCode(
     "Return a JSON object.",
   ].join("\n");
 
-  try {
-    const client = getOpenAIClient();
-    const response = await client.responses.create({
-      model: AI_MODEL,
-      instructions:
-        'You are a senior developer explaining code to a fellow developer. Given a code snippet or terminal command, write a clear explanation in 200-300 words covering what it does, how it works, and any key concepts. Use markdown for formatting (bold, inline code, bullet points where helpful). Return ONLY a JSON object with a single key "explanation" containing the markdown string.',
-      input: userInput,
-      text: {
-        format: { type: "json_object" },
-      },
-    });
-
-    const raw = response.output_text;
-    let parsedJson: unknown;
-    try {
-      parsedJson = JSON.parse(raw);
-    } catch {
-      return { success: false, error: "AI returned an unexpected response" };
-    }
-
-    if (
-      parsedJson &&
-      typeof parsedJson === "object" &&
-      "explanation" in parsedJson &&
-      typeof (parsedJson as Record<string, unknown>).explanation === "string"
-    ) {
-      return { success: true, explanation: (parsedJson as { explanation: string }).explanation };
-    }
-
-    return { success: false, error: "AI returned an unexpected response" };
-  } catch (err) {
-    console.error("[explainCode] error:", err);
-    return { success: false, error: "AI service error. Please try again." };
-  }
+  const result = await callOpenAIString(
+    'You are a senior developer explaining code to a fellow developer. Given a code snippet or terminal command, write a clear explanation in 200-300 words covering what it does, how it works, and any key concepts. Use markdown for formatting (bold, inline code, bullet points where helpful). Return ONLY a JSON object with a single key "explanation" containing the markdown string.',
+    userInput,
+    "explanation",
+    "explainCode"
+  );
+  if (!result.ok) return result.error;
+  return { success: true, explanation: result.value };
 }
 
 const GenerateDescriptionSchema = z.object({
@@ -100,25 +118,11 @@ type GenerateDescriptionResult =
 export async function generateDescription(
   input: z.input<typeof GenerateDescriptionSchema>
 ): Promise<GenerateDescriptionResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
-  }
+  const access = await requireAIAccess();
+  if (!access.ok) return access.error;
 
-  if (!session.user.isPro) {
-    return { success: false, error: "Pro subscription required" };
-  }
-
-  const parsed = GenerateDescriptionSchema.safeParse(input);
-  if (!parsed.success) {
-    const message = parsed.error.issues[0]?.message ?? "Invalid input";
-    return { success: false, error: message };
-  }
-
-  const limit = await rateLimit(`ai:${session.user.id}`, 20, "1 h");
-  if (!limit.success) {
-    return { success: false, error: "Too many AI requests. Please try again in an hour." };
-  }
+  const parsed = parseOrError(GenerateDescriptionSchema, input);
+  if (!parsed.ok) return parsed.error;
 
   const { typeName, title, content, url, fileName } = parsed.data;
   const truncatedContent = content ? content.slice(0, 2000) : "";
@@ -134,40 +138,14 @@ export async function generateDescription(
     .filter(Boolean)
     .join("\n");
 
-  try {
-    const client = getOpenAIClient();
-    const response = await client.responses.create({
-      model: AI_MODEL,
-      instructions:
-        'You are a developer tool assistant. Write a concise 1-2 sentence description for the given developer item. Return ONLY a JSON object with a single key "description" containing the description string. Keep it developer-friendly and factual.',
-      input: userInput,
-      text: {
-        format: { type: "json_object" },
-      },
-    });
-
-    const raw = response.output_text;
-    let parsedJson: unknown;
-    try {
-      parsedJson = JSON.parse(raw);
-    } catch {
-      return { success: false, error: "AI returned an unexpected response" };
-    }
-
-    if (
-      parsedJson &&
-      typeof parsedJson === "object" &&
-      "description" in parsedJson &&
-      typeof (parsedJson as Record<string, unknown>).description === "string"
-    ) {
-      return { success: true, description: (parsedJson as { description: string }).description };
-    }
-
-    return { success: false, error: "AI returned an unexpected response" };
-  } catch (err) {
-    console.error("[generateDescription] error:", err);
-    return { success: false, error: "AI service error. Please try again." };
-  }
+  const result = await callOpenAIString(
+    'You are a developer tool assistant. Write a concise 1-2 sentence description for the given developer item. Return ONLY a JSON object with a single key "description" containing the description string. Keep it developer-friendly and factual.',
+    userInput,
+    "description",
+    "generateDescription"
+  );
+  if (!result.ok) return result.error;
+  return { success: true, description: result.value };
 }
 
 const OptimizePromptSchema = z.object({
@@ -182,25 +160,11 @@ type OptimizePromptResult =
 export async function optimizePrompt(
   input: z.input<typeof OptimizePromptSchema>
 ): Promise<OptimizePromptResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
-  }
+  const access = await requireAIAccess();
+  if (!access.ok) return access.error;
 
-  if (!session.user.isPro) {
-    return { success: false, error: "Pro subscription required" };
-  }
-
-  const parsed = OptimizePromptSchema.safeParse(input);
-  if (!parsed.success) {
-    const message = parsed.error.issues[0]?.message ?? "Invalid input";
-    return { success: false, error: message };
-  }
-
-  const limit = await rateLimit(`ai:${session.user.id}`, 20, "1 h");
-  if (!limit.success) {
-    return { success: false, error: "Too many AI requests. Please try again in an hour." };
-  }
+  const parsed = parseOrError(OptimizePromptSchema, input);
+  if (!parsed.ok) return parsed.error;
 
   const { title, content } = parsed.data;
   const truncatedContent = content.slice(0, 3000);
@@ -213,43 +177,14 @@ export async function optimizePrompt(
     .filter(Boolean)
     .join("\n");
 
-  try {
-    const client = getOpenAIClient();
-    const response = await client.responses.create({
-      model: AI_MODEL,
-      instructions:
-        'You are a prompt engineering expert. Improve the given AI prompt to make it clearer, more specific, and more effective. Fix any ambiguity, add structure where helpful, and ensure the goal is crystal clear. Preserve the original intent. Return ONLY a JSON object with a single key "optimizedPrompt" containing the improved prompt string.',
-      input: userInput,
-      text: {
-        format: { type: "json_object" },
-      },
-    });
-
-    const raw = response.output_text;
-    let parsedJson: unknown;
-    try {
-      parsedJson = JSON.parse(raw);
-    } catch {
-      return { success: false, error: "AI returned an unexpected response" };
-    }
-
-    if (
-      parsedJson &&
-      typeof parsedJson === "object" &&
-      "optimizedPrompt" in parsedJson &&
-      typeof (parsedJson as Record<string, unknown>).optimizedPrompt === "string"
-    ) {
-      return {
-        success: true,
-        optimizedPrompt: (parsedJson as { optimizedPrompt: string }).optimizedPrompt,
-      };
-    }
-
-    return { success: false, error: "AI returned an unexpected response" };
-  } catch (err) {
-    console.error("[optimizePrompt] error:", err);
-    return { success: false, error: "AI service error. Please try again." };
-  }
+  const result = await callOpenAIString(
+    'You are a prompt engineering expert. Improve the given AI prompt to make it clearer, more specific, and more effective. Fix any ambiguity, add structure where helpful, and ensure the goal is crystal clear. Preserve the original intent. Return ONLY a JSON object with a single key "optimizedPrompt" containing the improved prompt string.',
+    userInput,
+    "optimizedPrompt",
+    "optimizePrompt"
+  );
+  if (!result.ok) return result.error;
+  return { success: true, optimizedPrompt: result.value };
 }
 
 const GenerateAutoTagsSchema = z.object({
@@ -265,25 +200,11 @@ type GenerateAutoTagsResult =
 export async function generateAutoTags(
   input: z.input<typeof GenerateAutoTagsSchema>
 ): Promise<GenerateAutoTagsResult> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { success: false, error: "Unauthorized" };
-  }
+  const access = await requireAIAccess();
+  if (!access.ok) return access.error;
 
-  if (!session.user.isPro) {
-    return { success: false, error: "Pro subscription required" };
-  }
-
-  const parsed = GenerateAutoTagsSchema.safeParse(input);
-  if (!parsed.success) {
-    const message = parsed.error.issues[0]?.message ?? "Invalid input";
-    return { success: false, error: message };
-  }
-
-  const limit = await rateLimit(`ai:${session.user.id}`, 20, "1 h");
-  if (!limit.success) {
-    return { success: false, error: "Too many AI requests. Please try again in an hour." };
-  }
+  const parsed = parseOrError(GenerateAutoTagsSchema, input);
+  if (!parsed.ok) return parsed.error;
 
   const { typeName, title, content } = parsed.data;
   const truncatedContent = content ? content.slice(0, 2000) : "";
@@ -297,48 +218,32 @@ export async function generateAutoTags(
     .filter(Boolean)
     .join("\n");
 
-  try {
-    const client = getOpenAIClient();
-    const response = await client.responses.create({
-      model: AI_MODEL,
-      instructions:
-        "You are a developer tool assistant. Suggest 3-5 concise, relevant tags for the given developer item. Return ONLY a JSON object with a single key \"tags\" containing an array of lowercase tag strings. No explanations.",
-      input: userInput,
-      text: {
-        format: { type: "json_object" },
-      },
-    });
+  const rawResult = await callOpenAIRaw(
+    "You are a developer tool assistant. Suggest 3-5 concise, relevant tags for the given developer item. Return ONLY a JSON object with a single key \"tags\" containing an array of lowercase tag strings. No explanations.",
+    userInput,
+    "generateAutoTags"
+  );
+  if (!rawResult.ok) return { success: false, error: rawResult.error };
 
-    const raw = response.output_text;
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(raw);
-    } catch {
-      return { success: false, error: "AI returned an unexpected response" };
-    }
-
-    let tags: string[];
-    if (Array.isArray(parsed)) {
-      tags = parsed;
-    } else if (
-      parsed &&
-      typeof parsed === "object" &&
-      "tags" in parsed &&
-      Array.isArray((parsed as Record<string, unknown>).tags)
-    ) {
-      tags = (parsed as { tags: unknown[] }).tags as string[];
-    } else {
-      return { success: false, error: "AI returned an unexpected response" };
-    }
-
-    const normalizedTags = tags
-      .filter((t) => typeof t === "string" && t.trim().length > 0)
-      .map((t) => t.toLowerCase().trim())
-      .slice(0, 5);
-
-    return { success: true, tags: normalizedTags };
-  } catch (err) {
-    console.error("[generateAutoTags] error:", err);
-    return { success: false, error: "AI service error. Please try again." };
+  const json = rawResult.parsed;
+  let tags: string[];
+  if (Array.isArray(json)) {
+    tags = json;
+  } else if (
+    json &&
+    typeof json === "object" &&
+    "tags" in json &&
+    Array.isArray((json as Record<string, unknown>).tags)
+  ) {
+    tags = (json as { tags: unknown[] }).tags as string[];
+  } else {
+    return { success: false, error: "AI returned an unexpected response" };
   }
+
+  const normalizedTags = tags
+    .filter((t) => typeof t === "string" && t.trim().length > 0)
+    .map((t) => t.toLowerCase().trim())
+    .slice(0, 5);
+
+  return { success: true, tags: normalizedTags };
 }

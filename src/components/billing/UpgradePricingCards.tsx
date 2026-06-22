@@ -4,37 +4,20 @@ import { useState } from "react";
 import { Check, X, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { BillingIntervalToggle, SaveBadge } from "@/components/ui/billing-interval-toggle";
+import { FREE_FEATURES, PRO_FEATURES } from "@/lib/pricing-features";
 import { createCheckoutSession } from "@/actions/billing";
 import { toast } from "sonner";
 
-const FREE_FEATURES: { text: string; included: boolean }[] = [
-  { text: "50 items total", included: true },
-  { text: "3 collections", included: true },
-  { text: "All text item types", included: true },
-  { text: "Basic search", included: true },
-  { text: "File & image uploads", included: false },
-  { text: "AI features", included: false },
-  { text: "Data export", included: false },
-];
-
-const PRO_FEATURES = [
-  "Unlimited items",
-  "Unlimited collections",
-  "File & image uploads",
-  "All AI features",
-  "Data export (JSON / ZIP)",
-  "Priority support",
-  "Custom types (coming soon)",
-];
-
 export function UpgradePricingCards() {
-  const [yearly, setYearly] = useState(true);
+  const [interval, setInterval] = useState<"monthly" | "yearly">("yearly");
   const [loading, setLoading] = useState(false);
+  const yearly = interval === "yearly";
 
   async function handleUpgrade() {
     setLoading(true);
     try {
-      await createCheckoutSession(yearly ? "yearly" : "monthly");
+      await createCheckoutSession(interval);
     } catch {
       toast.error("Failed to start checkout. Please try again.");
       setLoading(false);
@@ -48,24 +31,10 @@ export function UpgradePricingCards() {
         <span className={`text-sm transition-colors ${!yearly ? "text-foreground" : "text-muted-foreground"}`}>
           Monthly
         </span>
-        <button
-          role="switch"
-          aria-checked={yearly}
-          aria-label="Billing period"
-          onClick={() => setYearly((v) => !v)}
-          className="relative h-5 w-10 cursor-pointer rounded-full transition-colors"
-          style={{ background: yearly ? "#3b82f6" : "rgba(255,255,255,0.15)" }}
-        >
-          <span
-            className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white transition-transform"
-            style={{ transform: yearly ? "translateX(20px)" : "translateX(0)" }}
-          />
-        </button>
+        <BillingIntervalToggle value={interval} onChange={setInterval} />
         <span className={`flex items-center gap-1.5 text-sm transition-colors ${yearly ? "text-foreground" : "text-muted-foreground"}`}>
           Yearly
-          <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-xs font-medium text-blue-400">
-            Save 25%
-          </span>
+          <SaveBadge />
         </span>
       </div>
 

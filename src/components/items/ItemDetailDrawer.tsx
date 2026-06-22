@@ -13,7 +13,6 @@ import {
   Pencil,
   Pin,
   Save,
-  Sparkles,
   Star,
   Trash2,
   X,
@@ -52,6 +51,8 @@ import type { ItemDetail } from '@/lib/db/items';
 import { ItemTypeIcon } from '@/lib/item-type-icons';
 import { TEXT_CONTENT_TYPES, LANGUAGE_TYPES, FILE_TYPES, SUPPORTED_LANGUAGES } from '@/lib/item-type-constants';
 import { FormField } from '@/components/ui/form-field';
+import { AiFieldHeader } from '@/components/ui/ai-action-button';
+import { formatBytes } from '@/lib/formatters';
 import {
   Select,
   SelectContent,
@@ -73,12 +74,6 @@ const DATE_FORMATTER = new Intl.DateTimeFormat('en-US', {
 
 function formatDate(iso: string) {
   return DATE_FORMATTER.format(new Date(iso));
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
 function DrawerSkeleton() {
@@ -422,23 +417,14 @@ function DrawerEditBody({
 }: DrawerEditBodyProps) {
   return (
     <>
-      <div className='flex flex-col gap-1.5'>
-        <div className='flex items-center justify-between'>
-          <label className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>
-            Description
-          </label>
-          {isPro && (
-            <button
-              type='button'
-              onClick={onGenerateDescription}
-              disabled={generatingDescription}
-              className='flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-50'
-            >
-              <Sparkles className='size-3' />
-              {generatingDescription ? 'Generating…' : 'Generate'}
-            </button>
-          )}
-        </div>
+      <AiFieldHeader
+        label='Description'
+        isPro={isPro}
+        loading={generatingDescription}
+        loadingLabel='Generating…'
+        idleLabel='Generate'
+        onAction={onGenerateDescription}
+      >
         <Textarea
           value={editState.description}
           onChange={(e) => field('description', e.target.value)}
@@ -446,7 +432,7 @@ function DrawerEditBody({
           placeholder='Optional description'
           className='resize-none'
         />
-      </div>
+      </AiFieldHeader>
 
       {showLanguage && (
         <FormField label='Language'>
@@ -497,23 +483,14 @@ function DrawerEditBody({
         </FormField>
       )}
 
-      <div className='flex flex-col gap-1.5'>
-        <div className='flex items-center justify-between'>
-          <label className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>
-            Tags
-          </label>
-          {isPro && (
-            <button
-              type='button'
-              onClick={onSuggestTags}
-              disabled={suggesting}
-              className='flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-50'
-            >
-              <Sparkles className='size-3' />
-              {suggesting ? 'Suggesting…' : 'Suggest Tags'}
-            </button>
-          )}
-        </div>
+      <AiFieldHeader
+        label='Tags'
+        isPro={isPro}
+        loading={suggesting}
+        loadingLabel='Suggesting…'
+        idleLabel='Suggest Tags'
+        onAction={onSuggestTags}
+      >
         <Input
           value={editState.tags}
           onChange={(e) => field('tags', e.target.value)}
@@ -548,7 +525,7 @@ function DrawerEditBody({
             ))}
           </div>
         )}
-      </div>
+      </AiFieldHeader>
 
       <FormField label='Collections'>
         <CollectionSelect

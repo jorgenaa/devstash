@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MoreHorizontal, Pencil, Star, Trash2 } from "lucide-react";
-import { toast } from "sonner";
 
-import { deleteCollection, toggleCollectionFavorite } from "@/actions/collections";
 import { EditCollectionDialog } from "@/components/collections/EditCollectionDialog";
 import { Card } from "@/components/ui/card";
 import {
@@ -27,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { DashboardCollection } from "@/lib/db/collections";
 import { ItemTypeIcon } from "@/lib/item-type-icons";
+import { useCollectionActions } from "@/hooks/use-collection-actions";
 
 export function CollectionCard({
   collection,
@@ -34,41 +32,17 @@ export function CollectionCard({
   collection: DashboardCollection;
 }) {
   const router = useRouter();
-  const [isFavorite, setIsFavorite] = useState(collection.isFavorite);
-  const [toggling, setToggling] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-
-  async function handleToggleFavorite() {
-    setToggling(true);
-    const result = await toggleCollectionFavorite(collection.id);
-    setToggling(false);
-
-    if (!result.success) {
-      toast.error(result.error);
-      return;
-    }
-
-    setIsFavorite(result.isFavorite);
-    toast.success(result.isFavorite ? 'Added to favorites' : 'Removed from favorites');
-    router.refresh();
-  }
-
-  async function handleDelete() {
-    setDeleting(true);
-    const result = await deleteCollection(collection.id);
-    setDeleting(false);
-
-    if (!result.success) {
-      toast.error(result.error);
-      return;
-    }
-
-    toast.success("Collection deleted");
-    setDeleteOpen(false);
-    router.refresh();
-  }
+  const {
+    isFavorite,
+    toggling,
+    editOpen,
+    setEditOpen,
+    deleteOpen,
+    setDeleteOpen,
+    deleting,
+    handleToggleFavorite,
+    handleDelete,
+  } = useCollectionActions(collection);
 
   return (
     <>
@@ -92,7 +66,7 @@ export function CollectionCard({
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDelete}
+              onClick={() => handleDelete(() => router.refresh())}
               disabled={deleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >

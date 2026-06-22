@@ -3,15 +3,8 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Check, Clipboard, Crown, Loader2, Sparkles, X } from 'lucide-react';
-import { toast } from 'sonner';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-
-const MAC_DOTS = ['#ff5f57', '#febc2e', '#28c840'] as const;
+import { Check, X } from 'lucide-react';
+import { EditorMacDots, EditorCopyButton, AiEditorButton } from '@/components/ui/editor-header';
 
 export type OptimizeState = {
   isPro: boolean;
@@ -33,60 +26,19 @@ export function MarkdownEditor({ value, onChange, readOnly = false, optimize }: 
   const [tab, setTab] = useState<'write' | 'preview'>('write');
   const showPreview = readOnly || tab === 'preview';
 
-  async function handleCopy() {
-    if (!value) {
-      toast.error('Nothing to copy');
-      return;
-    }
-    await navigator.clipboard.writeText(value);
-    toast.success('Copied to clipboard');
-  }
-
   return (
     <div className='overflow-hidden rounded-md border border-border'>
       <div className='flex items-center justify-between bg-[#1e1e1e] px-3 py-2'>
-        <div className='flex items-center gap-1.5'>
-          {MAC_DOTS.map((color) => (
-            <span
-              key={color}
-              className='block size-2.5 rounded-full'
-              style={{ backgroundColor: color }}
-            />
-          ))}
-        </div>
+        <EditorMacDots />
         <div className='flex items-center gap-2'>
           {optimize ? (
-            optimize.isPro ? (
-              <button
-                type='button'
-                onClick={optimize.onOptimize}
-                disabled={optimize.optimizing}
-                className='flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200 disabled:opacity-50'
-              >
-                {optimize.optimizing ? (
-                  <Loader2 className='size-3 animate-spin' />
-                ) : (
-                  <Sparkles className='size-3' />
-                )}
-                {optimize.optimizing ? 'Optimizing…' : 'Optimize'}
-              </button>
-            ) : (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <button
-                      type='button'
-                      disabled
-                      className='flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-zinc-600 opacity-60'
-                    >
-                      <Crown className='size-3' />
-                      Optimize
-                    </button>
-                  }
-                />
-                <TooltipContent>AI features require Pro subscription</TooltipContent>
-              </Tooltip>
-            )
+            <AiEditorButton
+              isPro={optimize.isPro}
+              loading={optimize.optimizing}
+              loadingLabel='Optimizing…'
+              idleLabel='Optimize'
+              onAction={optimize.onOptimize}
+            />
           ) : null}
           {!readOnly && (
             <div className='flex items-center gap-0.5'>
@@ -114,14 +66,7 @@ export function MarkdownEditor({ value, onChange, readOnly = false, optimize }: 
               </button>
             </div>
           )}
-          <button
-            type='button'
-            onClick={handleCopy}
-            className='flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200'
-          >
-            <Clipboard className='size-3' />
-            Copy
-          </button>
+          <EditorCopyButton value={value} />
         </div>
       </div>
 
